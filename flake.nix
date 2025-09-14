@@ -62,7 +62,12 @@
       # ------------------------------------------------------------
       nixosModules.dsqr-proxmox =
         inputs:
-        { config, lib, pkgs, ... }:
+        {
+          config,
+          lib,
+          pkgs,
+          ...
+        }:
         {
           imports = [
             (import ./modules/proxmox/default.nix)

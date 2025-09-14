@@ -37,7 +37,11 @@ lib: {
       default = { };
       description = "Theme overrides including wallpaper path for generated themes";
     };
-
+    scale = lib.mkOption {
+      type = lib.types.int;
+      default = 2;
+      description = "Display scale factor (1 for 1x displays, 2 for 2x displays)";
+    };
     nixos.exclude_packages = lib.mkOption {
       type = lib.types.listOf lib.types.package;
       default = [ ];
