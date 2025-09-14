@@ -32,3 +32,15 @@ test:
         echo "Testing NixOS configuration: {{ NIXNAME }}"
         sudo NIXPKGS_ALLOW_UNFREE=1 NIXPKGS_ALLOW_UNSUPPORTED_SYSTEM=1 nixos-rebuild test --impure --flake ".#{{ NIXNAME }}"
     fi
+
+# Clean old generations and collect garbage
+clean:
+    #!/usr/bin/env bash
+    echo "Running nix garbage collection..."
+    if [[ "{{ uname }}" == "Darwin" ]]; then
+        nix-collect-garbage -d
+        nix-store --optimise
+    else
+        sudo nix-collect-garbage -d
+        sudo nix-store --optimise
+    fi
