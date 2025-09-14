@@ -68,7 +68,7 @@
           ...
         }:
         {
-          imports = [ ./modules/proxmox/default.nix ];
+          imports = [ (import ./modules/nixos/default.nix inputs) ];
           options.dsqrDevbox = (import ./config.nix lib).dsqrDevboxOptions;
         };
 
