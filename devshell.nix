@@ -3,23 +3,23 @@ let
   pkgs = import nixpkgs { inherit system; };
 in
 {
-  # import the dev pkgs from compilation
+  # Extra dev packages visible via `nix build .#packages.${system}.default`
   packages.${system}.default = [
     pkgs.bun
     pkgs.python313
   ];
 
-  # Create a development shell
+  # Development shell
   devShells.${system}.default = pkgs.mkShell {
     buildInputs = with pkgs; [
-      # Core packages
+      # Core tools
       nano
       micro
       home-manager
       curl
       wget
 
-      # Development tools
+      # Build tools
       gnumake
       stdenv.cc
       llvm
@@ -32,9 +32,10 @@ in
       automake
       libtool
       libuuid
+      just
 
-      # Nix development tools
-      nixfmt-rfc-style
+      # Nix tooling
+      nixfmt-tree   # replaces nixfmt-rfc-style
       statix
       deadnix
       nil
@@ -47,7 +48,7 @@ in
     ];
 
     shellHook = ''
-      # Initialize starship for the current shell
+      # Initialize starship
       if [[ -n "$ZSH_VERSION" ]]; then
         eval "$(starship init zsh)"
       else
@@ -55,10 +56,9 @@ in
       fi
 
       echo "Python version: $(python --version)"
-      echo "🚀 Development shell activated, you can now compile things"
+      echo "🚀 dsqr-devbox development shell activated"
     '';
 
-    # Prefer zsh as the shell
     preferLocalBuild = true;
     shell = "${pkgs.zsh}/bin/zsh";
   };
