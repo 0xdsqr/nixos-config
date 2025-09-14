@@ -4,37 +4,43 @@
   exclude_packages ? [ ],
 }:
 let
-  # Essential Hyprland packages - cannot be excluded
-  hyprlandPackages = with pkgs; [
-    hyprshot
-    hyprpicker
-    hyprsunset
-    brightnessctl
-    pamixer
-    playerctl
-    gnome-themes-extra
-    pavucontrol
-  ];
+  # Essential Hyprland packages - cannot be excluded (Linux only)
+  hyprlandPackages =
+    with pkgs;
+    lib.optionals (lib.meta.isLinux pkgs.stdenv.hostPlatform) [
+      hyprshot
+      hyprpicker
+      hyprsunset
+      brightnessctl
+      pamixer
+      playerctl
+      gnome-themes-extra
+      pavucontrol
+    ];
 
   # Essential system packages - cannot be excluded
-  systemPackages = with pkgs; [
-    git
-    vim
-    libnotify
-    nautilus
-    alejandra
-    blueberry
-    clipse
-    fzf
-    zoxide
-    ripgrep
-    eza
-    fd
-    curl
-    unzip
-    wget
-    gnumake
-  ];
+  systemPackages =
+    with pkgs;
+    [
+      git
+      vim
+      alejandra
+      fzf
+      zoxide
+      ripgrep
+      eza
+      fd
+      curl
+      unzip
+      wget
+      gnumake
+    ]
+    ++ lib.optionals (lib.meta.isLinux pkgs.stdenv.hostPlatform) [
+      libnotify
+      nautilus
+      blueberry
+      clipse
+    ];
 
   # Discretionary packages - can be excluded by user
   discretionaryPackages =
@@ -56,6 +62,7 @@ let
       # Development tools
       github-desktop
       gh
+      cachix
 
       # Containers
       docker-compose

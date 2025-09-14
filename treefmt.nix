@@ -1,4 +1,5 @@
-{ pkgs, ... }: {
+{ pkgs, ... }:
+{
   # treefmt configuration
   projectRootFile = "flake.nix";
 

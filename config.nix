@@ -1,9 +1,33 @@
 lib: {
   dsqrDevboxOptions = {
     theme = lib.mkOption {
-      type = lib.types.str;
+      type = lib.types.either (lib.types.enum [
+        "tokyo-night"
+        "kanagawa"
+        "everforest"
+        "catppuccin"
+        "nord"
+        "gruvbox"
+        "gruvbox-light"
+        "generated_light"
+        "generated_dark"
+      ]) lib.types.str;
       default = "tokyo-night";
-      description = "Theme for dsqr-devbox";
+      description = "Theme to use for dsqr-nix configuration";
+    };
+
+    theme_overrides = lib.mkOption {
+      type = lib.types.submodule {
+        options = {
+          wallpaper_path = lib.mkOption {
+            type = lib.types.nullOr lib.types.path;
+            default = null;
+            description = "Path to the wallpaper image to extract colors from";
+          };
+        };
+      };
+      default = { };
+      description = "Theme overrides including wallpaper path for generated themes";
     };
 
     nixos.exclude_packages = lib.mkOption {

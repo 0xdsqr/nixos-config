@@ -21,6 +21,8 @@
       nixpkgs,
       home-manager,
       darwin,
+      nix-colors,
+      treefmt-nix,
       ...
     }@inputs:
     let
@@ -31,12 +33,17 @@
         "aarch64-darwin"
       ];
       forEachSystem = nixpkgs.lib.genAttrs systems;
+
+      mkSystem = import ./lib/mksystem.nix {
+        inherit nixpkgs inputs;
+        overlays = [ ];
+      };
     in
     {
       # ------------------------------------------------------------
       # NixOS module (importable in other flakes or inline configs)
       # ------------------------------------------------------------
-      nixosModules.default =
+      nixosModules.dsqr-nix =
         inputs:
         {
           config,
@@ -51,9 +58,24 @@
         };
 
       # ------------------------------------------------------------
+      # Proxmox module (importable in other flakes or inline configs)
+      # ------------------------------------------------------------
+      nixosModules.dsqr-proxmox =
+        {
+          config,
+          lib,
+          pkgs,
+          ...
+        }:
+        {
+          imports = [ ./modules/proxmox/default.nix ];
+          options.dsqrDevbox = (import ./config.nix lib).dsqrDevboxOptions;
+        };
+
+      # ------------------------------------------------------------
       # Darwin module (importable in other flakes or inline configs)
       # ------------------------------------------------------------
-      darwinModules.default =
+      darwinModules.dsqr-nix =
         inputs:
         {
           config,
@@ -65,6 +87,29 @@
           imports = [ ./modules/darwin/default.nix ];
           options.dsqrDevbox = (import ./config.nix lib).dsqrDevboxOptions;
           config.nixpkgs.config.allowUnfree = true;
+        };
+
+      # ------------------------------------------------------------
+      # Home Manager module (importable in other flakes or inline configs)
+      # ------------------------------------------------------------
+      homeManagerModules.dsqr-nix =
+        inputs:
+        {
+          config,
+          lib,
+          pkgs,
+          osConfig ? { },
+          ...
+        }:
+        {
+          imports = [
+            nix-colors.homeManagerModules.default
+            (import ./modules/home-manager/default.nix inputs)
+          ];
+          options.dsqrDevbox = (import ./config.nix lib).dsqrDevboxOptions;
+          config = lib.mkIf (osConfig ? dsqrDevbox) {
+            dsqrDevbox = osConfig.dsqrDevbox;
+          };
         };
 
       # ------------------------------------------------------------
@@ -81,8 +126,9 @@
       # ------------------------------------------------------------
       # Formatter (nix fmt)
       # ------------------------------------------------------------
-      formatter = forEachSystem (system:
-        (inputs.treefmt-nix.lib.evalModule nixpkgs.legacyPackages.${system} ./treefmt.nix).config.build.wrapper
+      formatter = forEachSystem (
+        system:
+        (treefmt-nix.lib.evalModule nixpkgs.legacyPackages.${system} ./treefmt.nix).config.build.wrapper
       );
 
       # ------------------------------------------------------------
@@ -92,7 +138,28 @@
       # ------------------------------------------------------------
       checks = forEachSystem (system: {
         formatting =
-          (inputs.treefmt-nix.lib.evalModule nixpkgs.legacyPackages.${system} ./treefmt.nix).config.build.check self;
+          (treefmt-nix.lib.evalModule nixpkgs.legacyPackages.${system} ./treefmt.nix).config.build.check
+            self;
       });
+
+      # ------------------------------------------------------------
+      # Nixos System Configurtations
+      # ------------------------------------------------------------
+      nixosConfigurations.devbox-vm-x86_64 = mkSystem "devbox-vm-x86_64" {
+        system = "x86_64-linux";
+        user = "dsqr";
+        darwin = false;
+        homeManager = true;
+      };
+
+      # ------------------------------------------------------------
+      # Dariwn Configurtations
+      # ------------------------------------------------------------
+      darwinConfigurations.devbox-macbook-pro-m1 = mkSystem "devbox-macbook-pro-m1" {
+        system = "aarch64-darwin";
+        user = "dsqr";
+        darwin = true;
+        homeManager = true;
+      };
     };
 }
