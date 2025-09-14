@@ -2,17 +2,27 @@
   description = "Dave's nixworld";
 
   inputs = {
+    # Core Nixpkgs + compatibility
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-compat.url = "github:edolstra/flake-compat";
+    flake-compat.flake = false;
+
+    # System/user management
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
     darwin.url = "github:LnL7/nix-darwin";
     darwin.inputs.nixpkgs.follows = "nixpkgs";
+
+    # Theming + UI
     nix-colors.url = "github:misterio77/nix-colors";
     hyprland.url = "github:hyprwm/Hyprland";
+
+    # Developer tools / utilities
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
-    flake-compat.url = "github:edolstra/flake-compat";
-    flake-compat.flake = false;
+    neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
+    jujutsu.url = "github:martinvonz/jj";
+    zig.url = "github:mitchellh/zig-overlay";
   };
 
   outputs =
@@ -163,5 +173,7 @@
         darwin = true;
         homeManager = true;
       };
+
+      lib.mkSystem = mkSystem;
     };
 }

@@ -70,5 +70,12 @@ in
   };
 
   # TODO: Add an actual nvim config
-  programs.neovim.enable = true;
+  programs.neovim = {
+    enable = true;
+    # Use nightly package from the input
+    package = inputs.neovim-nightly-overlay.packages.${pkgs.system}.default;
+    viAlias = true;
+    vimAlias = true;
+    vimdiffAlias = true;
+  };
 }
