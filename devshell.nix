@@ -8,7 +8,7 @@ in
     pkgs.bun
     pkgs.python313
   ];
-  
+
   # Create a development shell
   devShells.${system}.default = pkgs.mkShell {
     buildInputs = with pkgs; [
@@ -18,7 +18,7 @@ in
       home-manager
       curl
       wget
-      
+
       # Development tools
       gnumake
       stdenv.cc
@@ -32,20 +32,20 @@ in
       automake
       libtool
       libuuid
-      
+
       # Nix development tools
       nixfmt-rfc-style
       statix
       deadnix
       nil
-      
+
       # Language runtimes
       bun
       python313
       starship
       zsh
     ];
-    
+
     shellHook = ''
       # Initialize starship for the current shell
       if [[ -n "$ZSH_VERSION" ]]; then
@@ -53,11 +53,11 @@ in
       else
         eval "$(starship init bash)"
       fi
-      
+
       echo "Python version: $(python --version)"
       echo "🚀 Development shell activated, you can now compile things"
     '';
-    
+
     # Prefer zsh as the shell
     preferLocalBuild = true;
     shell = "${pkgs.zsh}/bin/zsh";
