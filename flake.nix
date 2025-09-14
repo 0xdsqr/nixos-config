@@ -9,6 +9,10 @@
     darwin.inputs.nixpkgs.follows = "nixpkgs";
     nix-colors.url = "github:misterio77/nix-colors";
     hyprland.url = "github:hyprwm/Hyprland";
+    treefmt-nix.url = "github:numtide/treefmt-nix";
+    treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
+    flake-compat.url = "github:edolstra/flake-compat";
+    flake-compat.flake = false;
   };
 
   outputs =
@@ -73,5 +77,22 @@
         in
         devConfig.devShells.${system}
       );
+
+      # ------------------------------------------------------------
+      # Formatter (nix fmt)
+      # ------------------------------------------------------------
+      formatter = forEachSystem (system:
+        (inputs.treefmt-nix.lib.evalModule nixpkgs.legacyPackages.${system} ./treefmt.nix).config.build.wrapper
+      );
+
+      # ------------------------------------------------------------
+      # Checks (nix flake check)
+      # Runs treefmt in check mode to ensure the repo is properly formatted.
+      # Useful in CI to fail builds if formatting or linting issues exist.
+      # ------------------------------------------------------------
+      checks = forEachSystem (system: {
+        formatting =
+          (inputs.treefmt-nix.lib.evalModule nixpkgs.legacyPackages.${system} ./treefmt.nix).config.build.check self;
+      });
     };
 }
