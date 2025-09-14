@@ -5,7 +5,7 @@
   osConfig ? {},
   ...
 }: let
-  cfg = config.dsqrDevbox;
+  cfg = config.omarchy;
   hasNvidiaDrivers = builtins.elem "nvidia" osConfig.services.xserver.videoDrivers;
   nvidiaEnv = [
     "NVD_BACKEND,direct"
@@ -18,8 +18,7 @@ in {
     env =
       (lib.optionals hasNvidiaDrivers nvidiaEnv)
       ++ [
-        "        # "GDK_SCALE,${toString cfg.scale}" # TODO: Add scale to dsqrDevbox options
-        "GDK_SCALE,1""
+        "GDK_SCALE,${toString cfg.scale}"
 
         # Cursor size
         "XCURSOR_SIZE,24"
