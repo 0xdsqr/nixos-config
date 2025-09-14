@@ -8,7 +8,6 @@
 {
   imports = [
     ./hardware/vm-x86_64-linux.nix
-    # Import dsqr-nix nixos module
     (inputs.self.nixosModules.dsqr-nix inputs)
     (inputs.self.nixosModules.dsqr-proxmox inputs)
   ];

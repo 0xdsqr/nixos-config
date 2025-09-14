@@ -14,7 +14,7 @@ let
 in
 {
   imports = [
-    (import ./hyprland.nix inputs)
+    # (import ./hyprland.nix inputs)
     (import ./system.nix)
     (import ./1password.nix)
     (import ./containers.nix)

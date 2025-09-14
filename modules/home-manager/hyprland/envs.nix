@@ -6,7 +6,7 @@
   ...
 }:
 let
-  cfg = config.omarchy;
+  cfg = config.dsqrDevbox;
   hasNvidiaDrivers = builtins.elem "nvidia" osConfig.services.xserver.videoDrivers;
   nvidiaEnv = [
     "NVD_BACKEND,direct"
