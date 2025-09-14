@@ -61,6 +61,7 @@
       # Proxmox module (importable in other flakes or inline configs)
       # ------------------------------------------------------------
       nixosModules.dsqr-proxmox =
+        inputs:
         {
           config,
           lib,
