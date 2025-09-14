@@ -20,8 +20,7 @@ let
   userOSConfig = ../users/${user}/${if darwin then "darwin" else "nixos"}.nix;
   userHMConfig = ../users/${user}/home-manager.nix;
   systemFunc = if darwin then inputs.darwin.lib.darwinSystem else nixpkgs.lib.nixosSystem;
-  home-manager =
-    if darwin then inputs.home-manager.darwinModules else inputs.home-manager.nixosModules;
+  homeManagerModule = if darwin then inputs.home-manager.darwinModules.home-manager else inputs.home-manager.nixosModules.home-manager;
 
 in
 systemFunc {
@@ -37,7 +36,7 @@ systemFunc {
     userOSConfig
     (
       if homeManager then
-        home-manager.home-manager {
+        homeManagerModule {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
           home-manager.users.${user} = import userHMConfig {
