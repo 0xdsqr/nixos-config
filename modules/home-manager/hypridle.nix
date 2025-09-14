@@ -1,4 +1,5 @@
-{pkgs, ...}: {
+{ pkgs, ... }:
+{
   services.hypridle = {
     enable = pkgs.stdenv.hostPlatform.isLinux;
     settings = {

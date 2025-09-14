@@ -3,9 +3,11 @@
   pkgs,
   lib,
   ...
-}: let
+}:
+let
   cfg = config.dsqrDevbox;
-in {
+in
+{
   imports = [
     ./autostart.nix
     ./bindings.nix

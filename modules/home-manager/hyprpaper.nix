@@ -3,9 +3,11 @@
   pkgs,
   lib,
   ...
-}: let
+}:
+let
   selected_wallpaper_path = (import ../../lib/selected-wallpaper.nix config).wallpaper_path;
-in {
+in
+{
   home.file = lib.mkIf pkgs.stdenv.hostPlatform.isLinux {
     "Pictures/Wallpapers" = {
       source = ../../config/themes/wallpapers;

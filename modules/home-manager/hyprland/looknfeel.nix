@@ -2,12 +2,14 @@
   config,
   pkgs,
   ...
-}: let
+}:
+let
   hexToRgba = hex: alpha: "rgba(${hex}${alpha})";
 
   inactiveBorder = hexToRgba config.colorScheme.palette.base09 "aa";
   activeBorder = hexToRgba config.colorScheme.palette.base0D "aa";
-in {
+in
+{
   wayland.windowManager.hyprland.settings = {
     general = {
       gaps_in = 5;
