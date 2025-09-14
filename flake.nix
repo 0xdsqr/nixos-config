@@ -84,7 +84,7 @@
           ...
         }:
         {
-          imports = [ ./modules/darwin/default.nix ];
+          imports = [ (import ./modules/darwin/default.nix inputs) ];
           options.dsqrDevbox = (import ./config.nix lib).dsqrDevboxOptions;
           config.nixpkgs.config.allowUnfree = true;
         };

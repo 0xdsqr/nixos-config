@@ -7,7 +7,7 @@ let
   # Essential Hyprland packages - cannot be excluded (Linux only)
   hyprlandPackages =
     with pkgs;
-    lib.optionals (lib.meta.isLinux pkgs.stdenv.hostPlatform) [
+    lib.optionals pkgs.stdenv.hostPlatform.isLinux [
       hyprshot
       hyprpicker
       hyprsunset
@@ -35,7 +35,7 @@ let
       wget
       gnumake
     ]
-    ++ lib.optionals (lib.meta.isLinux pkgs.stdenv.hostPlatform) [
+    ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
       libnotify
       nautilus
       blueberry
@@ -46,21 +46,13 @@ let
   discretionaryPackages =
     with pkgs;
     [
-      # TUIs
+      # TUIs (cross-platform)
       lazygit
       lazydocker
       btop
-      powertop
       fastfetch
 
-      # GUIs
-      chromium
-      obsidian
-      vlc
-      signal-desktop
-
-      # Development tools
-      github-desktop
+      # Development tools (CLI only)
       gh
       cachix
 
@@ -68,7 +60,14 @@ let
       docker-compose
       ffmpeg
     ]
-    ++ lib.optionals (lib.meta.isLinux pkgs.stdenv.hostPlatform) [
+    ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+      # Linux-specific packages + all GUI apps (Darwin uses casks)
+      powertop
+      chromium
+      obsidian
+      vlc
+      signal-desktop
+      github-desktop
       spotify
       typora
       dropbox

@@ -1,14 +1,10 @@
-{
-  nixpkgs,
-  inputs,
-  overlays,
-}:
+{ nixpkgs, inputs, overlays }:
 name:
 {
   system,
   user,
-  extraModules ? [ ],
-  extraPackages ? [ ],
+  extraModules ? [],
+  extraPackages ? [],
   darwin ? false,
   wsl ? false,
   homeManager ? true,
@@ -20,8 +16,8 @@ let
   userOSConfig = ../users/${user}/${if darwin then "darwin" else "nixos"}.nix;
   userHMConfig = ../users/${user}/home-manager.nix;
   systemFunc = if darwin then inputs.darwin.lib.darwinSystem else nixpkgs.lib.nixosSystem;
-  homeManagerModule = if darwin then inputs.home-manager.darwinModules.home-manager else inputs.home-manager.nixosModules.home-manager;
-
+  home-manager = if darwin then inputs.home-manager.darwinModules else inputs.home-manager.nixosModules;
+  
 in
 systemFunc {
   inherit system;
@@ -31,22 +27,19 @@ systemFunc {
   modules = [
     { nixpkgs.overlays = overlays; }
     { nixpkgs.config.allowUnfree = true; }
-    (if isWSL then inputs.nixos-wsl.nixosModules.wsl else { })
+    (if isWSL then inputs.nixos-wsl.nixosModules.wsl else {})
     machineConfig
     userOSConfig
-    (
-      if homeManager then
-        homeManagerModule {
-          home-manager.useGlobalPkgs = true;
-          home-manager.useUserPackages = true;
-          home-manager.users.${user} = import userHMConfig {
-            isWSL = isWSL;
-            inputs = inputs;
-          };
-        }
-      else
-        { }
-    )
+  ] ++ (if homeManager then [
+    home-manager.home-manager {
+      home-manager.useGlobalPkgs = true;
+      home-manager.useUserPackages = true;
+      home-manager.users.${user} = import userHMConfig {
+        isWSL = isWSL;
+        inputs = inputs;
+      };
+    }
+  ] else []) ++ [
     {
       environment.systemPackages = extraPackages;
     }
@@ -58,6 +51,5 @@ systemFunc {
         inherit inputs isLinux isWSL;
       };
     }
-  ]
-  ++ extraModules;
+  ] ++ extraModules;
 }

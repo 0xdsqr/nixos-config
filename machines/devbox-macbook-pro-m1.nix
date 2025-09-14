@@ -1,5 +1,9 @@
-{ config, pkgs, ... }:
+{ inputs, config, pkgs, ... }:
 {
+  imports = [
+    # Import dsqr-nix darwin module
+    (inputs.self.darwinModules.dsqr-nix inputs)
+  ];
   # Basic system settings
   system.stateVersion = 5;
   ids.gids.nixbld = 350; # For Determinate Nix installer
@@ -15,4 +19,11 @@
   };
 
   nixpkgs.config.allowUnfree = true;
+
+  # Configure dsqr-nix module
+  dsqrDevbox = {
+    full_name = "0xdsqr";
+    email_address = "dave.dennis@gs.com";
+    theme = "tokyo-night";
+  };
 }

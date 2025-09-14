@@ -1,5 +1,13 @@
 lib: {
   dsqrDevboxOptions = {
+    full_name = lib.mkOption {
+      type = lib.types.str;
+      description = "Main user's full name";
+    };
+    email_address = lib.mkOption {
+      type = lib.types.str;
+      description = "Main user's email address";
+    };
     theme = lib.mkOption {
       type = lib.types.either (lib.types.enum [
         "tokyo-night"

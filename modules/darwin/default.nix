@@ -16,10 +16,10 @@ in
   nixpkgs.config.allowUnfree = true;
 
   # CLI pkgs still from nixpkgs
-  environment.systemPackages = import ../packages.nix {
+  environment.systemPackages = (import ../packages.nix {
     inherit pkgs lib;
     exclude_packages = cfg.nixos.exclude_packages;
-  };
+  }).systemPackages;
 
   # Shell setup
   programs.zsh.enable = true;

@@ -34,6 +34,11 @@ let
 in
 {
   imports = [
+    (import ./hyprland.nix inputs)
+    (import ./hyprlock.nix inputs)
+    (import ./hyprpaper.nix)
+    (import ./hypridle.nix)
+    (import ./waybar.nix inputs)
     (import ./ghostty.nix)
     (import ./direnv.nix)
     (import ./starship.nix)
