@@ -171,6 +171,13 @@
         homeManager = true;
       };
 
+      nixosConfigurations.devbox-usb-x86_64 = mkSystem "devbox-usb-x86_64" {
+        system = "x86_64-linux";
+        user = "dsqr";
+        darwin = false;
+        homeManager = true;
+      };
+
       # ------------------------------------------------------------
       # Dariwn Configurtations
       # ------------------------------------------------------------
