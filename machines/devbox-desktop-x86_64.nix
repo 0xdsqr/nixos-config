@@ -7,9 +7,8 @@
 }:
 {
   imports = [
-    ./hardware/vm-x86_64-linux.nix
+    ./hardware/x86_64-linux.nix
     (inputs.self.nixosModules.dsqr-nix inputs)
-    (inputs.self.nixosModules.dsqr-proxmox inputs)
   ];
 
   nix =
@@ -27,13 +26,6 @@
       nixPath = lib.mapAttrsToList (n: _: "${n}=flake:${n}") flakeInputs;
     };
 
-  # Our default non-specialised desktop environment.
-  services.xserver = lib.mkIf (config.specialisation != { }) {
-    enable = true;
-    xkb.layout = "us";
-    desktopManager.gnome.enable = true;
-    displayManager.gdm.enable = true;
-  };
 
   # Configure dsqr-nix module
   dsqrDevbox = {

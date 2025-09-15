@@ -164,6 +164,13 @@
         homeManager = true;
       };
 
+      nixosConfigurations.devbox-desktop-x86_64 = mkSystem "devbox-desktop-x86_64" {
+        system = "x86_64-linux";
+        user = "dsqr";
+        darwin = false;
+        homeManager = true;
+      };
+
       # ------------------------------------------------------------
       # Dariwn Configurtations
       # ------------------------------------------------------------
