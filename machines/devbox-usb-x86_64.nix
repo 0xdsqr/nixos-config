@@ -30,7 +30,6 @@
       nixPath = lib.mapAttrsToList (n: _: "${n}=flake:${n}") flakeInputs;
     };
 
-
   # Configure dsqr-nix module
   dsqrDevbox = {
     theme = "tokyo-night";

@@ -77,5 +77,12 @@ in
     viAlias = true;
     vimAlias = true;
     vimdiffAlias = true;
+    plugins = with pkgs.vimPlugins; [
+      {
+        plugin = tokyonight-nvim;
+        config = "colorscheme tokyonight";
+      }
+      neo-tree-nvim
+    ];
   };
 }
