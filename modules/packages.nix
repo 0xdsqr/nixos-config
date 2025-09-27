@@ -8,6 +8,7 @@ let
   hyprlandPackages =
     with pkgs;
     lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+      wofi
       hyprshot
       hyprpicker
       hyprsunset
