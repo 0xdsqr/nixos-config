@@ -34,7 +34,7 @@
     #1883 # MQTT
   ];
 
-  # Enable nginx - required for Frigate to be accessible
+  # Enable nginx - required for Frigate
   services.nginx.enable = true;
 
   #services.mosquitto = {
@@ -48,12 +48,12 @@
 
   services.frigate = {
     enable = true;
-    hostname = "localhost";  # This is for nginx vhost, not bind address
+    hostname = "localhost";
     
     settings = {
       #mqtt = { enabled = true; host = "127.0.0.1";};
       
-      # Use CPU for detection (we'll upgrade to GPU later)
+      # CPU detection
       detectors = {
         cpu = {
           type = "cpu";
@@ -61,7 +61,56 @@
         };
       };
       
-      cameras = { };
+      # AMCREST CAMERA
+      cameras = {
+        amcrest_camera = {
+          enabled = true;
+          
+          ffmpeg = {
+            inputs = [{
+              # Amcrest RTSP URL - UPDATE username and password!
+              path = "rtsp://admin:yourpassword@192.168.50.239:554/cam/realmonitor?channel=1&subtype=0";
+              roles = ["detect" "record"];
+            }];
+          };
+          
+          # Detection settings
+          detect = {
+            enabled = true;
+            width = 1920;   # Amcrest usually 1080p
+            height = 1080;
+            fps = 5;
+          };
+          
+          # What to detect
+          objects = {
+            track = ["person" "car" "dog" "cat"];
+          };
+          
+          # Motion-only recording
+          record = {
+            enabled = true;
+            retain = {
+              days = 7;
+              mode = "motion";
+            };
+            events = {
+              retain = {
+                default = 14;
+                mode = "motion";
+              };
+            };
+          };
+          
+          # Snapshots
+          snapshots = {
+            enabled = true;
+            retain = {
+              default = 14;
+            };
+          };
+        };
+      };
     };
   };
 
