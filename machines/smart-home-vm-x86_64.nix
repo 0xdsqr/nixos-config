@@ -37,22 +37,11 @@
   # Enable nginx - required for Frigate
   services.nginx.enable = true;
 
-  #services.mosquitto = {
-  #  enable = true;
-  #  listeners = [{
-  #    acl = [ "pattern readwrite #" ];
-  #    omitPasswordAuth = true;
-  #    settings.allow_anonymous = true;
-  #  }];
-  #};
-
   services.frigate = {
     enable = true;
     hostname = "localhost";
     
     settings = {
-      #mqtt = { enabled = true; host = "127.0.0.1";};
-      
       # CPU detection
       detectors = {
         cpu = {
@@ -68,7 +57,7 @@
           
           ffmpeg = {
             inputs = [{
-              # Amcrest RTSP URL - UPDATE username and password!
+              # UPDATE with your password!
               path = "rtsp://admin:yourpassword@192.168.50.239:554/cam/realmonitor?channel=1&subtype=0";
               roles = ["detect" "record"];
             }];
@@ -77,7 +66,7 @@
           # Detection settings
           detect = {
             enabled = true;
-            width = 1920;   # Amcrest usually 1080p
+            width = 1920;
             height = 1080;
             fps = 5;
           };
@@ -87,18 +76,12 @@
             track = ["person" "car" "dog" "cat"];
           };
           
-          # Motion-only recording
+          # Recording - motion only
           record = {
             enabled = true;
             retain = {
               days = 7;
               mode = "motion";
-            };
-            events = {
-              retain = {
-                default = 14;
-                mode = "motion";
-              };
             };
           };
           
@@ -113,18 +96,6 @@
       };
     };
   };
-
-  #services.home-assistant = {
-  #  enable = true;
-  #  extraComponents = [
-  #    "met"
-  #    "mqtt"
-  #    "frigate"
-  #  ];
-  #  config = {
-  #    default_config = {};
-  #  };
-  #};
 
   system.stateVersion = "25.05";
 }
