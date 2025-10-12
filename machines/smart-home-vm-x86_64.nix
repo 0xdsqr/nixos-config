@@ -45,7 +45,7 @@
 
   services.frigate = {
     enable = true;
-    hostname = "localhost";
+    hostname = "0.0.0.0";
 
     settings = {
       #mqtt = { enabled = true; host = "127.0.0.1";};
