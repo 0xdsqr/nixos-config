@@ -16,9 +16,10 @@
   # Since we're using fish as our shell
   programs.fish.enable = true;
 
-  users.users.dsqr = {
+  users.users.sysdsqr = {
     isNormalUser = true;
-    home = "/home/dsqr";
+    group = "sysdsqr";
+    home = "/home/sysdsqr";
     extraGroups = [
       "docker"
       "lxd"
