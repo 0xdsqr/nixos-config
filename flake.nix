@@ -155,7 +155,7 @@
       });
 
       # ------------------------------------------------------------
-      # Nixos System Configurtations
+      # Nixos Development boxes Configurtations
       # ------------------------------------------------------------
       nixosConfigurations.devbox-vm-x86_64 = mkSystem "devbox-vm-x86_64" {
         system = "x86_64-linux";
@@ -178,6 +178,16 @@
         homeManager = true;
       };
 
+      # ------------------------------------------------------------
+      # Nixos System boxes Configurtations
+      # ------------------------------------------------------------
+      nixosConfigurations.smart-home-vm-x86_64 = mkSystem "smart-home-vm-x86_64" {
+        system = "x86_64-linux";
+        user = "sysdsqr";
+        darwin = false;
+        homeManager = true;
+      };
+      
       # ------------------------------------------------------------
       # Dariwn Configurtations
       # ------------------------------------------------------------
