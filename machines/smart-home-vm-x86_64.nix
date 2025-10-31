@@ -31,10 +31,9 @@
   networking.firewall.allowedTCPPorts = [
     80    # Nginx (proxies to Frigate)
     #8123 # Home Assistant
-    #1883 # MQTT
+    1883 # MQTT
   ];
 
-  # Enable nginx - required for Frigate
   services.nginx.enable = true;
 
   services.mosquitto = {
@@ -45,12 +44,18 @@
       settings.allow_anonymous = true;
     }];
   };
-  
+
   services.frigate = {
     enable = true;
     hostname = "localhost";
     
     settings = {
+      mqtt = {
+        enabled = true;
+        host = "127.0.0.1";
+        port = 1883;
+      };
+
       # CPU detection
       detectors = {
         cpu = {
@@ -106,5 +111,23 @@
     };
   };
 
+  services.home-assistant = {
+    enable = true;
+    extraComponents = [
+      "met"
+      "mqtt"
+      "frigate"
+      "mobile_app"
+    ];
+    config = {
+      default_config = {};
+      
+      mqtt = {
+        broker = "127.0.0.1";
+        port = 1883;
+      };
+    };
+  };
+  
   system.stateVersion = "25.05";
 }
