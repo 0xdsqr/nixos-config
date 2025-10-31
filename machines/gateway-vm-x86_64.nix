@@ -43,12 +43,15 @@ users.users.cloudflared = {
     tunnels = {
       "dsqr" = {
         credentialsFile = "/etc/cloudflared/credentials.json";
+        default = "http_status:404";
         ingress = {
+          "dsqr.dev/api" = {
+            service = "http://192.168.50.27:3001";
+          };
           "dsqr.dev" = {
-            service = "http://192.168.50.223:8080";
+            service = "http://192.168.50.27:8080";
           };
         };
-        default = "http_status:404";
       };
     };
   };

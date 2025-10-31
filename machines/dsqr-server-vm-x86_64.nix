@@ -32,7 +32,34 @@
     3000
     3001
     8080
+    5432
   ];
+
+  services.postgresql = {
+    enable = true;
+    package = pkgs.postgresql_18;
+    enableTCPIP = true;
+    authentication = pkgs.lib.mkOverride 10 ''
+      local   all             all                                     trust
+      host    all             all             127.0.0.1/32            md5
+      host    all             all             ::1/128                 md5
+      host    all             all             0.0.0.0/0               md5
+    '';
+    settings = {
+      max_connections = 100;
+      shared_buffers = "256MB";
+      effective_cache_size = "1GB";
+      work_mem = "4MB";
+      log_statement = "all";
+      max_wal_size = "1GB";
+      min_wal_size = "80MB";
+    };
+    initialScript = pkgs.writeText "init.sql" ''
+      CREATE USER blog WITH PASSWORD 'change-me-in-production';
+      CREATE DATABASE blog OWNER blog;
+      GRANT ALL PRIVILEGES ON DATABASE blog TO blog;
+    '';
+  };
 
   services.nginx = {
     enable = true;
