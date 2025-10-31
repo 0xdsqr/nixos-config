@@ -195,6 +195,12 @@
         homeManager = true;
       };
       
+      nixosConfigurations.gateway-vm-x86_64 = mkSystem "gateway-vm-x86_64" {
+        system = "x86_64-linux";
+        user = "sysdsqr";
+        darwin = false;
+        homeManager = true;
+      };
       # ------------------------------------------------------------
       # Dariwn Configurtations
       # ------------------------------------------------------------
