@@ -38,6 +38,7 @@
   services.postgresql = {
     enable = true;
     package = pkgs.postgresql_18;
+    ensureDatabases = [ "dsqr" ];
     enableTCPIP = true;
     authentication = pkgs.lib.mkOverride 10 ''
       local   all             all                                     trust
@@ -55,9 +56,8 @@
       min_wal_size = "80MB";
     };
     initialScript = pkgs.writeText "init.sql" ''
-      CREATE USER blog WITH PASSWORD 'change-me-in-production';
-      CREATE DATABASE blog OWNER blog;
-      GRANT ALL PRIVILEGES ON DATABASE blog TO blog;
+      CREATE USER dsqr WITH PASSWORD 'change-me-in-production';
+      GRANT ALL PRIVILEGES ON DATABASE dsqr TO dsqr;
     '';
   };
 
