@@ -124,6 +124,26 @@
           };
         };
 
+      homeManagerModules.eevee =
+        inputs:
+        {
+          config,
+          lib,
+          pkgs,
+          osConfig ? { },
+          ...
+        }:
+        {
+          imports = [
+            nix-colors.homeManagerModules.default
+            (import ./modules/eevee/default.nix inputs)
+          ];
+          options.eevee = (import ./eevee-config.nix lib).eeveeOptions;
+          config = lib.mkIf (osConfig ? eevee) {
+            eevee = osConfig.eevee;
+          };
+        };
+
       # ------------------------------------------------------------
       # Development shell (nix develop .)
       # ------------------------------------------------------------

@@ -9,6 +9,7 @@
   imports = [
     ./hardware/vm-x86_64-linux.nix
     (inputs.self.nixosModules.dsqr-proxmox inputs)
+    (inputs.self.nixosModules.eevee inputs)
   ];
 
   nix =
@@ -25,6 +26,12 @@
       registry = lib.mapAttrs (_: flake: { inherit flake; }) flakeInputs;
       nixPath = lib.mapAttrsToList (n: _: "${n}=flake:${n}") flakeInputs;
     };
+
+  eevee = {
+    full_name = "0xdsqr";
+    email_address = "dave.dennis@gs.com";
+    theme = "tokyo-night";
+  };
 
   networking.hostName = "server";
   networking.domain = "dsqr.dev";
@@ -58,6 +65,12 @@
     initialScript = pkgs.writeText "init.sql" ''
       CREATE USER dsqr WITH PASSWORD 'change-me-in-production';
       GRANT ALL PRIVILEGES ON DATABASE dsqr TO dsqr;
+      GRANT ALL ON SCHEMA public TO dsqr;
+      GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO dsqr;
+      GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO dsqr;
+      ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO dsqr;
+      ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO dsqr;
+      ALTER SCHEMA public OWNER TO dsqr;
     '';
   };
 

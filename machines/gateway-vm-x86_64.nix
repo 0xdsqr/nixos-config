@@ -45,6 +45,9 @@ users.users.cloudflared = {
         credentialsFile = "/etc/cloudflared/credentials.json";
         default = "http_status:404";
         ingress = {
+          "db.dsqr.dev" = {
+            service = "tcp://192.168.50.27:5432";
+          };
           "dsqr.dev/api" = {
             service = "http://192.168.50.27:3001";
           };
