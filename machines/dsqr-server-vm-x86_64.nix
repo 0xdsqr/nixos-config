@@ -9,7 +9,6 @@
   imports = [
     ./hardware/vm-x86_64-linux.nix
     (inputs.self.nixosModules.dsqr-proxmox inputs)
-    (inputs.self.nixosModules.eevee inputs)
   ];
 
   nix =
@@ -26,12 +25,6 @@
       registry = lib.mapAttrs (_: flake: { inherit flake; }) flakeInputs;
       nixPath = lib.mapAttrsToList (n: _: "${n}=flake:${n}") flakeInputs;
     };
-
-  eevee = {
-    full_name = "0xdsqr";
-    email_address = "dave.dennis@gs.com";
-    theme = "tokyo-night";
-  };
 
   networking.hostName = "server";
   networking.domain = "dsqr.dev";

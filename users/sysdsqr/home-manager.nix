@@ -10,7 +10,15 @@ let
   isLinux = pkgs.stdenv.isLinux;
 in
 {
-  imports = [ ];
+  imports = [ 
+    (inputs.self.homeManagerModules.eevee inputs)
+  ];
+
+  eevee = {
+    full_name = "0xdsqr";
+    email_address = "dave.dennis@gs.com";
+    theme = "tokyo-night";
+  };
 
   systemd.user.startServices = "sd-switch";
 
