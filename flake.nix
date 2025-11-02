@@ -139,8 +139,8 @@
             (import ./modules/eevee/default.nix inputs)
           ];
           options.eevee = (import ./eevee-config.nix lib).eeveeOptions;
-          config = lib.mkIf (osConfig ? eevee) {
-            eevee = osConfig.eevee;
+          config = {
+            eevee = config.eevee or { };
           };
         };
 

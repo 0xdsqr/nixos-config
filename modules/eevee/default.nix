@@ -1,3 +1,4 @@
+inputs:
 {
   config,
   pkgs,
@@ -6,7 +7,7 @@
 }:
 {
   imports = [
-    (import ./neovim.nix)
+    (import ./neovim.nix inputs )
     (import ./tmux.nix)
   ];
 }

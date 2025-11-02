@@ -1,3 +1,4 @@
+inputs:
 {
   config,
   pkgs,
@@ -5,7 +6,7 @@
   ...
 }:
 let
-  cfg = config.dsqrDevbox;
+  cfg = config.eevee;
 in
 {
   programs.neovim = {
