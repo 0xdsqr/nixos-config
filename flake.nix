@@ -221,6 +221,13 @@
         darwin = false;
         homeManager = true;
       };
+
+      nixosConfigurations.hoo-vm-x86_64 = mkSystem "hoo-vm-x86_64" {
+        system = "x86_64-linux";
+        user = "sysdsqr";
+        darwin = false;
+        homeManager = true;
+      };
       # ------------------------------------------------------------
       # Dariwn Configurtations
       # ------------------------------------------------------------
