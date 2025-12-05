@@ -31,35 +31,30 @@
   networking.firewall.allowedTCPPorts = [ 22 80 443 8080 3000 3001 3002 ];
 
   # Redis server configuration
-  # Using named servers (best practice in NixOS 24.05+)
   services.redis.servers.main = {
     enable = true;
 
     # Bind to localhost only for security
-    # Change to "0.0.0.0" if you need external access
     bind = "127.0.0.1";
 
     # Default port
     port = 6379;
 
-    # RDB Persistence: save to disk periodically
-    # Format: [ [seconds changes] ... ]
-    save = [
-      [ 900 1 ]      # After 900 sec (15 min) if at least 1 key changed
-      [ 300 10 ]     # After 300 sec (5 min) if at least 10 keys changed
-      [ 60 10000 ]   # After 60 sec if at least 10000 keys changed
-    ];
-
-    # Memory management and other settings
     settings = {
-      # Set max memory to 256MB (adjust based on your needs)
+      # RDB Persistence: Redis expects these as strings
+      save = [
+        "900 1"       # After 900 sec if at least 1 key changed
+        "300 10"      # After 300 sec if at least 10 keys changed
+        "60 10000"    # After 60 sec if at least 10000 keys changed
+      ];
+
+      # Memory management
       maxmemory = "256mb";
-      # allkeys-lru = evict least recently used keys when maxmemory is reached
       maxmemory-policy = "allkeys-lru";
 
-      # Enable AOF (Append Only File) for better durability
+      # AOF Persistence
       appendonly = "yes";
-      appendfsync = "everysec"; # fsync every second (good balance)
+      appendfsync = "everysec";
     };
   };
 
