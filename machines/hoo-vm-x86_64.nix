@@ -51,9 +51,9 @@
 
       # Persistence: save to disk periodically
       save = [
-        [900 1]     # After 900 sec (15 min) if at least 1 key changed
-        [300 10]    # After 300 sec (5 min) if at least 10 keys changed
-        [60 10000]  # After 60 sec if at least 10000 keys changed
+        "900 1"     # After 900 sec (15 min) if at least 1 key changed
+        "300 10"    # After 300 sec (5 min) if at least 10 keys changed
+        "60 10000"  # After 60 sec if at least 10000 keys changed
       ];
 
       # Enable AOF (Append Only File) for better durability
