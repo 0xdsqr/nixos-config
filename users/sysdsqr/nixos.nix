@@ -13,8 +13,8 @@
     };
   };
 
-  # Since we're using fish as our shell
-  programs.fish.enable = true;
+  # Since we're using zsh as our shell
+  programs.zsh.enable = true;
   
   users.users.sysdsqr = {
     isNormalUser = true;
