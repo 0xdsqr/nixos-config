@@ -1,7 +1,4 @@
-{ config, ... }:
-let
-  cfg = config.dsqrDevbox;
-in
+{ pkgs, ... }:
 {
   programs.git = {
     enable = true;
@@ -21,7 +18,7 @@ in
       color.ui = true;
       core.askPass = ""; # Use terminal for askpass
       credential.helper = "store"; # want to make this more secure
-      github.user = cfg.full_name;
+      github.user = "0xdsqr";
       push.default = "tracking";
       init.defaultBranch = "main";
     };
@@ -33,4 +30,17 @@ in
       enable = true;
     };
   };
+
+  programs.gpg = {
+    enable = true;
+  };
+
+  services.gpg-agent = {
+    enable = true;
+    pinentry.package = pkgs.pinentry-curses;
+    enableSshSupport = true;
+  };
+  home.packages = with pkgs; [
+    gnupg
+  ];
 }

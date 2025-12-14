@@ -14,5 +14,6 @@ inputs:
     (import ./ghostty.nix)
     (import ./starship.nix)
     (import ./git.nix)
+    # (import ./opencode.nix)
   ];
 }

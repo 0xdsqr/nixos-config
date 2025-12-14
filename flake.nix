@@ -17,6 +17,9 @@
     nix-colors.url = "github:misterio77/nix-colors";
     hyprland.url = "github:hyprwm/Hyprland";
 
+    opencode.url = "github:sst/opencode/dev";
+    opencode.inputs.nixpkgs.follows = "nixpkgs";
+
     # Developer tools / utilities
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";

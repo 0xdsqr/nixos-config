@@ -751,6 +751,27 @@
         "type": "github"
       }
     },
+    "opencode": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1765677386,
+        "narHash": "sha256-agurVL2Ddx6EqSdUH2lomU7tZ559q6ujLGHft4lFysI=",
+        "owner": "sst",
+        "repo": "opencode",
+        "rev": "aedb5550a87d79550ce08080ac93910a2f31b243",
+        "type": "github"
+      },
+      "original": {
+        "owner": "sst",
+        "ref": "dev",
+        "repo": "opencode",
+        "type": "github"
+      }
+    },
     "pre-commit-hooks": {
       "inputs": {
         "flake-compat": "flake-compat_2",
@@ -784,6 +805,7 @@
         "neovim-nightly-overlay": "neovim-nightly-overlay",
         "nix-colors": "nix-colors",
         "nixpkgs": "nixpkgs_4",
+        "opencode": "opencode",
         "treefmt-nix": "treefmt-nix_2",
         "zig": "zig"
       }

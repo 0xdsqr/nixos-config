@@ -5,5 +5,11 @@
     enableCompletion = true;
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
+
+    initExtra = ''
+      # GPG TTY for signing commits
+      export GPG_TTY=$(tty)
+    '';
+
   };
 }
