@@ -15,7 +15,7 @@
 
   # Since we're using zsh as our shell
   programs.zsh.enable = true;
-  
+
   users.users.sysdsqr = {
     isNormalUser = true;
     home = "/home/sysdsqr";

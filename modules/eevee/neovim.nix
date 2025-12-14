@@ -1,3 +1,7 @@
+# Neovim Configuration for TypeScript, Go, Python Development
+# Pure Nix approach - no Mason, no runtime downloads
+# Uses Neovim 0.11+ native LSP (vim.lsp.config/vim.lsp.enable)
+# Updated December 2025
 inputs:
 {
   config,
@@ -6,32 +10,429 @@ inputs:
   ...
 }:
 let
-  cfg = config.eevee;
+  # TreeSitter grammars - installed via Nix, not at runtime
+  treesitterWithGrammars = pkgs.vimPlugins.nvim-treesitter.withPlugins (p: [
+    p.bash
+    p.c
+    p.css
+    p.dockerfile
+    p.go
+    p.gomod
+    p.gosum
+    p.html
+    p.javascript
+    p.json
+    p.jsonc
+    p.lua
+    p.markdown
+    p.markdown_inline
+    p.nix
+    p.python
+    p.rust
+    p.toml
+    p.tsx
+    p.typescript
+    p.vim
+    p.vimdoc
+    p.yaml
+  ]);
 in
 {
   programs.neovim = {
     enable = true;
-    # Use nightly package from the input
     package = inputs.neovim-nightly-overlay.packages.${pkgs.system}.default;
     viAlias = true;
     vimAlias = true;
     vimdiffAlias = true;
+    defaultEditor = true;
 
-    plugins = with pkgs.vimPlugins; [
-      {
-        plugin = tokyonight-nvim;
-        config = "colorscheme tokyonight";
-      }
-      telescope-nvim
-      plenary-nvim
+    # ══════════════════════════════════════════════════════════════════════════
+    # LANGUAGE SERVERS & TOOLS
+    # These are installed via Nix and available on PATH
+    # ══════════════════════════════════════════════════════════════════════════
+    extraPackages = with pkgs; [
+      # ── Git (REQUIRED for gitsigns, lualine diff, etc.) ──
+      git
+
+      # ── TypeScript / JavaScript ──
+      typescript
+      nodePackages.typescript-language-server
+      biome # Replaces prettier + eslint (faster, single tool)
+
+      # ── Go ──
+      go
+      gopls
+      gofumpt
+      gotools # includes goimports
+
+      # ── Python ──
+      python3
+      pyright
+      ruff
+
+      # ── Nix ──
+      nil # Nix LSP
+      nixfmt-rfc-style # Nix formatter
+
+      # ── General Tools ──
+      ripgrep # For telescope live_grep
+      fd # For telescope find_files
     ];
 
-    extraLuaConfig = ''
-      -- Set leader key
-      vim.g.mapleader = " "
-      vim.keymap.set("n", "<leader>pv", vim.cmd.Ex)
+    # ══════════════════════════════════════════════════════════════════════════
+    # PLUGINS
+    # ══════════════════════════════════════════════════════════════════════════
+    plugins = with pkgs.vimPlugins; [
+      # ── Theme ──
+      {
+        plugin = tokyonight-nvim;
+        type = "lua";
+        config = ''
+          vim.cmd.colorscheme("tokyonight-night")
+        '';
+      }
 
-      -- Line numbers plus relative numbers
+      # ── Core Dependencies ──
+      plenary-nvim
+
+      # ── Fuzzy Finder ──
+      {
+        plugin = telescope-nvim;
+        type = "lua";
+        config = ''
+          local telescope = require('telescope')
+          local builtin = require('telescope.builtin')
+
+          telescope.setup({
+            defaults = {
+              file_ignore_patterns = { "node_modules", ".git/", "dist/", "build/" },
+            },
+          })
+
+          vim.keymap.set('n', '<leader>pf', builtin.find_files, { desc = "Find files" })
+          vim.keymap.set('n', '<leader>pg', builtin.live_grep, { desc = "Live grep" })
+          vim.keymap.set('n', '<leader>pb', builtin.buffers, { desc = "Buffers" })
+          vim.keymap.set('n', '<leader>ph', builtin.help_tags, { desc = "Help tags" })
+          vim.keymap.set('n', '<leader>ps', function()
+            builtin.grep_string({ search = vim.fn.input("Grep > ") })
+          end, { desc = "Grep string" })
+          vim.keymap.set('n', '<leader>pd', builtin.diagnostics, { desc = "Diagnostics" })
+        '';
+      }
+      telescope-fzf-native-nvim
+
+      # ── TreeSitter ──
+      {
+        plugin = treesitterWithGrammars;
+        type = "lua";
+        config = ''
+          require('nvim-treesitter.configs').setup({
+            auto_install = false,
+            highlight = {
+              enable = true,
+              additional_vim_regex_highlighting = false,
+            },
+            indent = {
+              enable = true,
+            },
+          })
+        '';
+      }
+
+      # ── Completion (blink.cmp) ──
+      {
+        plugin = blink-cmp;
+        type = "lua";
+        config = ''
+          require('blink.cmp').setup({
+            keymap = { preset = 'default' },
+            appearance = {
+              nerd_font_variant = 'mono',
+            },
+            sources = {
+              default = { 'lsp', 'path', 'snippets', 'buffer' },
+            },
+            signature = {
+              enabled = true,
+            },
+          })
+        '';
+      }
+      friendly-snippets
+
+      # ── Formatting (conform.nvim) ──
+      {
+        plugin = conform-nvim;
+        type = "lua";
+        config = ''
+          require('conform').setup({
+            formatters_by_ft = {
+              typescript = { "biome" },
+              typescriptreact = { "biome" },
+              javascript = { "biome" },
+              javascriptreact = { "biome" },
+              json = { "biome" },
+              jsonc = { "biome" },
+              go = { "gofumpt", "goimports" },
+              python = { "ruff_format" },
+              nix = { "nixfmt" },
+            },
+            format_on_save = {
+              timeout_ms = 1000,
+              lsp_format = "fallback",
+            },
+          })
+
+          vim.keymap.set({ "n", "v" }, "<leader>fm", function()
+            require("conform").format({ async = true, lsp_format = "fallback" })
+          end, { desc = "Format buffer" })
+        '';
+      }
+
+      # ── Git Integration ──
+      {
+        plugin = gitsigns-nvim;
+        type = "lua";
+        config = ''
+          require('gitsigns').setup({
+            signs = {
+              add          = { text = '│' },
+              change       = { text = '│' },
+              delete       = { text = '_' },
+              topdelete    = { text = '‾' },
+              changedelete = { text = '~' },
+            },
+            on_attach = function(bufnr)
+              local gs = package.loaded.gitsigns
+              local opts = { buffer = bufnr }
+
+              vim.keymap.set('n', ']c', gs.next_hunk, opts)
+              vim.keymap.set('n', '[c', gs.prev_hunk, opts)
+              vim.keymap.set('n', '<leader>hs', gs.stage_hunk, opts)
+              vim.keymap.set('n', '<leader>hr', gs.reset_hunk, opts)
+              vim.keymap.set('n', '<leader>hp', gs.preview_hunk, opts)
+              vim.keymap.set('n', '<leader>hb', gs.blame_line, opts)
+            end,
+          })
+        '';
+      }
+
+      # ── Status Line ──
+      {
+        plugin = lualine-nvim;
+        type = "lua";
+        config = ''
+          require('lualine').setup({
+            options = {
+              theme = 'tokyonight',
+              component_separators = '|',
+              section_separators = "",
+            },
+            sections = {
+              lualine_c = {
+                { 'filename', path = 1 }
+              },
+            },
+          })
+        '';
+      }
+
+      # ── Which-key ──
+      {
+        plugin = which-key-nvim;
+        type = "lua";
+        config = ''
+          require('which-key').setup({})
+        '';
+      }
+
+      # ── Comment toggling ──
+      {
+        plugin = comment-nvim;
+        type = "lua";
+        config = ''
+          require('Comment').setup()
+        '';
+      }
+
+      # ── Auto pairs ──
+      {
+        plugin = nvim-autopairs;
+        type = "lua";
+        config = ''
+          require('nvim-autopairs').setup({})
+        '';
+      }
+
+      # ── Surround text objects ──
+      {
+        plugin = nvim-surround;
+        type = "lua";
+        config = ''
+          require('nvim-surround').setup({})
+        '';
+      }
+
+      # ── File explorer ──
+      nvim-web-devicons
+      {
+        plugin = nvim-tree-lua;
+        type = "lua";
+        config = ''
+          require('nvim-tree').setup({
+            view = { width = 35 },
+            filters = { dotfiles = false },
+          })
+          vim.keymap.set('n', '<leader>tt', ':NvimTreeToggle<CR>', { desc = "Toggle file tree" })
+          vim.keymap.set('n', '<leader>tf', ':NvimTreeFindFile<CR>', { desc = "Find file in tree" })
+        '';
+      }
+
+      # ── Indent guides ──
+      {
+        plugin = indent-blankline-nvim;
+        type = "lua";
+        config = ''
+          require('ibl').setup({
+            indent = { char = "│" },
+            scope = { enabled = true },
+          })
+        '';
+      }
+    ];
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # BASE CONFIGURATION + LSP (Neovim 0.11+ native)
+    # ══════════════════════════════════════════════════════════════════════════
+    extraLuaConfig = ''
+      -- ════════════════════════════════════════════════════════════════════════
+      -- LEADER KEY (must be set before anything else)
+      -- ════════════════════════════════════════════════════════════════════════
+      vim.g.mapleader = " "
+      vim.g.maplocalleader = " "
+
+      -- ════════════════════════════════════════════════════════════════════════
+      -- LSP CONFIGURATION (Neovim 0.11+ native - NO lspconfig plugin needed)
+      -- ════════════════════════════════════════════════════════════════════════
+
+      -- Global LSP keymaps and settings (applies to ALL language servers)
+      vim.api.nvim_create_autocmd('LspAttach', {
+        group = vim.api.nvim_create_augroup('UserLspConfig', { clear = true }),
+        callback = function(ev)
+          local opts = { buffer = ev.buf, noremap = true, silent = true }
+
+          -- ══ GO TO DEFINITION (the main ones you'll use constantly) ══
+          vim.keymap.set('n', 'gd', vim.lsp.buf.definition, vim.tbl_extend('force', opts, { desc = "Go to definition" }))
+          vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, vim.tbl_extend('force', opts, { desc = "Go to declaration" }))
+          vim.keymap.set('n', 'gr', vim.lsp.buf.references, vim.tbl_extend('force', opts, { desc = "Find references" }))
+          vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, vim.tbl_extend('force', opts, { desc = "Go to implementation" }))
+          vim.keymap.set('n', 'gy', vim.lsp.buf.type_definition, vim.tbl_extend('force', opts, { desc = "Go to type definition" }))
+
+          -- ══ HOVER & SIGNATURE ══
+          vim.keymap.set('n', 'K', vim.lsp.buf.hover, vim.tbl_extend('force', opts, { desc = "Hover documentation" }))
+          vim.keymap.set('i', '<C-k>', vim.lsp.buf.signature_help, vim.tbl_extend('force', opts, { desc = "Signature help" }))
+
+          -- ══ ACTIONS ══
+          vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, vim.tbl_extend('force', opts, { desc = "Rename symbol" }))
+          vim.keymap.set({ 'n', 'v' }, '<leader>ca', vim.lsp.buf.code_action, vim.tbl_extend('force', opts, { desc = "Code action" }))
+          vim.keymap.set('n', '<leader>f', function() vim.lsp.buf.format({ async = true }) end, vim.tbl_extend('force', opts, { desc = "Format" }))
+
+          -- ══ DIAGNOSTICS ══
+          vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, vim.tbl_extend('force', opts, { desc = "Previous diagnostic" }))
+          vim.keymap.set('n', ']d', vim.diagnostic.goto_next, vim.tbl_extend('force', opts, { desc = "Next diagnostic" }))
+          vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, vim.tbl_extend('force', opts, { desc = "Show diagnostic" }))
+          vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, vim.tbl_extend('force', opts, { desc = "Diagnostics to loclist" }))
+        end,
+      })
+
+      -- Diagnostic display settings
+      vim.diagnostic.config({
+        virtual_text = true,
+        signs = true,
+        underline = true,
+        update_in_insert = false,
+        severity_sort = true,
+        float = {
+          border = "rounded",
+          source = true,
+        },
+      })
+
+      -- ══════════════════════════════════════════════════════════════════════
+      -- LANGUAGE SERVER DEFINITIONS (Neovim 0.11+ vim.lsp.config)
+      -- ══════════════════════════════════════════════════════════════════════
+
+      -- TypeScript/JavaScript (ts_ls)
+      vim.lsp.config.ts_ls = {
+        cmd = { 'typescript-language-server', '--stdio' },
+        filetypes = { 'typescript', 'typescriptreact', 'javascript', 'javascriptreact' },
+        root_markers = { 'tsconfig.json', 'jsconfig.json', 'package.json', '.git' },
+      }
+
+      -- Biome (linting + formatting for TS/JS/JSON)
+      vim.lsp.config.biome = {
+        cmd = { 'biome', 'lsp-proxy' },
+        filetypes = { 'typescript', 'typescriptreact', 'javascript', 'javascriptreact', 'json', 'jsonc' },
+        root_markers = { 'biome.json', 'biome.jsonc', 'package.json', '.git' },
+      }
+
+      -- Go (gopls)
+      vim.lsp.config.gopls = {
+        cmd = { 'gopls' },
+        filetypes = { 'go', 'gomod', 'gowork', 'gotmpl' },
+        root_markers = { 'go.mod', 'go.work', '.git' },
+        settings = {
+          gopls = {
+            analyses = {
+              unusedparams = true,
+            },
+            staticcheck = true,
+            gofumpt = true,
+          },
+        },
+      }
+
+      -- Python (pyright)
+      vim.lsp.config.pyright = {
+        cmd = { 'pyright-langserver', '--stdio' },
+        filetypes = { 'python' },
+        root_markers = { 'pyproject.toml', 'setup.py', 'setup.cfg', 'requirements.txt', 'Pipfile', 'pyrightconfig.json', '.git' },
+        settings = {
+          python = {
+            analysis = {
+              autoSearchPaths = true,
+              useLibraryCodeForTypes = true,
+            },
+          },
+        },
+      }
+
+      -- Nix (nil)
+      vim.lsp.config.nil_ls = {
+        cmd = { 'nil' },
+        filetypes = { 'nix' },
+        root_markers = { 'flake.nix', 'default.nix', 'shell.nix', '.git' },
+        settings = {
+          ['nil'] = {
+            formatting = {
+              command = { 'nixfmt' },
+            },
+          },
+        },
+      }
+
+      -- Enable all configured language servers
+      vim.lsp.enable('ts_ls')
+      vim.lsp.enable('biome')
+      vim.lsp.enable('gopls')
+      vim.lsp.enable('pyright')
+      vim.lsp.enable('nil_ls')
+
+      -- ════════════════════════════════════════════════════════════════════════
+      -- EDITOR OPTIONS
+      -- ════════════════════════════════════════════════════════════════════════
+
+      -- Line Numbers
       vim.opt.nu = true
       vim.opt.relativenumber = true
 
@@ -40,39 +441,84 @@ in
       vim.opt.softtabstop = 4
       vim.opt.shiftwidth = 4
       vim.opt.expandtab = true
+      vim.opt.smartindent = true
 
       -- Line Wraps
-      vim.opt.smartindent = true
       vim.opt.wrap = false
 
-      -- No swap/backup files, use undodir instead
+      -- Undo / Swap
       vim.opt.swapfile = false
       vim.opt.backup = false
       vim.opt.undodir = os.getenv("HOME") .. "/.vim/undodir"
       vim.opt.undofile = true
 
-      -- Search settings
+      -- Search
       vim.opt.hlsearch = false
       vim.opt.incsearch = true
+      vim.opt.ignorecase = true
+      vim.opt.smartcase = true
 
       -- Scrolling
       vim.opt.scrolloff = 8
+      vim.opt.sidescrolloff = 8
+
+      -- UI
+      vim.opt.termguicolors = true
       vim.opt.signcolumn = "yes"
-      vim.opt.isfname:append("@-@")
+      vim.opt.colorcolumn = "80"
+      vim.opt.cursorline = true
+      vim.opt.showmode = false
 
       -- Misc
       vim.opt.updatetime = 50
-      vim.opt.termguicolors = true
-      vim.guicursor = ""
-      vim.opt.colorcolumn = "80"
+      vim.opt.isfname:append("@-@")
+      vim.opt.splitright = true
+      vim.opt.splitbelow = true
+      vim.opt.clipboard = "unnamedplus"
 
-      -- Telescope keymaps
-      local builtin = require('telescope.builtin')
-      vim.keymap.set('n', '<leader>pf', builtin.find_files, {})
-      vim.keymap.set('n', '<leader>pg', builtin.live_grep, {})
-      vim.keymap.set('n', '<leader>ps', function()
-        builtin.grep_string({ search = vim.fn.input("Grep >") })
-      end)
+      -- ════════════════════════════════════════════════════════════════════════
+      -- KEYMAPS
+      -- ════════════════════════════════════════════════════════════════════════
+
+      -- File explorer
+      vim.keymap.set("n", "<leader>pv", vim.cmd.Ex, { desc = "Open netrw" })
+
+      -- Window navigation
+      vim.keymap.set("n", "<C-h>", "<C-w>h", { desc = "Move to left window" })
+      vim.keymap.set("n", "<C-j>", "<C-w>j", { desc = "Move to below window" })
+      vim.keymap.set("n", "<C-k>", "<C-w>k", { desc = "Move to above window" })
+      vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Move to right window" })
+
+      -- Move lines in visual mode
+      vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { desc = "Move line down" })
+      vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv", { desc = "Move line up" })
+
+      -- Keep cursor centered
+      vim.keymap.set("n", "<C-d>", "<C-d>zz", { desc = "Half page down" })
+      vim.keymap.set("n", "<C-u>", "<C-u>zz", { desc = "Half page up" })
+      vim.keymap.set("n", "n", "nzzzv", { desc = "Next search result" })
+      vim.keymap.set("n", "N", "Nzzzv", { desc = "Prev search result" })
+
+      -- Better paste
+      vim.keymap.set("x", "<leader>p", '"_dP', { desc = "Paste without yank" })
+
+      -- Clipboard
+      vim.keymap.set({ "n", "v" }, "<leader>y", '"+y', { desc = "Yank to clipboard" })
+      vim.keymap.set("n", "<leader>Y", '"+Y', { desc = "Yank line to clipboard" })
+
+      -- Delete without yank
+      vim.keymap.set({ "n", "v" }, "<leader>d", '"_d', { desc = "Delete without yank" })
+
+      -- Quick save
+      vim.keymap.set("n", "<leader>w", ":w<CR>", { desc = "Save file" })
+
+      -- Clear search
+      vim.keymap.set("n", "<Esc>", ":nohlsearch<CR>", { silent = true })
+
+      -- Buffers
+      vim.keymap.set("n", "<leader>bn", ":bnext<CR>", { desc = "Next buffer" })
+      vim.keymap.set("n", "<leader>bp", ":bprev<CR>", { desc = "Prev buffer" })
+      vim.keymap.set("n", "<leader>bd", ":bdelete<CR>", { desc = "Delete buffer" })
     '';
   };
 }

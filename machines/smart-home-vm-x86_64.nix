@@ -29,7 +29,7 @@
   networking.hostName = "smart-home";
   networking.domain = "dsqr.dev";
   networking.firewall.allowedTCPPorts = [
-    80    # Nginx (proxies to Frigate)
+    80 # Nginx (proxies to Frigate)
     #8123 # Home Assistant
     1883 # MQTT
   ];
@@ -38,17 +38,19 @@
 
   services.mosquitto = {
     enable = true;
-    listeners = [{
-      acl = [ "pattern readwrite #" ];
-      omitPasswordAuth = true;
-      settings.allow_anonymous = true;
-    }];
+    listeners = [
+      {
+        acl = [ "pattern readwrite #" ];
+        omitPasswordAuth = true;
+        settings.allow_anonymous = true;
+      }
+    ];
   };
 
   services.frigate = {
     enable = true;
     hostname = "localhost";
-    
+
     settings = {
       mqtt = {
         enabled = true;
@@ -63,20 +65,25 @@
           num_threads = 3;
         };
       };
-      
+
       # AMCREST CAMERA
       cameras = {
         amcrest_camera = {
           enabled = true;
-          
+
           ffmpeg = {
-            inputs = [{
-              # UPDATE with your password!
-              path = "rtsp://admin:yourpassword@192.168.50.239:554/cam/realmonitor?channel=1&subtype=0";
-              roles = ["detect" "record"];
-            }];
+            inputs = [
+              {
+                # UPDATE with your password!
+                path = "rtsp://admin:yourpassword@192.168.50.239:554/cam/realmonitor?channel=1&subtype=0";
+                roles = [
+                  "detect"
+                  "record"
+                ];
+              }
+            ];
           };
-          
+
           # Detection settings
           detect = {
             enabled = true;
@@ -84,12 +91,17 @@
             height = 1080;
             fps = 5;
           };
-          
+
           # What to detect
           objects = {
-            track = ["person" "car" "dog" "cat"];
+            track = [
+              "person"
+              "car"
+              "dog"
+              "cat"
+            ];
           };
-          
+
           # Recording - motion only
           record = {
             enabled = true;
@@ -98,7 +110,7 @@
               mode = "motion";
             };
           };
-          
+
           # Snapshots
           snapshots = {
             enabled = true;
@@ -120,14 +132,14 @@
       "mobile_app"
     ];
     config = {
-      default_config = {};
-      
+      default_config = { };
+
       mqtt = {
         broker = "127.0.0.1";
         port = 1883;
       };
     };
   };
-  
+
   system.stateVersion = "25.05";
 }

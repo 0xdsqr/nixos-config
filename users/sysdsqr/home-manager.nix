@@ -10,7 +10,7 @@ let
   isLinux = pkgs.stdenv.isLinux;
 in
 {
-  imports = [ 
+  imports = [
     (inputs.self.homeManagerModules.eevee inputs)
   ];
 

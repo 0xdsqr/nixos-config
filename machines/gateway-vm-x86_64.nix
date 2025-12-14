@@ -28,15 +28,19 @@
 
   networking.hostName = "gateway";
   networking.domain = "dsqr.dev";
-  networking.firewall.allowedTCPPorts = [ 22 80 443 ];
+  networking.firewall.allowedTCPPorts = [
+    22
+    80
+    443
+  ];
 
-users.users.cloudflared = {
+  users.users.cloudflared = {
     group = "cloudflared";
     isSystemUser = true;
     home = "/var/lib/cloudflared";
     createHome = true;
   };
-  users.groups.cloudflared = {};
+  users.groups.cloudflared = { };
 
   services.cloudflared = {
     enable = true;
