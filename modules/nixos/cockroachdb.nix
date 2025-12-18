@@ -34,13 +34,24 @@ let
       ];
     in
     if cfg.singleNode then
-      lib.concatStringsSep " \\\n  " ([
-        "${cfg.package}/bin/cockroach start-single-node"
-      ] ++ commonArgs ++ secureArgs ++ insecureArgs)
+      lib.concatStringsSep " \\\n  " (
+        [
+          "${cfg.package}/bin/cockroach start-single-node"
+        ]
+        ++ commonArgs
+        ++ secureArgs
+        ++ insecureArgs
+      )
     else
-      lib.concatStringsSep " \\\n  " ([
-        "${cfg.package}/bin/cockroach start"
-      ] ++ commonArgs ++ secureArgs ++ insecureArgs ++ clusterArgs);
+      lib.concatStringsSep " \\\n  " (
+        [
+          "${cfg.package}/bin/cockroach start"
+        ]
+        ++ commonArgs
+        ++ secureArgs
+        ++ insecureArgs
+        ++ clusterArgs
+      );
 in
 {
   options.services.cockroachdb = {

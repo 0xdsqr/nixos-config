@@ -168,6 +168,17 @@
       });
 
       # ------------------------------------------------------------
+      # Apps (nix run .#sysdsqr)
+      # ------------------------------------------------------------
+      apps = forEachSystem (system: {
+        sysdsqr = {
+          type = "app";
+          program = "${self.packages.${system}.sysdsqr}/bin/sysdsqr";
+        };
+        default = self.apps.${system}.sysdsqr;
+      });
+
+      # ------------------------------------------------------------
       # Nixos Development boxes Configurtations
       # ------------------------------------------------------------
       nixosConfigurations.devbox-vm-x86_64 = mkSystem "devbox-vm-x86_64" {
