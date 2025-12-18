@@ -1,10 +1,24 @@
 { pkgs, ... }:
 {
-  # treefmt configuration
   projectRootFile = "flake.nix";
 
-  # Enable nixfmt for all .nix files
+  # Nix formatting
   programs.nixfmt.enable = true;
 
-  # (Optional) add other formatters later, like prettier/black/etc.
+  # TypeScript/JavaScript formatting
+  programs.biome = {
+    enable = true;
+    settings = {
+      formatter = {
+        indentStyle = "space";
+        indentWidth = 2;
+      };
+      javascript = {
+        formatter = {
+          quoteStyle = "double";
+          semicolons = "asNeeded";
+        };
+      };
+    };
+  };
 }

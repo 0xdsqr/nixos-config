@@ -9,7 +9,7 @@ stdenv.mkDerivation {
 
   src = ./.;
 
-  nativeBuildInputs = [bun];
+  nativeBuildInputs = [ bun ];
 
   buildPhase = ''
     # Compile TypeScript to single binary executable
@@ -26,7 +26,7 @@ stdenv.mkDerivation {
     description = "System admin CLI for dsqr homelab";
     homepage = "https://github.com/yourusername/nixos-config";
     license = licenses.mit;
-    maintainers = [];
+    maintainers = [ ];
     platforms = platforms.unix;
   };
 }

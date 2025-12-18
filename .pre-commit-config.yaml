@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: treefmt
+        name: Format all files (Nix + TypeScript)
+        entry: nix fmt
+        language: system
+        pass_filenames: false
+        always_run: true

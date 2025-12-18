@@ -5,7 +5,7 @@
   <a href="https://github.com/0xdsqr/nixos-config"><img src="https://img.shields.io/badge/github-nixos--config-blue?style=for-the-badge&logo=github" alt="GitHub"></a>
   <a href="#"><img src="https://img.shields.io/badge/NixOS-5277C3?style=for-the-badge&logo=nixos&logoColor=white" alt="NixOS"></a>
   <a href="#"><img src="https://img.shields.io/badge/nix--darwin-5277C3?style=for-the-badge&logo=apple&logoColor=white" alt="nix-darwin"></a>
-  <a href="#"><img src="https://img.shields.io/badge/machines-8-7EBAE4?style=for-the-badge" alt="8 Machines"></a>
+  <a href="#"><img src="https://img.shields.io/badge/machines-6-7EBAE4?style=for-the-badge" alt="6 Machines"></a>
 </p>
 
 **Modular, portable NixOS/nix-darwin configuration for homelab servers and development machines.**
@@ -135,6 +135,47 @@ That's it! Your entire environment (Neovim, Git, Zsh, tmux, packages) is configu
 **Why "eevee"?** Like the Pokemon that evolves into different forms, eevee adapts to any environment (macOS, Linux, VM, physical hardware) while keeping your tooling consistent.
 
 **Zero runtime package managers.** Everything installed via Nix. Pure, reproducible, portable.
+
+## ⇁ sysdsqr CLI
+
+System admin CLI for managing homelab deployments. Single binary, zero dependencies.
+
+### Installation
+
+**Via Nix Flake:**
+
+```nix
+{
+  inputs.dsqr-nix.url = "github:yourusername/nixos-config";
+
+  environment.systemPackages = [
+    inputs.dsqr-nix.packages.x86_64-linux.sysdsqr
+  ];
+}
+```
+
+**Quick Install:**
+
+```bash
+# Build and run
+nix run github:yourusername/nixos-config#sysdsqr
+
+# Or install via curl (coming soon)
+curl -fsSL https://yourdomain.com/install | bash
+```
+
+### Usage
+
+```bash
+sysdsqr          # hello world
+sysdsqr hello    # world
+```
+
+**See [pkgs/sysdsqr-cli/TODO.md](./pkgs/sysdsqr-cli/TODO.md) for:**
+- Building with Nix (deep dive)
+- Version management & releases
+- Creating install scripts
+- Expanding with new commands
 
 ## ⇁ API Reference
 
@@ -336,6 +377,43 @@ direnv allow   # Auto-load dev shell on cd (recommended)
 - nixfmt, alejandra - Nix formatters
 - statix, deadnix - Nix linters
 - nil - Nix language server
+
+### Formatting with treefmt
+
+**treefmt** is a universal code formatter that runs multiple formatters in one command. Configured in `treefmt.nix`.
+
+**What it formats:**
+- **Nix files** (`*.nix`) - Uses `nixfmt` for consistent Nix formatting
+- **TypeScript/JavaScript** (`*.ts`, `*.js`, `*.tsx`, `*.jsx`) - Uses `biome` with:
+  - 2-space indentation
+  - Double quotes
+  - Semicolons as needed (ASI-aware)
+
+**Usage:**
+
+```bash
+# Format all files
+nix fmt
+
+# Check formatting without changing files
+nix flake check  # Includes treefmt check
+
+# Format specific files
+nix fmt path/to/file.nix path/to/file.ts
+```
+
+**How it works:**
+1. Scans repo from `projectRootFile` (flake.nix)
+2. Matches files by extension
+3. Runs appropriate formatter (nixfmt for Nix, biome for TS/JS)
+4. Formats in parallel for speed
+5. In CI (`nix flake check`), fails if formatting is needed
+
+**Why treefmt?**
+- **One command** for all languages (no `nixfmt . && biome format .`)
+- **Fast** - parallel execution, caches unchanged files
+- **CI-friendly** - `nix flake check` fails if code isn't formatted
+- **Consistent** - same formatting across all machines
 
 ### Just Commands
 

@@ -144,16 +144,17 @@
       });
 
       # ------------------------------------------------------------
+      # Packages (nix build .#sysdsqr)
+      # ------------------------------------------------------------
+      packages = forEachSystem (system: {
+        sysdsqr = nixpkgs.legacyPackages.${system}.callPackage ./pkgs/sysdsqr-cli { };
+        default = self.packages.${system}.sysdsqr;
+      });
+
+      # ------------------------------------------------------------
       # Nixos Development boxes Configurtations
       # ------------------------------------------------------------
       nixosConfigurations.devbox-vm-x86_64 = mkSystem "devbox-vm-x86_64" {
-        system = "x86_64-linux";
-        user = "dsqr";
-        darwin = false;
-        homeManager = true;
-      };
-
-      nixosConfigurations.devbox-desktop-x86_64 = mkSystem "devbox-desktop-x86_64" {
         system = "x86_64-linux";
         user = "dsqr";
         darwin = false;
@@ -170,13 +171,6 @@
       # ------------------------------------------------------------
       # Nixos System boxes Configurtations
       # ------------------------------------------------------------
-      nixosConfigurations.smart-home-vm-x86_64 = mkSystem "smart-home-vm-x86_64" {
-        system = "x86_64-linux";
-        user = "sysdsqr";
-        darwin = false;
-        homeManager = true;
-      };
-
       nixosConfigurations.dsqr-server-vm-x86_64 = mkSystem "dsqr-server-vm-x86_64" {
         system = "x86_64-linux";
         user = "sysdsqr";
