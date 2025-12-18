@@ -39,6 +39,26 @@
 
   environment.systemPackages = with pkgs; [ ];
 
+  # Override github-runner to latest version
+  nixpkgs.overlays = [
+    (final: prev: {
+      github-runner = prev.github-runner.overrideAttrs (old: rec {
+        version = "2.321.0";
+        src = prev.fetchFromGitHub {
+          owner = "actions";
+          repo = "runner";
+          rev = "v${version}";
+          hash = "sha256-6QlPrsA5DE/L76fjN2PlYXN/j4J/bXJJj/idf0w/s2k=";
+          leaveDotGit = true;
+          postFetch = ''
+            git -C $out rev-parse --short HEAD > $out/.git-revision
+            rm -rf $out/.git
+          '';
+        };
+      });
+    })
+  ];
+
   # Docker support for containerized builds
   virtualisation.docker.enable = true;
 
