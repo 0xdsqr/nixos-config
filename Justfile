@@ -2,14 +2,10 @@
 uname := `uname`
 
 # Configuration names
-NIXNAME := if uname == "Darwin" { "devbox-macbook-pro-m1" } else { "devbox-vm-x86_64" }
+NIXNAME := if uname == "Darwin" { "devbox-macbook-pro-m1" } else { "github-runner-vm-x86_64" }
 
-# Default: deploy github-runner
-default: github-runner
-
-# Deploy github-runner VM
-github-runner:
-    nixos-rebuild switch --flake ".#github-runner-vm-x86_64" --target-host sysdsqr@192.168.50.32 --use-remote-sudo
+# Default command
+default: switch
 
 # Format nix files
 format:
