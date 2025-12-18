@@ -41,6 +41,11 @@ in
       deadnix
       nil
 
+      # Secrets management
+      sops
+      age
+      ssh-to-age
+
       # Language runtimes
       bun
       python313

@@ -13,6 +13,10 @@
     darwin.url = "github:LnL7/nix-darwin";
     darwin.inputs.nixpkgs.follows = "nixpkgs";
 
+    # Secrets management
+    sops-nix.url = "github:Mic92/sops-nix";
+    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
+
     # Developer tools / utilities
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
@@ -25,6 +29,7 @@
       nixpkgs,
       home-manager,
       darwin,
+      sops-nix,
       treefmt-nix,
       ...
     }@inputs:
@@ -164,6 +169,7 @@
       # ------------------------------------------------------------
       packages = forEachSystem (system: {
         sysdsqr = nixpkgs.legacyPackages.${system}.callPackage ./pkgs/sysdsqr-cli { };
+        sysdsqr-cli = self.packages.${system}.sysdsqr;
         default = self.packages.${system}.sysdsqr;
       });
 
@@ -175,6 +181,7 @@
           type = "app";
           program = "${self.packages.${system}.sysdsqr}/bin/sysdsqr";
         };
+        sysdsqr-cli = self.apps.${system}.sysdsqr;
         default = self.apps.${system}.sysdsqr;
       });
 

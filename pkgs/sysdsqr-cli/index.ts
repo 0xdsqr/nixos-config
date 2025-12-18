@@ -1,16 +1,31 @@
 #!/usr/bin/env bun
 
-const args = process.argv.slice(2);
-const command = args[0];
+import { cli, command, createHelpCommand } from "./cli.ts";
 
-process.argv.forEach((arg) => {
-    console.log("found arg", arg);
+const init = command({
+  description: "Initialize a new project from template",
+  run: ({ args, ctx }) => {
+    const template = args[0];
+
+    if (!template) {
+      console.log("Usage: sysdsqr init <template>");
+      console.log("\nAvailable templates:");
+      console.log("  basic        Basic NixOS configuration");
+      console.log("  server       Server configuration");
+      console.log("  desktop      Desktop configuration");
+      process.exit(1);
+    }
+
+    console.log(`Initializing project with template: ${template}`);
+    console.log(`Working directory: ${ctx.cwd}`);
+  },
 });
-if (!command) {
-    console.log("hello world");
-} else if (command === "hello") {
-    console.log("world");
-} else {
-    console.log(`Unknown command: ${command}`);
-    process.exit(1);
-}
+
+const commands = {
+  init,
+};
+
+cli({
+  ...commands,
+  help: createHelpCommand(commands),
+});
