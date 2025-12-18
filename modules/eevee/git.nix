@@ -7,8 +7,6 @@
 {
   programs.git = {
     enable = true;
-    userName = config.eevee.full_name;
-    userEmail = config.eevee.email_address;
     signing = {
       key = "6908FE142198DB65";
       signByDefault = true;
@@ -18,7 +16,9 @@
       prettylog = "log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(r) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative";
       root = "rev-parse --show-toplevel";
     };
-    extraConfig = {
+    settings = {
+      user.name = config.eevee.full_name;
+      user.email = config.eevee.email_address;
       branch.autosetuprebase = "always";
       color.ui = true;
       core.askPass = ""; # Use terminal for askpass
