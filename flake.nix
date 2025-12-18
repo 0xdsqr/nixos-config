@@ -99,6 +99,22 @@
         };
 
       # ------------------------------------------------------------
+      # GitHub Runners module (importable in other flakes or inline configs)
+      # ------------------------------------------------------------
+      nixosModules.github-runners =
+        {
+          config,
+          lib,
+          pkgs,
+          ...
+        }:
+        {
+          imports = [
+            (import ./modules/nixos/github-runners.nix)
+          ];
+        };
+
+      # ------------------------------------------------------------
       # Darwin module (importable in other flakes or inline configs)
       # ------------------------------------------------------------
       darwinModules.dsqr-nix =
@@ -219,7 +235,7 @@
         homeManager = true;
       };
 
-      nixosConfigurations.hoo-vm-x86_64 = mkSystem "hoo-vm-x86_64" {
+      nixosConfigurations.github-runner-vm-x86_64 = mkSystem "github-runner-vm-x86_64" {
         system = "x86_64-linux";
         user = "sysdsqr";
         darwin = false;
