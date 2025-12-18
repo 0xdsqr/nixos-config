@@ -48,7 +48,7 @@
           owner = "actions";
           repo = "runner";
           rev = "v${version}";
-          hash = "sha256-6QlPrsA5DE/L76fjN2PlYXN/j4J/bXJJj/idf0w/s2k=";
+          hash = "sha256-KZ072v5kYlD78RGQl13Aj05DGzj2+r2akzyZ1aJn93A=";
           leaveDotGit = true;
           postFetch = ''
             git -C $out rev-parse --short HEAD > $out/.git-revision
