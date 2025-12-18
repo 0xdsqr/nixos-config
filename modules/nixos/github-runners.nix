@@ -122,7 +122,8 @@ in
 
     # Configure each runner using built-in NixOS service
     services.github-runners = lib.mapAttrs (
-      name: runnerCfg: {
+      name: runnerCfg:
+      {
         enable = true;
         inherit name;
         tokenFile = config.sops.secrets.${runnerCfg.tokenSecret}.path;
@@ -130,10 +131,12 @@ in
         extraPackages = runnerCfg.extraPackages;
         extraLabels = runnerCfg.extraLabels ++ [ "nixos" ];
         replace = runnerCfg.replace;
-        nodeRuntimes = runnerCfg.nodeRuntimes;
         user = cfg.user;
         group = cfg.group;
         workDir = "${cfg.workDir}/${name}";
+      }
+      // lib.optionalAttrs (runnerCfg.nodeRuntimes != [ ]) {
+        nodeRuntimes = runnerCfg.nodeRuntimes;
       }
     ) cfg.runners;
 

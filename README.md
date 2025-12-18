@@ -711,8 +711,7 @@ sudo ls -la /run/secrets/
 
 ### Documentation
 
-- **Full guide:** [`.github/SOPS-ONBOARDING.md`](.github/SOPS-ONBOARDING.md)
-- **Quick start:** [`.github/SOPS-QUICKSTART.md`](.github/SOPS-QUICKSTART.md)
+**Complete guide:** [`.github/SECRETS-MANAGEMENT.md`](.github/SECRETS-MANAGEMENT.md)
 
 ## ⇁ Contributing
 
