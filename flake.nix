@@ -78,6 +78,22 @@
         };
 
       # ------------------------------------------------------------
+      # CockroachDB module (importable in other flakes or inline configs)
+      # ------------------------------------------------------------
+      nixosModules.cockroachdb =
+        {
+          config,
+          lib,
+          pkgs,
+          ...
+        }:
+        {
+          imports = [
+            (import ./modules/nixos/cockroachdb.nix)
+          ];
+        };
+
+      # ------------------------------------------------------------
       # Darwin module (importable in other flakes or inline configs)
       # ------------------------------------------------------------
       darwinModules.dsqr-nix =

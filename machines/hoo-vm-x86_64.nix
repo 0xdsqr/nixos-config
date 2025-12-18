@@ -44,39 +44,22 @@
   ];
 
   ############################################################
-  # CockroachDB — systemd service
+  # CockroachDB — using the cockroachdb module
   ############################################################
-
-  users.groups.cockroach = { };
-  users.users.cockroach = {
-    isSystemUser = true;
-    home = "/var/lib/cockroach";
-    createHome = true;
-    group = "cockroach";
-  };
-
-  systemd.services.cockroachdb = {
-    description = "CockroachDB server";
-    wantedBy = [ "multi-user.target" ];
-    after = [ "network.target" ];
-
-    serviceConfig = {
-      ExecStartPre = "${pkgs.coreutils}/bin/mkdir -p /var/lib/cockroach";
-      ExecStart = ''
-        ${pkgs.cockroachdb}/bin/cockroach start-single-node \
-          --insecure \
-          --listen-addr=0.0.0.0:26257 \
-          --http-addr=0.0.0.0:8080 \
-          --store=/var/lib/cockroach \
-          --cache=25% \
-          --max-sql-memory=25%
-      '';
-
-      User = "cockroach";
-      Group = "cockroach";
-      Restart = "on-failure";
-      RestartSec = "5s";
+  services.cockroachdb = {
+    enable = true;
+    singleNode = true;
+    listen = {
+      address = "0.0.0.0";
+      port = 26257;
     };
+    http = {
+      address = "0.0.0.0";
+      port = 8080;
+    };
+    cache = "25%";
+    maxSqlMemory = "25%";
+    openFirewall = false; # Manually managed in networking.firewall.allowedTCPPorts
   };
   ############################################################
   # Redis
@@ -162,7 +145,6 @@
   };
 
   environment.systemPackages = with pkgs; [
-    cockroachdb
     redis
     htop
     curl

@@ -87,6 +87,16 @@ just switch
 }
 ```
 
+## ⇁ Documentation
+
+See [.claude/README.md](./.claude/README.md) for all documentation.
+
+- **[QUICKSTART.md](./.claude/QUICKSTART.md)** - Tmux & Neovim command reference
+- **[DEBUG.md](./.claude/DEBUG.md)** - Service debugging & testing commands
+- **[COCKROACHDB.md](./.claude/COCKROACHDB.md)** - Certificate setup, users, passwords, clustering
+- **[HOO-VM-UIS.md](./.claude/HOO-VM-UIS.md)** - Web UI access (CockroachDB, Grafana, Prometheus)
+- **[CLI-USAGE.md](./.claude/CLI-USAGE.md)** - Using sysdsqr CLI in other projects
+
 ## ⇁ Quick Start
 
 **Configure your machine:**
@@ -323,6 +333,174 @@ All casks are discretionary and can be excluded via `eevee.darwin.exclude_casks`
   eevee.darwin.exclude_casks = [ "discord" "spotify" ];
 }
 ```
+
+</details>
+
+<details><summary><strong>cockroachdb Module (nixosModules.cockroachdb)</strong></summary>
+
+**CockroachDB distributed SQL database service module.**
+
+### Configuration Options
+
+```nix
+services.cockroachdb = {
+  enable = false;                    # Disabled by default - explicitly enable
+  package = pkgs.cockroachdb;        # CockroachDB package to use
+
+  # Node configuration
+  user = "cockroach";                # System user
+  group = "cockroach";               # System group
+  dataDir = "/var/lib/cockroach";    # Data storage directory
+
+  # Deployment mode
+  singleNode = true;                 # true = single-node, false = cluster mode
+
+  # Network configuration
+  listen = {
+    address = "localhost";           # SQL listen address (use "0.0.0.0" for all interfaces)
+    port = 26257;                    # SQL port
+  };
+
+  http = {
+    address = "localhost";           # Admin UI address
+    port = 8080;                     # Admin UI port
+  };
+
+  # Cluster configuration (multi-node only)
+  advertiseAddr = null;              # Address to advertise to other nodes
+  locality = null;                   # Locality info (e.g., "region=us-east,datacenter=us-east-1")
+  join = [];                         # List of addresses to join (required when singleNode = false)
+
+  # Performance tuning
+  cache = "25%";                     # Cache size (percentage or absolute like "512MiB")
+  maxSqlMemory = "25%";              # Max SQL memory (percentage or absolute)
+
+  # Security
+  secure = false;                    # false = insecure mode, true = TLS with certificates
+  certsDir = "/var/lib/cockroach/certs";  # Certificate directory (when secure = true)
+
+  # Firewall
+  openFirewall = false;              # Auto-open firewall ports
+
+  # Advanced
+  extraArgs = [];                    # Additional command-line arguments
+};
+```
+
+### Usage Examples
+
+**Single-node development setup (insecure):**
+
+```nix
+{
+  services.cockroachdb = {
+    enable = true;
+    singleNode = true;
+    listen.address = "0.0.0.0";
+    http.address = "0.0.0.0";
+  };
+}
+```
+
+**Single-node production setup (secure with TLS):**
+
+```nix
+{
+  services.cockroachdb = {
+    enable = true;
+    singleNode = true;
+    secure = true;
+    certsDir = "/etc/cockroach/certs";  # Ensure certificates exist here
+    listen.address = "0.0.0.0";
+    http.address = "0.0.0.0";
+    openFirewall = true;
+    cache = "512MiB";
+    maxSqlMemory = "1GiB";
+  };
+}
+```
+
+**Multi-node cluster setup:**
+
+```nix
+{
+  services.cockroachdb = {
+    enable = true;
+    singleNode = false;
+    secure = true;
+    certsDir = "/etc/cockroach/certs";
+
+    # This node's configuration
+    listen.address = "0.0.0.0";
+    advertiseAddr = "node1.example.com:26257";
+    locality = "region=us-east,datacenter=us-east-1";
+
+    # Cluster join addresses
+    join = [
+      "node1.example.com:26257"
+      "node2.example.com:26257"
+      "node3.example.com:26257"
+    ];
+
+    openFirewall = true;
+    cache = "25%";
+    maxSqlMemory = "25%";
+  };
+}
+```
+
+### Certificate Requirements (Secure Mode)
+
+When `secure = true`, you must provide certificates in `certsDir`:
+
+- `ca.crt` - CA certificate
+- `node.crt` - Node certificate
+- `node.key` - Node private key (mode 0600)
+- `client.root.crt` - Root client certificate
+- `client.root.key` - Root client private key (mode 0600)
+
+Generate certificates using:
+
+```bash
+cockroach cert create-ca --certs-dir=/etc/cockroach/certs --ca-key=/etc/cockroach/my-safe-directory/ca.key
+cockroach cert create-node localhost $(hostname) --certs-dir=/etc/cockroach/certs --ca-key=/etc/cockroach/my-safe-directory/ca.key
+cockroach cert create-client root --certs-dir=/etc/cockroach/certs --ca-key=/etc/cockroach/my-safe-directory/ca.key
+```
+
+### What's Included
+
+- User/group creation (cockroach:cockroach)
+- systemd service with automatic restarts
+- Security hardening (NoNewPrivileges, ProtectSystem, etc.)
+- Firewall integration (optional)
+- CLI tools added to system packages
+- Prometheus metrics endpoint (exposed on http port at `/metrics`)
+
+### Import Example
+
+```nix
+{
+  inputs.dsqr-nix.url = "github:yourusername/nixos-config";
+
+  outputs = { nixpkgs, dsqr-nix, ... }: {
+    nixosConfigurations.my-machine = nixpkgs.lib.nixosSystem {
+      modules = [
+        dsqr-nix.nixosModules.cockroachdb
+
+        {
+          services.cockroachdb = {
+            enable = true;
+            singleNode = true;
+            listen.address = "0.0.0.0";
+          };
+        }
+      ];
+    };
+  };
+}
+```
+
+**Note:** The cockroachdb module is also included automatically when importing `dsqr-nix.nixosModules.dsqr-nix`, but must still be explicitly enabled.
 
 </details>
 

@@ -17,5 +17,6 @@ in
     (import ./system.nix)
     (import ./1password.nix)
     (import ./containers.nix)
+    (import ./cockroachdb.nix)
   ];
 }
