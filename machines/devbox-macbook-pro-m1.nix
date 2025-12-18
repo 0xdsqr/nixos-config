@@ -25,10 +25,11 @@
 
   nixpkgs.config.allowUnfree = true;
 
-  # Configure dsqr-nix module
-  dsqrDevbox = {
+  # Configure eevee module
+  eevee = {
     full_name = "0xdsqr";
     email_address = "dave.dennis@gs.com";
     theme = "tokyo-night";
+    darwin.exclude_casks = [ ]; # Add casks to exclude if needed
   };
 }

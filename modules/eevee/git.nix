@@ -1,9 +1,14 @@
-{ pkgs, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 {
   programs.git = {
     enable = true;
-    userName = "0xdsqr";
-    userEmail = "me@dsqr.dev";
+    userName = config.eevee.full_name;
+    userEmail = config.eevee.email_address;
     signing = {
       key = "6908FE142198DB65";
       signByDefault = true;
@@ -35,11 +40,13 @@
     enable = true;
   };
 
-  services.gpg-agent = {
+  # gpg-agent works on both Linux and Darwin
+  services.gpg-agent = lib.mkIf pkgs.stdenv.isLinux {
     enable = true;
     pinentry.package = pkgs.pinentry-curses;
     enableSshSupport = true;
   };
+
   home.packages = with pkgs; [
     gnupg
   ];

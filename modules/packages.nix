@@ -4,21 +4,6 @@
   exclude_packages ? [ ],
 }:
 let
-  # Essential Hyprland packages - cannot be excluded (Linux only)
-  hyprlandPackages =
-    with pkgs;
-    lib.optionals pkgs.stdenv.hostPlatform.isLinux [
-      wofi
-      hyprshot
-      hyprpicker
-      hyprsunset
-      brightnessctl
-      pamixer
-      playerctl
-      gnome-themes-extra
-      pavucontrol
-    ];
-
   # Essential system packages - cannot be excluded
   systemPackages =
     with pkgs;
@@ -76,7 +61,7 @@ let
 
   # Only allow excluding discretionary packages to prevent breaking the system
   filteredDiscretionaryPackages = lib.lists.subtractLists exclude_packages discretionaryPackages;
-  allSystemPackages = hyprlandPackages ++ systemPackages ++ filteredDiscretionaryPackages;
+  allSystemPackages = systemPackages ++ filteredDiscretionaryPackages;
 in
 {
   # Regular packages

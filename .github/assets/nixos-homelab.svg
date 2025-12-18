@@ -1,0 +1,93 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <circle cx="100" cy="100" r="95" fill="#A855F7" opacity="0.08"/>
+
+  <!-- Owl Body (PURPLE!) -->
+  <g transform="translate(100, 60)">
+    <!-- Body -->
+    <ellipse cx="0" cy="15" rx="28" ry="35" fill="#A855F7"/>
+
+    <!-- Head -->
+    <circle cx="0" cy="-10" r="22" fill="#A855F7"/>
+
+    <!-- Ear tufts -->
+    <path d="M -15,-25 L -12,-32 L -8,-26 Z" fill="#A855F7"/>
+    <path d="M 15,-25 L 12,-32 L 8,-26 Z" fill="#A855F7"/>
+
+    <!-- Eyes (big and watchful) -->
+    <circle cx="-8" cy="-12" r="7" fill="#FFFFFF"/>
+    <circle cx="8" cy="-12" r="7" fill="#FFFFFF"/>
+    <circle cx="-8" cy="-12" r="4" fill="#1a1a1a"/>
+    <circle cx="8" cy="-12" r="4" fill="#1a1a1a"/>
+
+    <!-- Eye highlights (alert look) -->
+    <circle cx="-7" cy="-14" r="2" fill="#FFFFFF"/>
+    <circle cx="9" cy="-14" r="2" fill="#FFFFFF"/>
+
+    <!-- Beak -->
+    <path d="M 0,-6 L 3,0 L 0,2 L -3,0 Z" fill="#F59E0B"/>
+
+    <!-- Wings (folded, at rest) -->
+    <ellipse cx="-22" cy="10" rx="8" ry="20" fill="#C084FC" opacity="0.8"/>
+    <ellipse cx="22" cy="10" rx="8" ry="20" fill="#C084FC" opacity="0.8"/>
+
+    <!-- Feet/talons on perch -->
+    <path d="M -8,45 L -8,50 M -5,45 L -5,50 M -11,45 L -11,50" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
+    <path d="M 8,45 L 8,50 M 5,45 L 5,50 M 11,45 L 11,50" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- Perch (branch/line) -->
+  <line x1="40" y1="110" x2="160" y2="110" stroke="#A855F7" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Server Racks Below (being watched over) -->
+  <g transform="translate(100, 155)">
+    <!-- Left server rack (healthy) -->
+    <g transform="translate(-35, 0)">
+      <rect x="-15" y="-15" width="30" height="25" rx="2" fill="#A855F7" opacity="0.7"/>
+      <rect x="-12" y="-12" width="24" height="4" rx="1" fill="#C084FC" opacity="0.5"/>
+      <rect x="-12" y="-6" width="24" height="4" rx="1" fill="#C084FC" opacity="0.5"/>
+      <rect x="-12" y="0" width="24" height="4" rx="1" fill="#C084FC" opacity="0.5"/>
+      <!-- LEDs (green - all good!) -->
+      <circle cx="-9" cy="-10" r="1.5" fill="#10B981"/>
+      <circle cx="-9" cy="-4" r="1.5" fill="#10B981"/>
+      <circle cx="-9" cy="2" r="1.5" fill="#10B981"/>
+    </g>
+
+    <!-- Middle server rack (healthy) -->
+    <g transform="translate(0, 0)">
+      <rect x="-15" y="-15" width="30" height="25" rx="2" fill="#A855F7" opacity="0.7"/>
+      <rect x="-12" y="-12" width="24" height="4" rx="1" fill="#C084FC" opacity="0.5"/>
+      <rect x="-12" y="-6" width="24" height="4" rx="1" fill="#C084FC" opacity="0.5"/>
+      <rect x="-12" y="0" width="24" height="4" rx="1" fill="#C084FC" opacity="0.5"/>
+      <!-- LEDs -->
+      <circle cx="-9" cy="-10" r="1.5" fill="#10B981"/>
+      <circle cx="-9" cy="-4" r="1.5" fill="#10B981"/>
+      <circle cx="-9" cy="2" r="1.5" fill="#10B981"/>
+    </g>
+
+    <!-- Right server rack (ON FIRE!) -->
+    <g transform="translate(35, 0)">
+      <rect x="-15" y="-15" width="30" height="25" rx="2" fill="#A855F7" opacity="0.7"/>
+      <rect x="-12" y="-12" width="24" height="4" rx="1" fill="#C084FC" opacity="0.5"/>
+      <rect x="-12" y="-6" width="24" height="4" rx="1" fill="#C084FC" opacity="0.5"/>
+      <rect x="-12" y="0" width="24" height="4" rx="1" fill="#C084FC" opacity="0.5"/>
+      <!-- LEDs (RED - FIRE!) -->
+      <circle cx="-9" cy="-10" r="1.5" fill="#EF4444"/>
+      <circle cx="-9" cy="-4" r="1.5" fill="#EF4444"/>
+      <circle cx="-9" cy="2" r="1.5" fill="#EF4444"/>
+
+      <!-- Fire flames above server -->
+      <g transform="translate(0, -18)">
+        <path d="M -5,-5 Q -7,-10 -5,-15 Q -3,-12 -2,-8 Q -3,-10 -5,-5 Z" fill="#F97316" opacity="0.8"/>
+        <path d="M 0,-7 Q -2,-13 0,-18 Q 2,-14 3,-10 Q 1,-13 0,-7 Z" fill="#FB923C" opacity="0.9"/>
+        <path d="M 5,-4 Q 3,-9 5,-13 Q 7,-10 8,-7 Q 6,-9 5,-4 Z" fill="#FDBA74" opacity="0.7"/>
+        <!-- Inner yellow flame -->
+        <path d="M 0,-9 Q -1,-12 0,-14 Q 1,-12 1,-10 Q 0,-11 0,-9 Z" fill="#FCD34D" opacity="0.9"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- Watchful lines (subtle indication owl is watching) -->
+  <path d="M 92,72 L 65,145" stroke="#A855F7" stroke-width="0.5" opacity="0.3" stroke-dasharray="2,2"/>
+  <path d="M 108,72 L 135,145" stroke="#A855F7" stroke-width="0.5" opacity="0.3" stroke-dasharray="2,2"/>
+</svg>

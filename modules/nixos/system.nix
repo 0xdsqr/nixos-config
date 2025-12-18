@@ -5,7 +5,7 @@
   ...
 }:
 let
-  cfg = config.dsqrDevbox;
+  cfg = config.eevee;
   packages = import ../packages.nix {
     inherit pkgs lib;
     exclude_packages = cfg.nixos.exclude_packages;

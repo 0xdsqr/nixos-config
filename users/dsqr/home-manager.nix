@@ -9,35 +9,32 @@
 let
   isDarwin = pkgs.stdenv.isDarwin;
   isLinux = pkgs.stdenv.isLinux;
-
-  shellAliases = {
-    ".." = "cd ..";
-  }
-  // (
-    if isLinux then
-      {
-        # Linux-specific aliases
-      }
-    else
-      {
-        # macOS-specific aliases
-      }
-  );
 in
 {
   imports = [
-    # Import dsqr-nix home-manager module
-    (inputs.self.homeManagerModules.dsqr-nix inputs)
+    # Import eevee module (includes neovim, tmux, git, ghostty, starship, zsh, direnv)
+    (inputs.self.homeManagerModules.eevee inputs)
   ];
 
-  # Configure dsqr-nix module
-  dsqrDevbox = {
+  # Configure eevee module
+  eevee = {
     full_name = "0xdsqr";
     email_address = "dave.dennis@gs.com";
     theme = "tokyo-night";
   };
 
-  systemd.user.startServices = "sd-switch";
+  # On Linux, enable systemd user services
+  systemd.user.startServices = lib.mkIf isLinux "sd-switch";
+
+  # Darwin-specific GPG setup
+  programs.zsh.initExtra = lib.mkIf isDarwin ''
+    # GPG agent for Darwin
+    export GPG_TTY=$(tty)
+    if [ -f ~/.gnupg/gpg-agent-info ]; then
+      . ~/.gnupg/gpg-agent-info
+      export GPG_AGENT_INFO
+    fi
+  '';
 
   # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
   home.stateVersion = "23.05";

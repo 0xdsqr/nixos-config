@@ -30,8 +30,10 @@
       nixPath = lib.mapAttrsToList (n: _: "${n}=flake:${n}") flakeInputs;
     };
 
-  # Configure dsqr-nix module
-  dsqrDevbox = {
+  # Configure eevee module
+  eevee = {
+    full_name = "0xdsqr";
+    email_address = "dave.dennis@gs.com";
     theme = "tokyo-night";
     nixos.exclude_packages = [ ]; # Add packages to exclude if needed
   };

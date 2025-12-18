@@ -6,7 +6,7 @@ inputs:
   ...
 }:
 let
-  cfg = config.dsqrDevbox;
+  cfg = config.eevee;
   casks = import ./casks.nix {
     inherit lib;
     exclude_casks = cfg.darwin.exclude_casks;

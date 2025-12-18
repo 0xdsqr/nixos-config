@@ -1,7 +1,7 @@
 { pkgs, ... }:
 {
   programs.ghostty = {
-    enable = true;
+    enable = pkgs.stdenv.hostPlatform.isLinux;
     settings = {
       # Window settings
       window-padding-x = 10;

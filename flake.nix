@@ -13,19 +13,10 @@
     darwin.url = "github:LnL7/nix-darwin";
     darwin.inputs.nixpkgs.follows = "nixpkgs";
 
-    # Theming + UI
-    nix-colors.url = "github:misterio77/nix-colors";
-    hyprland.url = "github:hyprwm/Hyprland";
-
-    opencode.url = "github:sst/opencode/dev";
-    opencode.inputs.nixpkgs.follows = "nixpkgs";
-
     # Developer tools / utilities
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
     neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
-    jujutsu.url = "github:martinvonz/jj";
-    zig.url = "github:mitchellh/zig-overlay";
   };
 
   outputs =
@@ -34,7 +25,6 @@
       nixpkgs,
       home-manager,
       darwin,
-      nix-colors,
       treefmt-nix,
       ...
     }@inputs:
@@ -66,7 +56,7 @@
         }:
         {
           imports = [ (import ./modules/nixos/default.nix inputs) ];
-          options.dsqrDevbox = (import ./config.nix lib).dsqrDevboxOptions;
+          options.eevee = (import ./eevee-config.nix lib).eeveeOptions;
           config.nixpkgs.config.allowUnfree = true;
         };
 
@@ -100,33 +90,13 @@
         }:
         {
           imports = [ (import ./modules/darwin/default.nix inputs) ];
-          options.dsqrDevbox = (import ./config.nix lib).dsqrDevboxOptions;
+          options.eevee = (import ./eevee-config.nix lib).eeveeOptions;
           config.nixpkgs.config.allowUnfree = true;
         };
 
       # ------------------------------------------------------------
       # Home Manager module (importable in other flakes or inline configs)
       # ------------------------------------------------------------
-      homeManagerModules.dsqr-nix =
-        inputs:
-        {
-          config,
-          lib,
-          pkgs,
-          osConfig ? { },
-          ...
-        }:
-        {
-          imports = [
-            nix-colors.homeManagerModules.default
-            (import ./modules/home-manager/default.nix inputs)
-          ];
-          options.dsqrDevbox = (import ./config.nix lib).dsqrDevboxOptions;
-          config = lib.mkIf (osConfig ? dsqrDevbox) {
-            dsqrDevbox = osConfig.dsqrDevbox;
-          };
-        };
-
       homeManagerModules.eevee =
         inputs:
         {
@@ -138,13 +108,9 @@
         }:
         {
           imports = [
-            nix-colors.homeManagerModules.default
             (import ./modules/eevee/default.nix inputs)
           ];
           options.eevee = (import ./eevee-config.nix lib).eeveeOptions;
-          config = {
-            eevee = config.eevee or { };
-          };
         };
 
       # ------------------------------------------------------------
