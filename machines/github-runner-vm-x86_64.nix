@@ -45,7 +45,7 @@
   # GitHub Actions runners configuration
   dsqr.github-runners = {
     enable = true;
-    sopsFile = ../secrets/machines/runner-hub.yaml;
+    sopsFile = ../secrets/hosts/github-runner-vm-x86_64.sops.yaml;
 
     runners = {
       nix-config = {

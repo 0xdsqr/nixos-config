@@ -1,0 +1,23 @@
+keys:
+  # Admin key (your Mac)
+  - &admin age1hyp7chf5yh5cazpvenaksqy2eqlv0zstd7g9dat7z8spmwes9axqnmxw67
+
+  # Host keys
+  - &github_runner age16spjxjf5e6q5cn9wvuw3eu5u7l5cmdjaqk8hvu278ttvstsd34ds5z64uh
+  # - &hoo age1...
+  # - &gateway age1...
+
+creation_rules:
+  # GitHub runner VM
+  - path_regex: secrets/hosts/github-runner-vm-x86_64\.sops\.ya?ml$
+    key_groups:
+      - age:
+          - *admin
+          - *github_runner
+
+  # Template for other VMs (uncomment and update when needed)
+  # - path_regex: secrets/hosts/hoo-vm-x86_64\.sops\.ya?ml$
+  #   key_groups:
+  #     - age:
+  #         - *admin
+  #         - *hoo
