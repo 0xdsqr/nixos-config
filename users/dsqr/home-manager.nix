@@ -27,7 +27,7 @@ in
   systemd.user.startServices = lib.mkIf isLinux "sd-switch";
 
   # Darwin-specific GPG setup
-  programs.zsh.initExtra = lib.mkIf isDarwin ''
+  programs.zsh.initContent = lib.mkIf isDarwin ''
     # GPG agent for Darwin
     export GPG_TTY=$(tty)
     if [ -f ~/.gnupg/gpg-agent-info ]; then

@@ -9,6 +9,7 @@
   imports = [
     ./hardware/vm-x86_64-linux.nix
     (inputs.self.nixosModules.dsqr-proxmox inputs)
+    inputs.self.nixosModules.cockroachdb
   ];
 
   nix =
@@ -44,9 +45,9 @@
   ];
 
   ############################################################
-  # CockroachDB — using the cockroachdb module
+  # CockroachDB — using custom dsqr module
   ############################################################
-  services.cockroachdb = {
+  services.dsqr-cockroachdb = {
     enable = true;
     singleNode = true;
     listen = {
@@ -59,7 +60,7 @@
     };
     cache = "25%";
     maxSqlMemory = "25%";
-    openFirewall = false; # Manually managed in networking.firewall.allowedTCPPorts
+    openFirewall = false;
   };
   ############################################################
   # Redis

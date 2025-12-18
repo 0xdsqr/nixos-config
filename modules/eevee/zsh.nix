@@ -6,7 +6,7 @@
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
 
-    initExtra = ''
+    initContent = ''
       # GPG TTY for signing commits
       export GPG_TTY=$(tty)
     '';

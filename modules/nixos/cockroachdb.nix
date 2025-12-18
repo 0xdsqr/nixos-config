@@ -5,7 +5,7 @@
   ...
 }:
 let
-  cfg = config.services.cockroachdb;
+  cfg = config.services.dsqr-cockroachdb;
 
   # Helper to construct the cockroach command
   startCommand =
@@ -54,8 +54,8 @@ let
       );
 in
 {
-  options.services.cockroachdb = {
-    enable = lib.mkEnableOption "CockroachDB database server";
+  options.services.dsqr-cockroachdb = {
+    enable = lib.mkEnableOption "DSQR CockroachDB database server";
 
     package = lib.mkOption {
       type = lib.types.package;
@@ -194,7 +194,7 @@ in
     certsDir = lib.mkOption {
       type = lib.types.path;
       default = "${cfg.dataDir}/certs";
-      defaultText = lib.literalExpression ''''${config.services.cockroachdb.dataDir}/certs'';
+      defaultText = lib.literalExpression ''''${config.services.dsqr-cockroachdb.dataDir}/certs'';
       description = ''
         Directory containing TLS certificates when running in secure mode.
         Required certificates:
@@ -248,8 +248,8 @@ in
       description = "CockroachDB server user";
     };
 
-    systemd.services.cockroachdb = {
-      description = "CockroachDB Distributed SQL Database";
+    systemd.services.dsqr-cockroachdb = {
+      description = "DSQR CockroachDB Distributed SQL Database";
       documentation = [ "https://www.cockroachlabs.com/docs/" ];
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
