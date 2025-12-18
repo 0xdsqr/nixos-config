@@ -33,7 +33,7 @@ One flake, 8 machines, zero drift:
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/nixos-config.git ~/.config/nixos-config
+git clone https://github.com/0xdsqr/nixos-config.git ~/.config/nixos-config
 cd ~/.config/nixos-config
 
 # Edit Justfile to set your machine name (line 5)
@@ -50,7 +50,7 @@ just switch
 nix run nix-darwin -- switch --flake ~/.config/nixos-config
 
 # Clone the repo
-git clone https://github.com/yourusername/nixos-config.git ~/.config/nixos-config
+git clone https://github.com/0xdsqr/nixos-config.git ~/.config/nixos-config
 cd ~/.config/nixos-config
 
 # Edit Justfile to set your machine name
@@ -64,7 +64,7 @@ just switch
 
 ```nix
 {
-  inputs.dsqr-nix.url = "github:yourusername/nixos-config";
+  inputs.dsqr-nix.url = "github:0xdsqr/nixos-config";
 
   outputs = { nixpkgs, dsqr-nix, ... }: {
     nixosConfigurations.my-machine = nixpkgs.lib.nixosSystem {
@@ -86,16 +86,6 @@ just switch
   };
 }
 ```
-
-## ⇁ Documentation
-
-See [.claude/README.md](./.claude/README.md) for all documentation.
-
-- **[QUICKSTART.md](./.claude/QUICKSTART.md)** - Tmux & Neovim command reference
-- **[DEBUG.md](./.claude/DEBUG.md)** - Service debugging & testing commands
-- **[COCKROACHDB.md](./.claude/COCKROACHDB.md)** - Certificate setup, users, passwords, clustering
-- **[HOO-VM-UIS.md](./.claude/HOO-VM-UIS.md)** - Web UI access (CockroachDB, Grafana, Prometheus)
-- **[CLI-USAGE.md](./.claude/CLI-USAGE.md)** - Using sysdsqr CLI in other projects
 
 ## ⇁ Quick Start
 
@@ -152,26 +142,23 @@ System admin CLI for managing homelab deployments. Single binary, zero dependenc
 
 ### Installation
 
-**Via Nix Flake:**
+**Run from anywhere (after pushing to GitHub):**
+
+```bash
+nix run github:0xdsqr/nixos-config#sysdsqr
+nix run github:0xdsqr/nixos-config#sysdsqr -- hello
+```
+
+**Add to your project:**
 
 ```nix
 {
-  inputs.dsqr-nix.url = "github:yourusername/nixos-config";
+  inputs.dsqr-nix.url = "github:0xdsqr/nixos-config";
 
   environment.systemPackages = [
     inputs.dsqr-nix.packages.x86_64-linux.sysdsqr
   ];
 }
-```
-
-**Quick Install:**
-
-```bash
-# Build and run
-nix run github:yourusername/nixos-config#sysdsqr
-
-# Or install via curl (coming soon)
-curl -fsSL https://yourdomain.com/install | bash
 ```
 
 ### Usage
@@ -480,7 +467,7 @@ cockroach cert create-client root --certs-dir=/etc/cockroach/certs --ca-key=/etc
 
 ```nix
 {
-  inputs.dsqr-nix.url = "github:yourusername/nixos-config";
+  inputs.dsqr-nix.url = "github:0xdsqr/nixos-config";
 
   outputs = { nixpkgs, dsqr-nix, ... }: {
     nixosConfigurations.my-machine = nixpkgs.lib.nixosSystem {
