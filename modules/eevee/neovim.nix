@@ -1,4 +1,5 @@
-# Neovim Configuration for TypeScript, Go, Python Development
+# Neovim Configuration for Multi-Language Development
+# Languages: TypeScript, Go, Python, Nix, Java, Kotlin, Bash, Rust, HTML/CSS, YAML, Markdown, Docker
 # Pure Nix approach - no Mason, no runtime downloads
 # Uses Neovim 0.11+ native LSP (vim.lsp.config/vim.lsp.enable)
 # Updated December 2025
@@ -20,9 +21,11 @@ let
     p.gomod
     p.gosum
     p.html
+    p.java
     p.javascript
     p.json
     p.jsonc
+    p.kotlin
     p.lua
     p.markdown
     p.markdown_inline
@@ -73,6 +76,34 @@ in
       # ── Nix ──
       nil # Nix LSP
       nixfmt-rfc-style # Nix formatter
+
+      # ── Java ──
+      jdt-language-server
+      google-java-format
+
+      # ── Kotlin ──
+      kotlin-language-server
+      ktlint
+
+      # ── Bash ──
+      bash-language-server
+      shfmt
+
+      # ── Rust ──
+      rust-analyzer
+      rustfmt
+
+      # ── Web (HTML/CSS/JSON) ──
+      vscode-langservers-extracted
+
+      # ── YAML ──
+      yaml-language-server
+
+      # ── Markdown ──
+      marksman
+
+      # ── Docker ──
+      dockerfile-language-server-nodejs
 
       # ── General Tools ──
       ripgrep # For telescope live_grep
@@ -176,6 +207,11 @@ in
               go = { "gofumpt", "goimports" },
               python = { "ruff_format" },
               nix = { "nixfmt" },
+              java = { "google-java-format" },
+              kotlin = { "ktlint" },
+              sh = { "shfmt" },
+              bash = { "shfmt" },
+              rust = { "rustfmt" },
             },
             format_on_save = {
               timeout_ms = 1000,
@@ -421,12 +457,94 @@ in
         },
       }
 
+      -- Java (jdtls)
+      vim.lsp.config.jdtls = {
+        cmd = { 'jdt-language-server' },
+        filetypes = { 'java' },
+        root_markers = { 'pom.xml', 'build.gradle', 'build.gradle.kts', '.git' },
+      }
+
+      -- Kotlin (kotlin_language_server)
+      vim.lsp.config.kotlin_language_server = {
+        cmd = { 'kotlin-language-server' },
+        filetypes = { 'kotlin' },
+        root_markers = { 'settings.gradle', 'settings.gradle.kts', 'build.gradle', 'build.gradle.kts', '.git' },
+      }
+
+      -- Bash (bashls)
+      vim.lsp.config.bashls = {
+        cmd = { 'bash-language-server', 'start' },
+        filetypes = { 'sh', 'bash' },
+        root_markers = { '.git' },
+      }
+
+      -- Rust (rust_analyzer)
+      vim.lsp.config.rust_analyzer = {
+        cmd = { 'rust-analyzer' },
+        filetypes = { 'rust' },
+        root_markers = { 'Cargo.toml', 'rust-project.json', '.git' },
+        settings = {
+          ['rust-analyzer'] = {
+            cargo = {
+              allFeatures = true,
+            },
+            checkOnSave = {
+              command = "clippy",
+            },
+          },
+        },
+      }
+
+      -- HTML
+      vim.lsp.config.html = {
+        cmd = { 'vscode-html-language-server', '--stdio' },
+        filetypes = { 'html' },
+        root_markers = { 'package.json', '.git' },
+      }
+
+      -- CSS
+      vim.lsp.config.cssls = {
+        cmd = { 'vscode-css-language-server', '--stdio' },
+        filetypes = { 'css', 'scss', 'less' },
+        root_markers = { 'package.json', '.git' },
+      }
+
+      -- YAML
+      vim.lsp.config.yamlls = {
+        cmd = { 'yaml-language-server', '--stdio' },
+        filetypes = { 'yaml', 'yaml.docker-compose' },
+        root_markers = { '.git' },
+      }
+
+      -- Markdown
+      vim.lsp.config.marksman = {
+        cmd = { 'marksman', 'server' },
+        filetypes = { 'markdown', 'markdown.mdx' },
+        root_markers = { '.git', '.marksman.toml' },
+      }
+
+      -- Docker
+      vim.lsp.config.dockerls = {
+        cmd = { 'docker-langserver', '--stdio' },
+        filetypes = { 'dockerfile' },
+        root_markers = { 'Dockerfile', '.git' },
+      }
+
       -- Enable all configured language servers
       vim.lsp.enable('ts_ls')
       vim.lsp.enable('biome')
       vim.lsp.enable('gopls')
       vim.lsp.enable('pyright')
       vim.lsp.enable('nil_ls')
+      vim.lsp.enable('jdtls')
+      vim.lsp.enable('kotlin_language_server')
+      vim.lsp.enable('bashls')
+      vim.lsp.enable('rust_analyzer')
+      vim.lsp.enable('html')
+      vim.lsp.enable('cssls')
+      vim.lsp.enable('yamlls')
+      vim.lsp.enable('marksman')
+      vim.lsp.enable('dockerls')
 
       -- ════════════════════════════════════════════════════════════════════════
       -- EDITOR OPTIONS

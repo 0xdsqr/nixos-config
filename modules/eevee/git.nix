@@ -16,9 +16,9 @@
       prettylog = "log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(r) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative";
       root = "rev-parse --show-toplevel";
     };
-    settings = {
-      user.name = config.eevee.full_name;
-      user.email = config.eevee.email_address;
+    userName = config.eevee.full_name;
+    userEmail = config.eevee.email_address;
+    extraConfig = {
       branch.autosetuprebase = "always";
       color.ui = true;
       core.askPass = ""; # Use terminal for askpass
