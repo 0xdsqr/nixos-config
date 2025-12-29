@@ -1,3 +1,4 @@
+inputs:
 {
   config,
   pkgs,
@@ -10,5 +11,7 @@
     (import ./boot-loader.nix)
     (import ./services.nix)
     (import ./security.nix)
+    (import ./networking.nix)
+    (import ./nix-settings.nix inputs)
   ];
 }

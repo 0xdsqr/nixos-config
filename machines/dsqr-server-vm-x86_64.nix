@@ -1,7 +1,5 @@
 {
   inputs,
-  config,
-  lib,
   pkgs,
   ...
 }:
@@ -11,29 +9,15 @@
     (inputs.self.nixosModules.dsqr-proxmox inputs)
   ];
 
-  nix =
-    let
-      flakeInputs = lib.filterAttrs (_: lib.isType "flake") inputs;
-    in
-    {
-      settings = {
-        experimental-features = "nix-command flakes";
-        flake-registry = "";
-        nix-path = config.nix.nixPath;
-      };
-      channel.enable = false;
-      registry = lib.mapAttrs (_: flake: { inherit flake; }) flakeInputs;
-      nixPath = lib.mapAttrsToList (n: _: "${n}=flake:${n}") flakeInputs;
-    };
-
-  networking.hostName = "server";
-  networking.domain = "dsqr.dev";
-  networking.firewall.allowedTCPPorts = [
-    3000
-    3001
-    8080
-    5432
-  ];
+  dsqr.proxmox.networking = {
+    hostName = "server";
+    firewall.allowedTCPPorts = [
+      3000
+      3001
+      8080
+      5432
+    ];
+  };
 
   services.postgresql = {
     enable = true;

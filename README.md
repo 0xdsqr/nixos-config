@@ -323,174 +323,6 @@ All casks are discretionary and can be excluded via `eevee.darwin.exclude_casks`
 
 </details>
 
-<details><summary><strong>cockroachdb Module (nixosModules.cockroachdb)</strong></summary>
-
-**CockroachDB distributed SQL database service module.**
-
-### Configuration Options
-
-```nix
-services.cockroachdb = {
-  enable = false;                    # Disabled by default - explicitly enable
-  package = pkgs.cockroachdb;        # CockroachDB package to use
-
-  # Node configuration
-  user = "cockroach";                # System user
-  group = "cockroach";               # System group
-  dataDir = "/var/lib/cockroach";    # Data storage directory
-
-  # Deployment mode
-  singleNode = true;                 # true = single-node, false = cluster mode
-
-  # Network configuration
-  listen = {
-    address = "localhost";           # SQL listen address (use "0.0.0.0" for all interfaces)
-    port = 26257;                    # SQL port
-  };
-
-  http = {
-    address = "localhost";           # Admin UI address
-    port = 8080;                     # Admin UI port
-  };
-
-  # Cluster configuration (multi-node only)
-  advertiseAddr = null;              # Address to advertise to other nodes
-  locality = null;                   # Locality info (e.g., "region=us-east,datacenter=us-east-1")
-  join = [];                         # List of addresses to join (required when singleNode = false)
-
-  # Performance tuning
-  cache = "25%";                     # Cache size (percentage or absolute like "512MiB")
-  maxSqlMemory = "25%";              # Max SQL memory (percentage or absolute)
-
-  # Security
-  secure = false;                    # false = insecure mode, true = TLS with certificates
-  certsDir = "/var/lib/cockroach/certs";  # Certificate directory (when secure = true)
-
-  # Firewall
-  openFirewall = false;              # Auto-open firewall ports
-
-  # Advanced
-  extraArgs = [];                    # Additional command-line arguments
-};
-```
-
-### Usage Examples
-
-**Single-node development setup (insecure):**
-
-```nix
-{
-  services.cockroachdb = {
-    enable = true;
-    singleNode = true;
-    listen.address = "0.0.0.0";
-    http.address = "0.0.0.0";
-  };
-}
-```
-
-**Single-node production setup (secure with TLS):**
-
-```nix
-{
-  services.cockroachdb = {
-    enable = true;
-    singleNode = true;
-    secure = true;
-    certsDir = "/etc/cockroach/certs";  # Ensure certificates exist here
-    listen.address = "0.0.0.0";
-    http.address = "0.0.0.0";
-    openFirewall = true;
-    cache = "512MiB";
-    maxSqlMemory = "1GiB";
-  };
-}
-```
-
-**Multi-node cluster setup:**
-
-```nix
-{
-  services.cockroachdb = {
-    enable = true;
-    singleNode = false;
-    secure = true;
-    certsDir = "/etc/cockroach/certs";
-
-    # This node's configuration
-    listen.address = "0.0.0.0";
-    advertiseAddr = "node1.example.com:26257";
-    locality = "region=us-east,datacenter=us-east-1";
-
-    # Cluster join addresses
-    join = [
-      "node1.example.com:26257"
-      "node2.example.com:26257"
-      "node3.example.com:26257"
-    ];
-
-    openFirewall = true;
-    cache = "25%";
-    maxSqlMemory = "25%";
-  };
-}
-```
-
-### Certificate Requirements (Secure Mode)
-
-When `secure = true`, you must provide certificates in `certsDir`:
-
-- `ca.crt` - CA certificate
-- `node.crt` - Node certificate
-- `node.key` - Node private key (mode 0600)
-- `client.root.crt` - Root client certificate
-- `client.root.key` - Root client private key (mode 0600)
-
-Generate certificates using:
-
-```bash
-cockroach cert create-ca --certs-dir=/etc/cockroach/certs --ca-key=/etc/cockroach/my-safe-directory/ca.key
-cockroach cert create-node localhost $(hostname) --certs-dir=/etc/cockroach/certs --ca-key=/etc/cockroach/my-safe-directory/ca.key
-cockroach cert create-client root --certs-dir=/etc/cockroach/certs --ca-key=/etc/cockroach/my-safe-directory/ca.key
-```
-
-### What's Included
-
-- User/group creation (cockroach:cockroach)
-- systemd service with automatic restarts
-- Security hardening (NoNewPrivileges, ProtectSystem, etc.)
-- Firewall integration (optional)
-- CLI tools added to system packages
-- Prometheus metrics endpoint (exposed on http port at `/metrics`)
-
-### Import Example
-
-```nix
-{
-  inputs.dsqr-nix.url = "github:0xdsqr/nixos-config";
-
-  outputs = { nixpkgs, dsqr-nix, ... }: {
-    nixosConfigurations.my-machine = nixpkgs.lib.nixosSystem {
-      modules = [
-        dsqr-nix.nixosModules.cockroachdb
-
-        {
-          services.cockroachdb = {
-            enable = true;
-            singleNode = true;
-            listen.address = "0.0.0.0";
-          };
-        }
-      ];
-    };
-  };
-}
-```
-
-**Note:** The cockroachdb module is also included automatically when importing `dsqr-nix.nixosModules.dsqr-nix`, but must still be explicitly enabled.
-
-</details>
-
 <details><summary><strong>dsqr-proxmox Module (nixosModules.dsqr-proxmox)</strong></summary>
 
 **Proxmox VM-specific configuration module.**
@@ -507,10 +339,68 @@ cockroach cert create-client root --certs-dir=/etc/cockroach/certs --ca-key=/etc
 
 **Security**
 - Basic security hardening
-- Firewall configuration
+- Passwordless sudo for wheel group
 
 **Timezone**
-- Configured timezone settings
+- America/Chicago timezone
+
+**Networking**
+- Configurable hostname and domain
+- DHCP or static IP support
+- Firewall port management
+
+### Networking Options
+
+```nix
+dsqr.proxmox.networking = {
+  hostName = "my-vm";                    # Required: machine hostname
+  domain = "dsqr.dev";                   # Domain (default: dsqr.dev)
+
+  # Static IP (optional - uses DHCP if not enabled)
+  staticIP = {
+    enable = false;                      # Enable static IP configuration
+    address = "";                        # IP address (e.g., "192.168.50.35")
+    prefixLength = 24;                   # Network prefix (default: 24)
+    gateway = "192.168.50.1";            # Default gateway
+    interface = "enp1s0";                # Network interface
+    nameservers = [ "1.1.1.1" "8.8.8.8" ]; # DNS servers
+  };
+
+  # Firewall
+  firewall.allowedTCPPorts = [ 22 80 443 ]; # TCP ports to open
+};
+```
+
+### Usage Examples
+
+**Basic VM (DHCP, default ports):**
+
+```nix
+dsqr.proxmox.networking = {
+  hostName = "gateway";
+};
+```
+
+**Static IP:**
+
+```nix
+dsqr.proxmox.networking = {
+  hostName = "cellar";
+  staticIP = {
+    enable = true;
+    address = "192.168.50.35";
+  };
+};
+```
+
+**Custom firewall ports:**
+
+```nix
+dsqr.proxmox.networking = {
+  hostName = "server";
+  firewall.allowedTCPPorts = [ 3000 3001 5432 8080 ];
+};
+```
 
 ### Import Example
 
@@ -520,10 +410,14 @@ cockroach cert create-client root --certs-dir=/etc/cockroach/certs --ca-key=/etc
     (inputs.dsqr-nix.nixosModules.dsqr-nix inputs)
     (inputs.dsqr-nix.nixosModules.dsqr-proxmox inputs)
   ];
+
+  dsqr.proxmox.networking = {
+    hostName = "my-vm";
+  };
 }
 ```
 
-Used by all homelab VM configurations (dsqr-server, gateway, hoo, smart-home).
+Used by all homelab VM configurations (dsqr-server, gateway, cellar, github-runner).
 
 </details>
 

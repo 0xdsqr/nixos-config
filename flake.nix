@@ -78,23 +78,7 @@
         }:
         {
           imports = [
-            (import ./modules/proxmox/default.nix)
-          ];
-        };
-
-      # ------------------------------------------------------------
-      # CockroachDB module (importable in other flakes or inline configs)
-      # ------------------------------------------------------------
-      nixosModules.cockroachdb =
-        {
-          config,
-          lib,
-          pkgs,
-          ...
-        }:
-        {
-          imports = [
-            (import ./modules/nixos/cockroachdb.nix)
+            (import ./modules/proxmox/default.nix inputs)
           ];
         };
 
@@ -241,6 +225,14 @@
         darwin = false;
         homeManager = true;
       };
+
+      nixosConfigurations.cellar-vm-x86_64 = mkSystem "cellar-vm-x86_64" {
+        system = "x86_64-linux";
+        user = "sysdsqr";
+        darwin = false;
+        homeManager = true;
+      };
+
       # ------------------------------------------------------------
       # Dariwn Configurtations
       # ------------------------------------------------------------
