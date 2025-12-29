@@ -21,6 +21,10 @@
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
     neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
+
+    # Services
+    rustfs.url = "github:rustfs/rustfs";
+    rustfs.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
@@ -95,6 +99,22 @@
         {
           imports = [
             (import ./modules/nixos/github-runners.nix)
+          ];
+        };
+
+      # ------------------------------------------------------------
+      # RustFS module (importable in other flakes or inline configs)
+      # ------------------------------------------------------------
+      nixosModules.rustfs =
+        {
+          config,
+          lib,
+          pkgs,
+          ...
+        }:
+        {
+          imports = [
+            (import ./modules/nixos/rustfs.nix)
           ];
         };
 
