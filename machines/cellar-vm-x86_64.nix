@@ -14,10 +14,6 @@
 
   dsqr.proxmox.networking = {
     hostName = "cellar";
-    staticIP = {
-      enable = true;
-      address = "192.168.50.37";
-    };
     firewall.allowedTCPPorts = [
       5432 # PostgreSQL
       9000 # RustFS S3 API
@@ -77,11 +73,28 @@
       password_encryption = "scram-sha-256";
     };
 
-    # Initial setup
-    ensureDatabases = [ "cellar" ];
+    # Databases
+    ensureDatabases = [
+      "dsqr"
+      "tastingswithtay"
+    ];
+
+    # Users (names match databases for ensureDBOwnership)
     ensureUsers = [
       {
-        name = "cellar";
+        name = "admin";
+        ensureClauses = {
+          superuser = true;
+          createrole = true;
+          createdb = true;
+        };
+      }
+      {
+        name = "dsqr";
+        ensureDBOwnership = true;
+      }
+      {
+        name = "tastingswithtay";
         ensureDBOwnership = true;
       }
     ];
