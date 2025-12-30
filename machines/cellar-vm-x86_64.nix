@@ -24,12 +24,12 @@
   # RustFS S3-compatible object storage
   # TODO: Enable once built/cached - takes forever to compile
   services.dsqr-rustfs = {
-     enable = true;
-     package = inputs.rustfs.packages.${pkgs.system}.default;
-     address = "0.0.0.0";
-     consoleAddress = "0.0.0.0";
-  #   # rootCredentialsFile = config.sops.secrets."rustfs/credentials".path;
-   };
+    enable = true;
+    package = inputs.rustfs.packages.${pkgs.system}.default;
+    address = "0.0.0.0";
+    consoleAddress = "0.0.0.0";
+    #   # rootCredentialsFile = config.sops.secrets."rustfs/credentials".path;
+  };
 
   # PostgreSQL database
   services.postgresql = {

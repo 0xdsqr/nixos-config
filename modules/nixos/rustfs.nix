@@ -108,8 +108,9 @@ in
 
       serviceConfig = {
         ExecStart = ''
-          ${cfg.package}/bin/rustfs server \
+          ${cfg.package}/bin/rustfs \
             --address ${cfg.address}:${toString cfg.port} \
+            --console-enable \
             --console-address ${cfg.consoleAddress}:${toString cfg.consolePort} \
             ${cfg.dataDir}
         '';

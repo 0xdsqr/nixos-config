@@ -53,6 +53,20 @@
         ];
         nodeRuntimes = [ "node20" ];
       };
+
+      dsqr-dotdev = {
+        url = "https://github.com/0xdsqr/dsqr-dotdev";
+        tokenSecret = "github_runners/dsqr-dotdev/token";
+        extraLabels = [
+          "dotdev"
+          "dsqr"
+        ];
+        extraPackages = with pkgs; [
+          git
+          nodejs_22
+        ];
+        nodeRuntimes = [ "node22" ];
+      };
     };
   };
 
