@@ -13,13 +13,12 @@
   dsqr.proxmox.networking = {
     hostName = "media-server";
     firewall.allowedTCPPorts = [
-      9696 # Prowlarr
-      7878 # Radarr
-      8080 # qBittorrent web UI
-      # 8989  # Sonarr
-      # 8686  # Lidarr
-      # 8787  # Readarr
-      # 6767  # Bazarr
+      9696  # Prowlarr
+      7878  # Radarr
+      8080  # qBittorrent web UI
+      8989  # Sonarr
+      8686  # Lidarr
+      6767  # Bazarr
       # 8096  # Jellyfin
     ];
   };
@@ -40,18 +39,18 @@
     "d /data/downloads/incomplete 0775 root media -"
   ];
 
-  # Runs on port 9696 by default
+  # Prowlarr - Indexer manager (port 9696)
   services.prowlarr = {
     enable = true;
   };
 
-  # Runs on port 7878 by default
+  # Radarr - Movies (port 7878)
   services.radarr = {
     enable = true;
     group = "media";
   };
 
-  # qBittorrent - Web UI on port 8080
+  # qBittorrent - Download client (port 8080)
   users.users.qbittorrent = {
     isSystemUser = true;
     group = "media";
@@ -64,13 +63,36 @@
     after = [ "network.target" ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
-      ExecStart = "${pkgs.qbittorrent-nox}/bin/qbittorrent-nox --webui-port=8080";
+      ExecStart = "${pkgs.qbittorrent-nox}/bin/qbittorrent-nox --webui-port=8080 --confirm-legal-notice";
       User = "qbittorrent";
       Group = "media";
       StateDirectory = "qbittorrent";
       Restart = "on-failure";
     };
   };
+
+  # Sonarr - TV Shows (port 8989)
+  services.sonarr = {
+    enable = true;
+    group = "media";
+  };
+
+  # Lidarr - Music (port 8686)
+  services.lidarr = {
+    enable = true;
+    group = "media";
+  };
+
+  # Bazarr - Subtitles (port 6767)
+  services.bazarr = {
+    enable = true;
+    group = "media";
+  };
+
+  services.jellyfin = {
+   enable = true;
+   group = "media";
+ };
 
   system.stateVersion = "25.05";
 }
