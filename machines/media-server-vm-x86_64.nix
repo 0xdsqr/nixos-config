@@ -62,6 +62,19 @@
     description = "qBittorrent-nox";
     after = [ "network.target" ];
     wantedBy = [ "multi-user.target" ];
+    preStart = ''
+      # Create config directory if it doesn't exist
+      mkdir -p /var/lib/qbittorrent/.config/qBittorrent
+
+      # Set a known password (adminadmin) in the config
+      cat > /var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf <<EOF
+      [Preferences]
+      WebUI\Username=admin
+      WebUI\Password_PBKDF2="@ByteArray(ARQ77eY1NUZaQsuDHbIMCA==:0WMRkYTUWVT9wVvdDtHAjU9b3b7uB8NR1Gur2hmQCvCDpm39Q+PsJRJPaCU51dEiz+dTzh4qbPsL8WkFljQYFQ==)"
+      EOF
+
+      chown -R qbittorrent:media /var/lib/qbittorrent/.config
+    '';
     serviceConfig = {
       ExecStart = "${pkgs.qbittorrent-nox}/bin/qbittorrent-nox --webui-port=8080 --confirm-legal-notice";
       User = "qbittorrent";
