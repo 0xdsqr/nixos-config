@@ -25,7 +25,7 @@
     # Services
     rustfs.url = "github:rustfs/rustfs";
     rustfs.inputs.nixpkgs.follows = "nixpkgs";
-    media-server.url = "github:0xdsqr/media-server-nixos";
+    media-server.url = "github:0xdsqr/media-server-nixos/master";
     media-server.inputs.nixpkgs.follows = "nixpkgs";
   };
 
