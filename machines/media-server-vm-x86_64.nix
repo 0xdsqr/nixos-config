@@ -20,19 +20,10 @@
     enable = true;
     dataDir = "/data";
 
-    # Core media services (all enabled by default)
-    jellyfin.enable = true;
-    prowlarr.enable = true;
-    radarr.enable = true;
-    sonarr.enable = true;
-    lidarr.enable = true;
-    bazarr.enable = true;
-    qbittorrent.enable = true;
-
-    # Home automation (disabled for now)
-    homeAssistant.enable = false;
-    mosquitto.enable = false;
-    frigate.enable = false;
+    # Home automation
+    homeAssistant.enable = true;
+    mosquitto.enable = true;
+    frigate.enable = true;
   };
 
   system.stateVersion = "25.05";
