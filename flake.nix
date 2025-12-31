@@ -253,6 +253,13 @@
         homeManager = true;
       };
 
+      nixosConfigurations.media-server-vm-x86_64 = mkSystem "media-server-vm-x86_64" {
+        system = "x86_64-linux";
+        user = "sysdsqr";
+        darwin = false;
+        homeManager = true;
+      };
+
       # ------------------------------------------------------------
       # Dariwn Configurtations
       # ------------------------------------------------------------
