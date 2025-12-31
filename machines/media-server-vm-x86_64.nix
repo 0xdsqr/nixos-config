@@ -15,7 +15,7 @@
     firewall.allowedTCPPorts = [
       9696 # Prowlarr
       7878 # Radarr
-      9091 # Transmission web UI
+      8080 # qBittorrent web UI
       # 8989  # Sonarr
       # 8686  # Lidarr
       # 8787  # Readarr
@@ -51,15 +51,24 @@
     group = "media";
   };
 
-  services.transmission = {
-    enable = true;
+  # qBittorrent - Web UI on port 8080
+  users.users.qbittorrent = {
+    isSystemUser = true;
     group = "media";
-    settings = {
-      download-dir = "/data/downloads/complete";
-      incomplete-dir = "/data/downloads/incomplete";
-      incomplete-dir-enabled = true;
-      rpc-bind-address = "0.0.0.0";
-      rpc-whitelist-enabled = false; # not sure what to do here yet...
+    home = "/var/lib/qbittorrent";
+    createHome = true;
+  };
+
+  systemd.services.qbittorrent = {
+    description = "qBittorrent-nox";
+    after = [ "network.target" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      ExecStart = "${pkgs.qbittorrent-nox}/bin/qbittorrent-nox --webui-port=8080";
+      User = "qbittorrent";
+      Group = "media";
+      StateDirectory = "qbittorrent";
+      Restart = "on-failure";
     };
   };
 
