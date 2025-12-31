@@ -19,7 +19,7 @@
       8989  # Sonarr
       8686  # Lidarr
       6767  # Bazarr
-      # 8096  # Jellyfin
+      8096  # Jellyfin
     ];
   };
 
@@ -58,15 +58,38 @@
     createHome = true;
   };
 
+  # Pre-create qBittorrent config with known password
+  # Password: "adminadmin" (change in UI after first login)
+  systemd.tmpfiles.settings."qbittorrent" = {
+    "/var/lib/qbittorrent/.config/qBittorrent".d = {
+      user = "qbittorrent";
+      group = "media";
+      mode = "0755";
+    };
+  };
+
+  environment.etc."qbittorrent-init-config.conf".text = ''
+    [Preferences]
+    WebUI\Username=admin
+    WebUI\Password_PBKDF2="@ByteArray(ARQ77eY1NUZaQsuDHbIMCA==:0WMRkYTUWVT9wVvdDtHAjU9b3b7uB8NR1Gez9bujMCFnbr4CaLrNcFhEMAAZpA6kduOQbvCZq5JCcfPzTEzUEg==)"
+    
+    [BitTorrent]
+    Session\DefaultSavePath=/data/downloads/complete
+    Session\TempPath=/data/downloads/incomplete
+    Session\TempPathEnabled=true
+  '';
+
   systemd.services.qbittorrent = {
     description = "qBittorrent-nox";
     after = [ "network.target" ];
     wantedBy = [ "multi-user.target" ];
     preStart = ''
-      # Remove password from config to force temporary password generation
-      CONFIG_FILE="/var/lib/qbittorrent/.config/qBittorrent/qBittorrent.conf"
-      if [ -f "$CONFIG_FILE" ]; then
-        sed -i '/WebUI\\Password/d' "$CONFIG_FILE"
+      CONFIG_DIR="/var/lib/qbittorrent/.config/qBittorrent"
+      CONFIG_FILE="$CONFIG_DIR/qBittorrent.conf"
+      if [ ! -f "$CONFIG_FILE" ]; then
+        mkdir -p "$CONFIG_DIR"
+        cp /etc/qbittorrent-init-config.conf "$CONFIG_FILE"
+        chown -R qbittorrent:media "$CONFIG_DIR"
       fi
     '';
     serviceConfig = {
@@ -75,8 +98,6 @@
       Group = "media";
       StateDirectory = "qbittorrent";
       Restart = "on-failure";
-      StandardOutput = "journal";
-      StandardError = "journal";
     };
   };
 
@@ -98,10 +119,11 @@
     group = "media";
   };
 
+  # Jellyfin - Media server (port 8096)
   services.jellyfin = {
-   enable = true;
-   group = "media";
- };
+    enable = true;
+    group = "media";
+  };
 
   system.stateVersion = "25.05";
 }
