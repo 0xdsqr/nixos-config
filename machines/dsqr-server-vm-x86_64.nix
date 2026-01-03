@@ -20,7 +20,7 @@
 
   services.nginx = {
     enable = true;
-    virtualHosts."localhost" = {
+    virtualHosts."dsqr.dev" = {
       listen = [
         {
           addr = "0.0.0.0";
@@ -38,7 +38,7 @@
         '';
       };
     };
-   virtualHosts."admin.dsqr.dev" = {
+    virtualHosts."admin.dsqr.dev" = {
       listen = [
         {
           addr = "0.0.0.0";

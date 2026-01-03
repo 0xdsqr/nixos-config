@@ -1,5 +1,7 @@
 {
   inputs,
+  config,
+  lib,
   pkgs,
   ...
 }:
@@ -9,9 +11,28 @@
     (inputs.self.nixosModules.dsqr-proxmox inputs)
   ];
 
-  dsqr.proxmox.networking = {
-    hostName = "gateway";
-  };
+  nix =
+    let
+      flakeInputs = lib.filterAttrs (_: lib.isType "flake") inputs;
+    in
+    {
+      settings = {
+        experimental-features = "nix-command flakes";
+        flake-registry = "";
+        nix-path = config.nix.nixPath;
+      };
+      channel.enable = false;
+      registry = lib.mapAttrs (_: flake: { inherit flake; }) flakeInputs;
+      nixPath = lib.mapAttrsToList (n: _: "${n}=flake:${n}") flakeInputs;
+    };
+
+  networking.hostName = "gateway";
+  networking.domain = "dsqr.dev";
+  networking.firewall.allowedTCPPorts = [
+    22
+    80
+    443
+  ];
 
   users.users.cloudflared = {
     group = "cloudflared";
@@ -21,6 +42,10 @@
   };
   users.groups.cloudflared = { };
 
+  environment.etc."cloudflared/credentials.json".text = ''
+    {"AccountTag":"f8913f78ee578f0e62ccb9ad8a89c60f","TunnelSecret":"UwIcahBhAPnYtnSOkqTPoyZe5XBDQ7Xqx8Icda7BQpw=","TunnelID":"7bac09be-28a3-4d74-b4a8-76c8cc5af490","Endpoint":""}
+  '';
+
   services.cloudflared = {
     enable = true;
     tunnels = {
@@ -28,14 +53,34 @@
         credentialsFile = "/etc/cloudflared/credentials.json";
         default = "http_status:404";
         ingress = {
-          "db.dsqr.dev" = {
-            service = "tcp://192.168.50.27:5432";
-          };
-          "dsqr.dev/api" = {
-            service = "http://192.168.50.27:3001";
-          };
           "dsqr.dev" = {
             service = "http://192.168.50.27:8080";
+          };
+          "admin.dsqr.dev" = {
+            service = "http://192.168.50.27:8080";
+          };
+          "teaser.dsqr.dev" = {
+            service = "http://192.168.50.27:3010";
+            originRequest = {
+              httpHostHeader = "localhost";
+            };
+          };
+          # CDN endpoint for static files (goes through Nginx to MinIO)
+          "cdn.dsqr.dev" = {
+            service = "http://192.168.50.38:9001";
+            originRequest = {
+              httpHostHeader = "localhost";
+            };
+          };
+
+          # Direct MinIO S3 API access
+          "s3.dsqr.dev" = {
+            service = "http://192.168.50.38:9000";
+          };
+
+          # MinIO Console (Web UI)
+          "rustfs.dsqr.dev" = {
+            service = "http://192.168.50.38:9001";
           };
         };
       };
