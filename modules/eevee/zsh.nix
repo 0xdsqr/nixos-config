@@ -9,7 +9,9 @@
     initContent = ''
       # GPG TTY for signing commits
       export GPG_TTY=$(tty)
-    '';
 
+      # OpenCode CLI
+      export PATH="$HOME/.opencode/bin:$PATH"
+    '';
   };
 }

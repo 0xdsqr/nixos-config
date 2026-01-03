@@ -26,6 +26,17 @@ in
   # On Linux, enable systemd user services
   systemd.user.startServices = lib.mkIf isLinux "sd-switch";
 
+  # jujutsu (jj) - Git-compatible VCS
+  programs.jujutsu = {
+    enable = true;
+    settings = {
+      user = {
+        name = config.eevee.full_name;
+        email = config.eevee.email_address;
+      };
+    };
+  };
+
   # Darwin-specific GPG setup
   programs.zsh.initContent = lib.mkIf isDarwin ''
     # GPG agent for Darwin
