@@ -172,6 +172,27 @@
         "type": "github"
       }
     },
+    "opencode": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1768133078,
+        "narHash": "sha256-X2MU7n6MxTQ6zWEnjiyU+xIS5R4W6CUMfWAiZMsjSAY=",
+        "owner": "anomalyco",
+        "repo": "opencode",
+        "rev": "3205db9c163d3d8fb411eaa2a5642d879ee05a30",
+        "type": "github"
+      },
+      "original": {
+        "owner": "anomalyco",
+        "ref": "dev",
+        "repo": "opencode",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "darwin": "darwin",
@@ -180,6 +201,7 @@
         "media-server": "media-server",
         "neovim-nightly-overlay": "neovim-nightly-overlay",
         "nixpkgs": "nixpkgs_2",
+        "opencode": "opencode",
         "rustfs": "rustfs",
         "sops-nix": "sops-nix",
 <<<<<<< HEAD

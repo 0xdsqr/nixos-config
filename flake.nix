@@ -27,6 +27,10 @@
     rustfs.inputs.nixpkgs.follows = "nixpkgs";
     media-server.url = "github:0xdsqr/media-server-nixos/master";
     media-server.inputs.nixpkgs.follows = "nixpkgs";
+
+    # Developer tools (external)
+    opencode.url = "github:anomalyco/opencode/dev";
+    opencode.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =

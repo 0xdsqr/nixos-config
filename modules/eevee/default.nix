@@ -8,6 +8,7 @@ inputs:
 {
   imports = [
     (import ./neovim.nix inputs)
+    (import ./opencode.nix inputs)
     ./tmux.nix
     ./direnv.nix
     ./zsh.nix
