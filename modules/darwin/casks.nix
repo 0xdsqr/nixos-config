@@ -16,6 +16,10 @@ let
     "typora"
     "dropbox"
     "chromium"
+    "tailscale-app"
+    "tigervnc-viewer"
+    "microsoft-remote-desktop"
+    "remoteviewer"
   ];
 
   filtered = lib.lists.subtractLists exclude_casks discretionaryCasks;

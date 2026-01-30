@@ -108,6 +108,7 @@ in
       # ── General Tools ──
       ripgrep # For telescope live_grep
       fd # For telescope find_files
+      treefmt # For conform.nvim formatting via treefmt
     ];
 
     # ══════════════════════════════════════════════════════════════════════════
@@ -196,26 +197,45 @@ in
         plugin = conform-nvim;
         type = "lua";
         config = ''
+          -- Helper: check if this is a treefmt/nix project
+          local function has_treefmt(ctx)
+            return vim.fs.find(
+              { "treefmt.toml", ".treefmt.toml", "flake.nix" },
+              { path = ctx.dirname, upward = true }
+            )[1] ~= nil
+          end
+
           require('conform').setup({
+            formatters = {
+              treefmt = {
+                command = "treefmt",
+                args = { "--stdin", "$FILENAME" },
+                stdin = true,
+                condition = function(self, ctx)
+                  return has_treefmt(ctx)
+                end,
+              },
+            },
             formatters_by_ft = {
-              typescript = { "biome" },
-              typescriptreact = { "biome" },
-              javascript = { "biome" },
-              javascriptreact = { "biome" },
-              json = { "biome" },
-              jsonc = { "biome" },
-              go = { "gofumpt", "goimports" },
-              python = { "ruff_format" },
-              nix = { "nixfmt" },
-              java = { "google-java-format" },
-              kotlin = { "ktlint" },
-              sh = { "shfmt" },
-              bash = { "shfmt" },
-              rust = { "rustfmt" },
+              -- treefmt first (skipped if no config), then fallback to biome
+              typescript = { "treefmt", "biome", stop_after_first = true, lsp_format = "never" },
+              typescriptreact = { "treefmt", "biome", stop_after_first = true, lsp_format = "never" },
+              javascript = { "treefmt", "biome", stop_after_first = true, lsp_format = "never" },
+              javascriptreact = { "treefmt", "biome", stop_after_first = true, lsp_format = "never" },
+              json = { "treefmt", "biome", stop_after_first = true, lsp_format = "never" },
+              jsonc = { "treefmt", "biome", stop_after_first = true, lsp_format = "never" },
+              nix = { "treefmt", lsp_format = "fallback" },
+              go = { "treefmt", "gofumpt", "goimports", stop_after_first = true },
+              python = { "treefmt", "ruff_format", stop_after_first = true },
+              java = { "treefmt", "google-java-format", stop_after_first = true },
+              kotlin = { "treefmt", "ktlint", stop_after_first = true },
+              sh = { "treefmt", "shfmt", stop_after_first = true },
+              bash = { "treefmt", "shfmt", stop_after_first = true },
+              rust = { "treefmt", "rustfmt", stop_after_first = true },
             },
             format_on_save = {
-              timeout_ms = 1000,
-              lsp_format = "fallback",
+              timeout_ms = 2000,
+              lsp_format = "never",
             },
           })
 
@@ -451,7 +471,7 @@ in
         settings = {
           ['nil'] = {
             formatting = {
-              command = { 'nixfmt' },
+              command = { 'nix', 'fmt', '--', '-' },
             },
           },
         },
@@ -629,6 +649,22 @@ in
 
       -- Quick save
       vim.keymap.set("n", "<leader>w", ":w<CR>", { desc = "Save file" })
+
+      -- Format entire project with treefmt (silent, async)
+      vim.keymap.set("n", "<leader>nf", function()
+        vim.fn.jobstart("treefmt", {
+          cwd = vim.fn.getcwd(),
+          on_exit = function(_, code)
+            if code == 0 then
+              vim.notify("treefmt: formatted", vim.log.levels.INFO)
+              -- Reload any open buffers that changed
+              vim.cmd("checktime")
+            else
+              vim.notify("treefmt: failed", vim.log.levels.ERROR)
+            end
+          end,
+        })
+      end, { desc = "Format project with treefmt" })
 
       -- Clear search
       vim.keymap.set("n", "<Esc>", ":nohlsearch<CR>", { silent = true })

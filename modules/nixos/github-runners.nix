@@ -6,6 +6,35 @@
 }:
 let
   cfg = config.dsqr.github-runners;
+
+  # Helper to expand runners with count > 1 into multiple NixOS runner entries
+  expandRunners = lib.concatMapAttrs (
+    baseName: runnerCfg:
+    lib.listToAttrs (
+      lib.genList (
+        i:
+        let
+          # hoo-1, hoo-2, etc. (or just "hoo" if count=1)
+          instanceName = if runnerCfg.count == 1 then baseName else "${baseName}-${toString (i + 1)}";
+        in
+        lib.nameValuePair instanceName {
+          enable = true;
+          name = instanceName;
+          tokenFile = config.sops.secrets.${runnerCfg.tokenSecret}.path;
+          url = runnerCfg.url;
+          extraPackages = runnerCfg.extraPackages;
+          extraLabels = runnerCfg.extraLabels ++ [ "nixos" ];
+          replace = runnerCfg.replace;
+          user = cfg.user;
+          group = cfg.group;
+          workDir = "${cfg.workDir}/${instanceName}";
+        }
+        // lib.optionalAttrs (runnerCfg.nodeRuntimes != [ ]) {
+          nodeRuntimes = runnerCfg.nodeRuntimes;
+        }
+      ) runnerCfg.count
+    )
+  ) cfg.runners;
 in
 {
   options.dsqr.github-runners = {
@@ -85,6 +114,13 @@ in
               example = [ "node20" ];
               description = "Node.js runtimes to make available";
             };
+
+            count = lib.mkOption {
+              type = lib.types.int;
+              default = 1;
+              example = 4;
+              description = "Number of parallel runner instances for this repo";
+            };
           };
         }
       );
@@ -110,7 +146,7 @@ in
     sops.defaultSopsFile = lib.mkDefault cfg.sopsFile;
     sops.age.keyFile = lib.mkDefault "/var/lib/sops-nix/key.txt";
 
-    # Create sops secrets for each runner dynamically
+    # Create sops secrets for each runner (one token per repo, shared by instances)
     sops.secrets = lib.mapAttrs' (
       name: runnerCfg:
       lib.nameValuePair runnerCfg.tokenSecret {

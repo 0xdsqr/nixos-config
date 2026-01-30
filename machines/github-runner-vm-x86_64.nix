@@ -144,5 +144,17 @@
     };
   };
 
+  # Nix garbage collection to prevent disk space issues
+  nix.gc = {
+    automatic = true;
+    dates = "hourly";
+    options = "--delete-older-than 3d";
+  };
+
+  # Keep store optimized and limit size
+  nix.settings.auto-optimise-store = true;
+  nix.settings.min-free = 1073741824; # 1GB - trigger GC when free space drops below
+  nix.settings.max-free = 3221225472; # 3GB - stop GC when this much is free
+
   system.stateVersion = "25.05";
 }

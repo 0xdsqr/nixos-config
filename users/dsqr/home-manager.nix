@@ -21,6 +21,7 @@ in
     full_name = "0xdsqr";
     email_address = "dave.dennis@gs.com";
     theme = "tokyo-night";
+    opencode.enable = true;
   };
 
   # On Linux, enable systemd user services

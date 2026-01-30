@@ -29,8 +29,7 @@
     media-server.inputs.nixpkgs.follows = "nixpkgs";
 
     # Developer tools (external)
-    opencode.url = "github:anomalyco/opencode/dev";
-    opencode.inputs.nixpkgs.follows = "nixpkgs";
+    opencode.url = "github:sst/opencode/dev";
   };
 
   outputs =
@@ -41,6 +40,7 @@
       darwin,
       sops-nix,
       treefmt-nix,
+      opencode,
       ...
     }@inputs:
     let
@@ -196,6 +196,7 @@
       packages = forEachSystem (system: {
         sysdsqr = nixpkgs.legacyPackages.${system}.callPackage ./pkgs/sysdsqr-cli { };
         sysdsqr-cli = self.packages.${system}.sysdsqr;
+        opencode = opencode.packages.${system}.default;
         default = self.packages.${system}.sysdsqr;
       });
 

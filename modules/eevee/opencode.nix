@@ -1,5 +1,5 @@
 # OpenCode - AI coding agent for the terminal
-# Uses the opencode flake from github:anomalyco/opencode
+# Uses upstream flake from github:sst/opencode
 inputs:
 {
   config,
@@ -8,10 +8,15 @@ inputs:
   ...
 }:
 let
+  cfg = config.eevee.opencode;
   opencodePkg = inputs.opencode.packages.${pkgs.system}.default;
 in
 {
-  home.packages = [
-    opencodePkg
-  ];
+  options.eevee.opencode = {
+    enable = lib.mkEnableOption "OpenCode AI coding agent";
+  };
+
+  config = lib.mkIf cfg.enable {
+    home.packages = [ opencodePkg ];
+  };
 }
