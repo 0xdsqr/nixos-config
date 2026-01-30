@@ -2,7 +2,7 @@
 uname := `uname`
 
 # Configuration names
-NIXNAME := if uname == "Darwin" { "devbox-macbook-pro-m1" } else { "media-server-vm-x86_64" }
+NIXNAME := if uname == "Darwin" { "devbox-macbook-pro-m1" } else { "github-runner-vm-x86_64" }
 
 # Default command
 default: switch

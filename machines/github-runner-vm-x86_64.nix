@@ -20,6 +20,12 @@
   # Docker support for containerized builds
   virtualisation.docker.enable = true;
 
+  nix.gc = {
+    automatic = true;
+    dates = "daily";
+    options = "--delete-older-than 7d";
+  };
+
   # GitHub Actions runners configuration
   dsqr.github-runners = {
     enable = true;
@@ -31,6 +37,60 @@
         tokenSecret = "github_runners/nixos-config/token";
         extraLabels = [
           "nix-config"
+          "dsqr"
+        ];
+        extraPackages = with pkgs; [
+          git
+          nixfmt-rfc-style
+          nil
+        ];
+      };
+
+      hoo = {
+        url = "https://github.com/0xdsqr/hoo";
+        tokenSecret = "github_runners/hoo/token";
+        extraLabels = [
+          "hoo"
+          "dsqr"
+        ];
+        extraPackages = with pkgs; [
+          git
+          nodejs_22
+          # Compression tools (FlakeHub cache needs xz)
+          xz
+          gzip
+          gnutar
+          zstd
+          # Common utilities
+          coreutils
+          curl
+          jq
+          # For gh release actions
+          gh
+          gnupg
+        ];
+      };
+
+      tastingswithtay = {
+        url = "https://github.com/0xdsqr/tastingswithtay";
+        tokenSecret = "github_runners/tastingswithtay/token";
+        count = 3;
+        extraLabels = [
+          "tastingswithtay"
+          "dsqr"
+        ];
+        extraPackages = with pkgs; [
+          git
+          nodejs_22
+        ];
+        nodeRuntimes = [ "node22" ];
+      };
+
+      media-server-nixos = {
+        url = "https://github.com/0xdsqr/media-server-nixos";
+        tokenSecret = "github_runners/media-server-nixos/token";
+        extraLabels = [
+          "media-server-nixos"
           "dsqr"
         ];
         extraPackages = with pkgs; [
@@ -63,10 +123,24 @@
         ];
         extraPackages = with pkgs; [
           git
-          nodejs_22
+          nodejs_24
         ];
-        nodeRuntimes = [ "node22" ];
+        nodeRuntimes = [ "node24" ];
       };
+
+      #     eazy-cli = {
+      #url = "https://github.com/0xdsqr/eazy-cli";
+      #tokenSecret = "github_runners/eazy-cli/token";
+      #extraLabels = [
+      #"dotdev"
+      #"easy-cli"
+      #];
+      #extraPackages = with pkgs; [
+      #git
+      #nodejs_24
+      #];
+      #nodeRuntimes = [ "node24" ];
+      #};
     };
   };
 

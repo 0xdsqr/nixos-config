@@ -133,7 +133,7 @@ in
         replace = runnerCfg.replace;
         user = cfg.user;
         group = cfg.group;
-        workDir = "${cfg.workDir}/${name}";
+        # workDir = "${cfg.workDir}/${name}";
       }
       // lib.optionalAttrs (runnerCfg.nodeRuntimes != [ ]) {
         nodeRuntimes = runnerCfg.nodeRuntimes;
