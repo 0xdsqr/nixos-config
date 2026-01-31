@@ -27,6 +27,8 @@
     rustfs.inputs.nixpkgs.follows = "nixpkgs";
     media-server.url = "github:0xdsqr/media-server-nixos/master";
     media-server.inputs.nixpkgs.follows = "nixpkgs";
+    dsqr-dotdev.url = "github:0xdsqr/dsqr-dotdev/main";
+    dsqr-dotdev.inputs.nixpkgs.follows = "nixpkgs";
 
     # Developer tools (external)
     opencode.url = "github:sst/opencode/dev";

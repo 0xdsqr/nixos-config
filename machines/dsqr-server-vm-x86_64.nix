@@ -7,6 +7,7 @@
   imports = [
     ./hardware/vm-x86_64-linux.nix
     (inputs.self.nixosModules.dsqr-proxmox inputs)
+    inputs.dsqr-dotdev.nixosModules.default
   ];
 
   dsqr.proxmox.networking = {
@@ -16,6 +17,17 @@
       3001
       8080
     ];
+  };
+
+  # dsqr-dotdev apps (TanStack Start SSR)
+  services.dsqr-dotdev.dotdev = {
+    enable = true;
+    environmentFile = "/run/secrets/dotdev.env";
+  };
+
+  services.dsqr-dotdev.studio = {
+    enable = true;
+    environmentFile = "/run/secrets/studio.env";
   };
 
   services.nginx = {
