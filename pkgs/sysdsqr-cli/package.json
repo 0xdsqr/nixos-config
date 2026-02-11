@@ -1,0 +1,11 @@
+{
+  "name": "sysdsqr",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "sysdsqr": "./index.ts"
+  },
+  "scripts": {
+    "build": "bun build --compile --minify --sourcemap ./index.ts --outfile sysdsqr"
+  }
+}

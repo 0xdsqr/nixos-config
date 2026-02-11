@@ -1,0 +1,28 @@
+# Direnv
+/.direnv/
+
+# Build results
+/result
+/result-*
+
+# Nix build files
+*.drv
+
+# Editor backup files
+*~
+.#*
+
+# macOS
+.DS_Store
+
+# Age secrets
+*.age.tmp
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# TODO files
+TODO.md
+todo.md
