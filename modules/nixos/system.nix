@@ -36,6 +36,8 @@ in
   hardware.bluetooth.enable = true;
   services.blueman.enable = true;
   networking.networkmanager.enable = true;
+  # NetworkManager handles DHCP itself; avoid conflicting defaults.
+  networking.useDHCP = lib.mkForce false;
 
   fonts.packages = with pkgs; [
     noto-fonts

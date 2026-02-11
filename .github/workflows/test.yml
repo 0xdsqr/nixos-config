@@ -1,12 +1,144 @@
-name: Test
+name: ci
 
-on: [push, pull_request]
+on:
+  push: {}
+  pull_request: {}
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  test:
-    runs-on: [self-hosted, nix-config, nixos]
+  nixfmt:
+    name: nixfmt
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
+      - uses: DeterminateSystems/determinate-nix-action@v3
+      - uses: DeterminateSystems/flakehub-cache-action@main
+      - name: nixfmt check
+        run: nix fmt -- --check --formatter nixfmt
 
-      - name: Run checks
+  biome:
+    name: biome
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/determinate-nix-action@v3
+      - uses: DeterminateSystems/flakehub-cache-action@main
+      - name: biome check
+        run: nix fmt -- --check --formatter biome
+
+  deadnix:
+    name: deadnix
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/determinate-nix-action@v3
+      - uses: DeterminateSystems/flakehub-cache-action@main
+      - name: deadnix check
+        run: nix fmt -- --check --formatter deadnix
+
+  statix:
+    name: statix
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/determinate-nix-action@v3
+      - uses: DeterminateSystems/flakehub-cache-action@main
+      - name: statix check
+        run: nix fmt -- --check --formatter statix
+
+  eval-configs:
+    name: eval configs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: devbox-vm-x86_64
+            attr: nixosConfigurations.devbox-vm-x86_64.config.system.build.toplevel
+          - name: devbox-usb-x86_64
+            attr: nixosConfigurations.devbox-usb-x86_64.config.system.build.toplevel
+          - name: dsqr-server-vm-x86_64
+            attr: nixosConfigurations.dsqr-server-vm-x86_64.config.system.build.toplevel
+          - name: gateway-vm-x86_64
+            attr: nixosConfigurations.gateway-vm-x86_64.config.system.build.toplevel
+          - name: github-runner-vm-x86_64
+            attr: nixosConfigurations.github-runner-vm-x86_64.config.system.build.toplevel
+          - name: cellar-vm-x86_64
+            attr: nixosConfigurations.cellar-vm-x86_64.config.system.build.toplevel
+          - name: media-server-vm-x86_64
+            attr: nixosConfigurations.media-server-vm-x86_64.config.system.build.toplevel
+          - name: devbox-macbook-pro-m1
+            attr: darwinConfigurations.devbox-macbook-pro-m1.system
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/determinate-nix-action@v3
+      - uses: DeterminateSystems/flakehub-cache-action@main
+      - name: eval ${{ matrix.name }}
+        run: nix eval --raw .#${{ matrix.attr }}.drvPath
+
+  flake-check:
+    name: nix flake check
+    runs-on: [self-hosted, nix-config, nixos]
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/determinate-nix-action@v3
+      - uses: DeterminateSystems/flakehub-cache-action@main
+      - name: flake check
         run: nix flake check
+
+  build-sysdsqr:
+    name: build sysdsqr
+    runs-on: [self-hosted, nix-config, nixos]
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/determinate-nix-action@v3
+      - uses: DeterminateSystems/flakehub-cache-action@main
+      - name: build sysdsqr
+        run: nix build .#sysdsqr
+
+  required:
+    name: all checks passed
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - nixfmt
+      - biome
+      - deadnix
+      - statix
+      - eval-configs
+      - flake-check
+      - build-sysdsqr
+    steps:
+      - name: verify all jobs passed
+        run: |
+          results='${{ toJSON(needs.*.result) }}'
+          if echo "$results" | grep -qE '(failure|cancelled)'; then
+            echo "required jobs failed: $results"
+            exit 1
+          fi
+          echo "all required jobs passed: $results"
