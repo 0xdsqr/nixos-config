@@ -7,6 +7,9 @@ name:
 {
   system,
   user,
+  machineConfig ? ../machines/${name}.nix,
+  userOSConfig ? ../users/${user}/${if darwin then "darwin" else "nixos"}.nix,
+  homeManagerConfig ? ../users/${user}/home-manager.nix,
   extraModules ? [ ],
   extraPackages ? [ ],
   darwin ? false,
@@ -16,9 +19,7 @@ name:
 let
   isWSL = wsl;
   isLinux = !darwin && !isWSL;
-  machineConfig = ../machines/${name}.nix;
-  userOSConfig = ../users/${user}/${if darwin then "darwin" else "nixos"}.nix;
-  userHMConfig = ../users/${user}/home-manager.nix;
+  userHMConfig = homeManagerConfig;
   systemFunc = if darwin then inputs.darwin.lib.darwinSystem else nixpkgs.lib.nixosSystem;
   home-manager =
     if darwin then inputs.home-manager.darwinModules else inputs.home-manager.nixosModules;
@@ -28,6 +29,8 @@ systemFunc {
   inherit system;
   specialArgs = {
     inherit inputs isLinux isWSL;
+    currentSystemName = name;
+    currentSystemUser = user;
   };
   modules = [
     { nixpkgs.overlays = overlays; }

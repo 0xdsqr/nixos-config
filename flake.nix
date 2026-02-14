@@ -104,6 +104,15 @@
           darwin = true;
           homeManager = true;
         };
+        dsqr-mini-001 = {
+          system = "aarch64-darwin";
+          user = "dsqr";
+          darwin = true;
+          homeManager = true;
+          machineConfig = ./machines/mini-cluster.nix;
+          userOSConfig = ./users/cluster/darwin.nix;
+          homeManagerConfig = ./users/cluster/home-manager-mini.nix;
+        };
       };
     in
     {
@@ -189,6 +198,20 @@
         };
 
       # ------------------------------------------------------------
+      # Darwin mini-cluster module (shared for mac minis)
+      # ------------------------------------------------------------
+      darwinModules.dsqr-mini-cluster =
+        {
+          config,
+          lib,
+          pkgs,
+          ...
+        }:
+        {
+          imports = [ ./modules/darwin/mini-cluster.nix ];
+        };
+
+      # ------------------------------------------------------------
       # Home Manager module (importable in other flakes or inline configs)
       # ------------------------------------------------------------
       homeManagerModules.eevee =
@@ -203,6 +226,25 @@
         {
           imports = [
             (import ./modules/eevee/default.nix inputs)
+          ];
+          options.eevee = (import ./eevee-config.nix lib).eeveeOptions;
+        };
+
+      # ------------------------------------------------------------
+      # Home Manager mini module (trimmed eevee for cluster nodes)
+      # ------------------------------------------------------------
+      homeManagerModules.eevee-mini =
+        inputs:
+        {
+          config,
+          lib,
+          pkgs,
+          osConfig ? { },
+          ...
+        }:
+        {
+          imports = [
+            (import ./modules/eevee/mini.nix inputs)
           ];
           options.eevee = (import ./eevee-config.nix lib).eeveeOptions;
         };
