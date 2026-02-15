@@ -73,11 +73,24 @@ test:
 # Clean old generations and collect garbage
 clean:
     #!/usr/bin/env bash
-    echo "Running nix garbage collection..."
+    echo "Cleaning old generations and running garbage collection..."
     if [[ "{{ uname }}" == "Darwin" ]]; then
-        nix-collect-garbage -d
-        nix-store --optimise
+        # Delete old system generations (keep current)
+        sudo nix-env --profile /nix/var/nix/profiles/system --delete-generations old 2>/dev/null || true
+        # Delete old user generations (keep last 5)
+        nix-env --delete-generations +5 2>/dev/null || true
+        # Garbage collect (user store)
+        nix-collect-garbage --delete-older-than 7d
+        # Garbage collect (system store) 
+        sudo nix-collect-garbage --delete-older-than 7d
+        # Optimise store (dedup)
+        echo "Optimising nix store (this may take a while)..."
+        nix store optimise
     else
-        sudo nix-collect-garbage -d
-        sudo nix-store --optimise
+        sudo nix-env --profile /nix/var/nix/profiles/system --delete-generations old 2>/dev/null || true
+        nix-env --delete-generations +5 2>/dev/null || true
+        sudo nix-collect-garbage --delete-older-than 7d
+        echo "Optimising nix store (this may take a while)..."
+        sudo nix store optimise
     fi
+    echo "Done."

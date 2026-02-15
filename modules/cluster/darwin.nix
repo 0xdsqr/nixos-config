@@ -20,8 +20,8 @@ in
     zsh
   ];
 
-  # Ensure flake support is on across nodes.
-  nix.settings.experimental-features = "nix-command flakes";
+  # Let Determinate Nix manage the nix installation
+  nix.enable = false;
 
   # Determinate Nix installer compatibility (safe if unused).
   ids.gids.nixbld = lib.mkDefault 350;
