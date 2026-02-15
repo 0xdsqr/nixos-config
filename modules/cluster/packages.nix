@@ -10,16 +10,11 @@
     jq
     curl
     wget
+    python312
     uv
     rustup
     nodejs_24
     ollama
-
-    # Python with exo for distributed LLM cluster
-    (python312.withPackages (ps: with ps; [
-      pip
-      virtualenv
-    ]))
   ];
 
   homebrewCasks = [

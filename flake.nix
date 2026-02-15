@@ -32,6 +32,9 @@
 
     # Developer tools (external)
     opencode.url = "github:sst/opencode/dev";
+
+    # AI/ML cluster
+    exo.url = "github:exo-explore/exo";
   };
 
   outputs =
