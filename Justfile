@@ -3,7 +3,8 @@ uname := `uname`
 
 # Configuration names
 NIXNAME := if uname == "Darwin" { "devbox-macbook-pro-m1" } else { "github-runner-vm-x86_64" }
-MINI_NAME := if uname == "Darwin" { `scutil --get HostName` } else { "dsqr-mini-001" }
+# MINI_NAME := if uname == "Darwin" { `scutil --get HostName` } else { "dsqr-mini-001" }
+MINI_NAME := "dsqr-mini-001"
 
 # Default command
 default: switch
