@@ -236,25 +236,6 @@
         };
 
       # ------------------------------------------------------------
-      # Home Manager mini module (trimmed eevee for cluster nodes)
-      # ------------------------------------------------------------
-      homeManagerModules.eevee-mini =
-        inputs:
-        {
-          config,
-          lib,
-          pkgs,
-          osConfig ? { },
-          ...
-        }:
-        {
-          imports = [
-            (import ./modules/eevee/mini.nix inputs)
-          ];
-          options.eevee = (import ./eevee-config.nix lib).eeveeOptions;
-        };
-
-      # ------------------------------------------------------------
       # Development shell (nix develop .)
       # ------------------------------------------------------------
       devShells = forEachSystem (

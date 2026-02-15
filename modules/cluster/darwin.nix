@@ -11,6 +11,14 @@ in
   # Headless-first cluster defaults for macOS nodes.
   services.openssh.enable = true;
 
+  # Standalone cluster baseline (do not depend on dsqr-nix).
+  homebrew.enable = true;
+  programs.zsh.enable = true;
+  environment.shells = with pkgs; [
+    bashInteractive
+    zsh
+  ];
+
   # Ensure flake support is on across nodes.
   nix.settings.experimental-features = "nix-command flakes";
 
