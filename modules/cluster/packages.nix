@@ -11,6 +11,9 @@
     curl
     wget
     python312
+    uv
+    rustup
+    nodejs_24
   ];
 
   homebrewCasks = [
@@ -23,10 +26,7 @@
 
   homebrewBrews = [
     "dockutil"
-    "uv"
     "macmon"
-    "node"
-    "rustup"
     "1password-cli"
   ];
 }
