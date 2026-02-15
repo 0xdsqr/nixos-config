@@ -52,7 +52,7 @@ switch-mini:
         echo "Building mini configuration: {{ MINI_NAME }}"
         NIXPKGS_ALLOW_UNFREE=1 nix build --impure --extra-experimental-features nix-command --extra-experimental-features flakes ".#darwinConfigurations.{{ MINI_NAME }}.system"
         echo "Switching to mini configuration..."
-        sudo NIXPKGS_ALLOW_UNFREE=1 ./result/sw/bin/darwin-rebuild switch --impure --flake "$(pwd)#{{ MINI_NAME }}"
+        sudo ./result/activate-user && sudo ./result/activate
     else
         echo "switch-mini is only supported on Darwin"
         exit 1

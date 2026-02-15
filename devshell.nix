@@ -13,6 +13,7 @@ in
   devShells.${system}.default = pkgs.mkShell {
     buildInputs = with pkgs; [
       # Core packages
+      git
       nano
       micro
       home-manager

@@ -27,12 +27,12 @@ in
   ids.gids.nixbld = lib.mkDefault 350;
 
   # Isolated package set for cluster nodes.
-  environment.systemPackages = lib.mkForce (
+  # Note: Avoid lib.mkForce here as it removes nix-darwin base packages (including darwin-rebuild)
+  environment.systemPackages =
     packages.systemPackages
-    ++ [ inputs.opencode.packages.${pkgs.stdenv.hostPlatform.system}.default ]
-  );
-  homebrew.casks = lib.mkForce packages.homebrewCasks;
-  homebrew.brews = lib.mkForce packages.homebrewBrews;
+    ++ [ inputs.opencode.packages.${pkgs.stdenv.hostPlatform.system}.default ];
+  homebrew.casks = packages.homebrewCasks;
+  homebrew.brews = packages.homebrewBrews;
 
   # Dock customization (Ghostty only, no random Apple apps).
   system.activationScripts.miniClusterDock.text = ''
