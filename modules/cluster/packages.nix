@@ -27,6 +27,5 @@
   homebrewBrews = [
     "dockutil"
     "macmon"
-    "1password-cli"
   ];
 }
