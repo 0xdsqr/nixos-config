@@ -46,6 +46,7 @@ in
     /usr/bin/su -l ${currentSystemUser} -c "$DOCKUTIL_BIN --no-restart --remove all"
     /usr/bin/su -l ${currentSystemUser} -c "$DOCKUTIL_BIN --no-restart --add /Applications/Ghostty.app"
     /usr/bin/su -l ${currentSystemUser} -c "$DOCKUTIL_BIN --no-restart --add /Applications/Brave\\ Browser.app"
+    /usr/bin/su -l ${currentSystemUser} -c "$DOCKUTIL_BIN --no-restart --add '/Applications/Tailscale.app'"
     /usr/bin/killall Dock >/dev/null 2>&1 || true
   '';
 
