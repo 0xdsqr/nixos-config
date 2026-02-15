@@ -7,5 +7,6 @@ inputs:
     ./zsh.nix
     ./starship.nix
     ./git.nix
+    (import ./neovim-mini.nix inputs)
   ];
 }
