@@ -59,18 +59,19 @@
         overlays = [ ];
       };
 
-      mkMiniDarwin = {
-        user ? "dsqr",
-        system ? "aarch64-darwin",
-      }:
-      {
-        inherit system user;
-        darwin = true;
-        homeManager = true;
-        machineConfig = ./machines/mini-cluster.nix;
-        userOSConfig = ./users/cluster/darwin.nix;
-        homeManagerConfig = ./users/cluster/home-manager-mini.nix;
-      };
+      mkMiniDarwin =
+        {
+          user ? "dsqr",
+          system ? "aarch64-darwin",
+        }:
+        {
+          inherit system user;
+          darwin = true;
+          homeManager = true;
+          machineConfig = ./machines/mini-cluster.nix;
+          userOSConfig = ./users/cluster/darwin.nix;
+          homeManagerConfig = ./users/cluster/home-manager-mini.nix;
+        };
 
       nixosHosts = {
         devbox-vm-x86_64 = {
@@ -210,6 +211,7 @@
           config,
           lib,
           pkgs,
+          inputs,
           ...
         }:
         {
