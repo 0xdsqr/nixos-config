@@ -104,6 +104,105 @@ just clean     # Garbage collect old generations
 
 Override machine per-command: `NIXNAME=gateway-vm-x86_64 just switch`
 
+## Mini Cluster Setup (Mac Minis)
+
+Fresh Mac Mini setup for the mini cluster. Run these **outside** of nix develop.
+
+### Prerequisites
+
+```bash
+# 1. Install Determinate Nix
+curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
+
+# 2. Reboot after Nix install
+sudo reboot
+```
+
+### After Reboot
+
+```bash
+# 3. Install Xcode from App Store (required for Metal/MLX)
+open "macappstores://apps.apple.com/app/xcode/id497799835"
+
+# 4. After Xcode installs, configure it and download Metal toolchain
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+sudo xcodebuild -license accept
+sudo xcodebuild -downloadComponent MetalToolchain
+
+# 5. Export Metal toolchain to nix store (check output for actual DMG path)
+hdiutil attach "/System/Library/AssetsV2/com_apple_MobileAsset_MetalToolchain/<hash>.asset/AssetData/Restore/<file>.dmg" -mountpoint /private/tmp/metal-dmg
+cp -R /private/tmp/metal-dmg/Metal.xctoolchain /private/tmp/metal-export
+hdiutil detach /private/tmp/metal-dmg
+nix nar pack /private/tmp/metal-export > /private/tmp/metal-toolchain-17C48.nar
+nix store add --mode flat /private/tmp/metal-toolchain-17C48.nar
+```
+
+### First Switch
+
+```bash
+# 6. Clone and enter repo
+git clone https://github.com/0xdsqr/nixos-config.git ~/nixos-config
+cd ~/nixos-config
+
+# 7. Rename any conflicting /etc files (nix-darwin will manage these)
+sudo mv /etc/bashrc /etc/bashrc.before-nix-darwin 2>/dev/null || true
+sudo mv /etc/zshrc /etc/zshrc.before-nix-darwin 2>/dev/null || true
+sudo mv /etc/zshenv /etc/zshenv.before-nix-darwin 2>/dev/null || true
+
+# 8. Enter dev shell and switch
+nix develop
+just switch-mini
+```
+
+### Subsequent Updates
+
+```bash
+cd ~/nixos-config
+git pull
+nix develop
+just switch-mini
+```
+
+### Verify Installation
+
+```bash
+# Check exo and ollama are installed
+which exo
+which ollama
+
+# Start exo (dashboard at http://localhost:52415)
+exo
+
+# In another terminal, start ollama
+ollama serve
+
+# Pull a model
+ollama pull llama3.2:3b
+
+# Test chat
+ollama run llama3.2:3b "Hello, what can you do?"
+```
+
+### Exo Cluster Test
+
+With multiple minis on the same network, exo auto-discovers them:
+
+```bash
+# On each mini, just run:
+exo
+
+# Open http://localhost:52415 in browser to see cluster UI
+# All nodes should appear automatically via mDNS
+
+# Run a model across the cluster
+curl -X POST http://localhost:52415/v1/chat/completions \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "model": "llama-3.2-3b",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+
 ## Documentation
 
 - **[.github/assets/modules.md](./.github/assets/modules.md)** - Full API reference for eevee, dsqr-nix, and dsqr-proxmox modules

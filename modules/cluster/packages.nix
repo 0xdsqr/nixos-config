@@ -3,6 +3,7 @@
   systemPackages = with pkgs; [
     git
     gh
+    just
     tmux
     direnv
     ripgrep
