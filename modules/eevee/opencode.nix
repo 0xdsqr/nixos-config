@@ -9,7 +9,7 @@ inputs:
 }:
 let
   cfg = config.eevee.opencode;
-  opencodePkg = inputs.opencode.packages.${pkgs.system}.default;
+  opencodePkg = inputs.opencode.packages.${pkgs.stdenv.hostPlatform.system}.default;
 in
 {
   options.eevee.opencode = {

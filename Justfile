@@ -50,7 +50,11 @@ switch-mini:
     if [[ "{{ uname }}" == "Darwin" ]]; then
         echo "Switching to mini configuration: {{ MINI_NAME }}"
         NIXPKGS_ALLOW_UNFREE=1 nix build --impure --extra-experimental-features nix-command --extra-experimental-features flakes ".#darwinConfigurations.{{ MINI_NAME }}.system"
-        sudo NIXPKGS_ALLOW_UNFREE=1 ./result/sw/bin/darwin-rebuild switch --impure --flake "$(pwd)#{{ MINI_NAME }}"
+        if [[ -x ./result/sw/bin/darwin-rebuild ]]; then
+            sudo NIXPKGS_ALLOW_UNFREE=1 ./result/sw/bin/darwin-rebuild switch --impure --flake "$(pwd)#{{ MINI_NAME }}"
+        else
+            sudo NIXPKGS_ALLOW_UNFREE=1 nix run nix-darwin -- switch --impure --flake "$(pwd)#{{ MINI_NAME }}"
+        fi
     else
         echo "switch-mini is only supported on Darwin"
         exit 1

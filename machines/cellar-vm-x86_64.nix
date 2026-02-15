@@ -25,7 +25,7 @@
   # TODO: Enable once built/cached - takes forever to compile
   services.dsqr-rustfs = {
     enable = true;
-    package = inputs.rustfs.packages.${pkgs.system}.default;
+    package = inputs.rustfs.packages.${pkgs.stdenv.hostPlatform.system}.default;
     address = "0.0.0.0";
     consoleAddress = "0.0.0.0";
     #   # rootCredentialsFile = config.sops.secrets."rustfs/credentials".path;

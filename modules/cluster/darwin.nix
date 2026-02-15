@@ -26,7 +26,10 @@ in
   ids.gids.nixbld = lib.mkDefault 350;
 
   # Isolated package set for cluster nodes.
-  environment.systemPackages = lib.mkForce packages.systemPackages;
+  environment.systemPackages = lib.mkForce (
+    packages.systemPackages
+    ++ [ inputs.opencode.packages.${pkgs.stdenv.hostPlatform.system}.default ]
+  );
   homebrew.casks = lib.mkForce packages.homebrewCasks;
   homebrew.brews = lib.mkForce packages.homebrewBrews;
 

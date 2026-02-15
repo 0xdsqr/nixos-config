@@ -16,7 +16,7 @@ in
 
   programs.neovim = {
     enable = true;
-    package = inputs.neovim-nightly-overlay.packages.${pkgs.system}.default;
+    package = inputs.neovim-nightly-overlay.packages.${pkgs.stdenv.hostPlatform.system}.default;
     viAlias = true;
     vimAlias = true;
     defaultEditor = true;
@@ -24,10 +24,12 @@ in
 
   programs.git = {
     enable = true;
-    userName = gitProfile.full_name;
-    userEmail = gitProfile.email_address;
     signing.signByDefault = false;
-    extraConfig = {
+    settings = {
+      user = {
+        name = gitProfile.full_name;
+        email = gitProfile.email_address;
+      };
       init.defaultBranch = "main";
       pull.rebase = true;
       push.default = "tracking";
