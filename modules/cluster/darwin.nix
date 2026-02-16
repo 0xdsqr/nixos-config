@@ -64,17 +64,5 @@ in
       powernap 1
   '';
 
-  # Exo service - runs as user agent for GPU/Metal access
-  launchd.user.agents.exo = {
-    serviceConfig = {
-      Label = "org.nixos.exo";
-      ProgramArguments = [
-        "${inputs.exo.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/exo"
-      ];
-      RunAtLoad = true;
-      KeepAlive = true;
-      StandardOutPath = "/tmp/exo.log";
-      StandardErrorPath = "/tmp/exo.error.log";
-    };
-  };
+  # Exo: run manually with `exo` - launchd agent caused peer discovery issues
 }
