@@ -64,8 +64,8 @@ in
       powernap 1
   '';
 
-  # Exo service - runs on boot, auto-restarts
-  launchd.daemons.exo = {
+  # Exo service - runs as user agent for GPU/Metal access
+  launchd.user.agents.exo = {
     serviceConfig = {
       Label = "org.nixos.exo";
       ProgramArguments = [
@@ -73,12 +73,8 @@ in
       ];
       RunAtLoad = true;
       KeepAlive = true;
-      StandardOutPath = "/var/log/exo.log";
-      StandardErrorPath = "/var/log/exo.error.log";
-      EnvironmentVariables = {
-        HOME = "/Users/${currentSystemUser}";
-        USER = currentSystemUser;
-      };
+      StandardOutPath = "/tmp/exo.log";
+      StandardErrorPath = "/tmp/exo.error.log";
     };
   };
 }
