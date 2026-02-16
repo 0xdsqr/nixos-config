@@ -111,26 +111,38 @@ Fresh Mac Mini setup for the mini cluster. Run these **outside** of nix develop.
 ### Prerequisites
 
 ```bash
-# 1. Install Determinate Nix
+# 1. Set hostname (replace XXX with your mini number: 001, 002, etc.)
+sudo scutil --set HostName dsqr-mini-XXX
+sudo scutil --set LocalHostName dsqr-mini-XXX
+sudo scutil --set ComputerName dsqr-mini-XXX
+
+# 2. Install Homebrew (required for nix-darwin)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# 3. Install Determinate Nix
 curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
 
-# 2. Reboot after Nix install
+# 4. Reboot after Nix install
 sudo reboot
 ```
 
 ### After Reboot
 
 ```bash
-# 3. Install Xcode from App Store (required for Metal/MLX)
+# 5. Install Xcode from App Store (required for Metal/MLX)
 open "macappstores://apps.apple.com/app/xcode/id497799835"
 
-# 4. After Xcode installs, configure it and download Metal toolchain
+# 6. After Xcode installs, configure it and download Metal toolchain
 sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 sudo xcodebuild -license accept
 sudo xcodebuild -downloadComponent MetalToolchain
 
-# 5. Export Metal toolchain to nix store (check output for actual DMG path)
-hdiutil attach "/System/Library/AssetsV2/com_apple_MobileAsset_MetalToolchain/<hash>.asset/AssetData/Restore/<file>.dmg" -mountpoint /private/tmp/metal-dmg
+# 7. Export Metal toolchain to nix store
+#    Run this first to see the actual DMG path:
+ls /System/Library/AssetsV2/com_apple_MobileAsset_MetalToolchain/
+
+#    Then use that path (example below, yours will differ):
+hdiutil attach "/System/Library/AssetsV2/com_apple_MobileAsset_MetalToolchain/0bc538ab0cfa107625f77ad7bcfa566abe43e917.asset/AssetData/Restore/022-20660-054.dmg" -mountpoint /private/tmp/metal-dmg
 cp -R /private/tmp/metal-dmg/Metal.xctoolchain /private/tmp/metal-export
 hdiutil detach /private/tmp/metal-dmg
 nix nar pack /private/tmp/metal-export > /private/tmp/metal-toolchain-17C48.nar
@@ -140,16 +152,16 @@ nix store add --mode flat /private/tmp/metal-toolchain-17C48.nar
 ### First Switch
 
 ```bash
-# 6. Clone and enter repo
+# 8. Clone and enter repo
 git clone https://github.com/0xdsqr/nixos-config.git ~/nixos-config
 cd ~/nixos-config
 
-# 7. Rename any conflicting /etc files (nix-darwin will manage these)
+# 9. Rename any conflicting /etc files (nix-darwin will manage these)
 sudo mv /etc/bashrc /etc/bashrc.before-nix-darwin 2>/dev/null || true
 sudo mv /etc/zshrc /etc/zshrc.before-nix-darwin 2>/dev/null || true
 sudo mv /etc/zshenv /etc/zshenv.before-nix-darwin 2>/dev/null || true
 
-# 8. Enter dev shell and switch
+# 10. Enter dev shell and switch
 nix develop
 just switch-mini
 ```
