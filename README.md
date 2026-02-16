@@ -21,6 +21,8 @@ I got tired of my machines drifting apart. Spend a week setting up Neovim on my 
 | Machine | Platform | Purpose |
 |---------|----------|---------|
 | devbox-macbook-pro-m1 | Darwin | Daily driver |
+| dsqr-mini-001 | Darwin | Mini cluster node |
+| dsqr-mini-002 | Darwin | Mini cluster node |
 | devbox-vm-x86_64 | NixOS | Development VM |
 | devbox-usb-x86_64 | NixOS | Portable USB install |
 | gateway-vm-x86_64 | NixOS | Network gateway |
@@ -28,6 +30,27 @@ I got tired of my machines drifting apart. Spend a week setting up Neovim on my 
 | cellar-vm-x86_64 | NixOS | Storage/backup |
 | media-server-vm-x86_64 | NixOS | Media services |
 | github-runner-vm-x86_64 | NixOS | CI runner |
+
+## Mini Cluster
+
+The mini cluster is a set of Mac Minis running a shared nix-darwin configuration for distributed AI inference.
+
+**What's included:**
+- **exo** - Distributed LLM inference, auto-discovers nodes on the network, pools compute across devices
+- **ollama** - Local model runner
+- **opencode** - AI coding assistant CLI
+- Headless-optimized: SSH enabled, never sleeps, Wake-on-LAN, auto-restart on power failure
+
+**How it works:**
+- All minis share the same `dsqr-mini-cluster` nix-darwin module
+- Each mini runs exo as a launchd daemon (starts on boot)
+- Nodes auto-discover via mDNS - just plug in and run `just switch-mini`
+- Access the cluster dashboard from any machine: `http://dsqr-mini-001.local:52415`
+- Models are sharded across nodes, enabling larger models than any single device
+
+**Adding a new mini:**
+1. Add it to `flake.nix`: `dsqr-mini-XXX = mkMiniDarwin { };`
+2. Follow the setup steps below
 
 ## Quick Start
 
