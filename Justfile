@@ -3,12 +3,8 @@ uname := `uname`
 
 # Configuration names
 NIXNAME := if uname == "Darwin" { "devbox-macbook-pro-m1" } else { "github-runner-vm-x86_64" }
-# TODO: Auto-detect hostname once all minis have hostnames set via:
-#   sudo scutil --set HostName dsqr-mini-XXX
-#   sudo scutil --set LocalHostName dsqr-mini-XXX
-#   sudo scutil --set ComputerName dsqr-mini-XXX
-# MINI_NAME := if uname == "Darwin" { `scutil --get LocalHostName` } else { "dsqr-mini-001" }
-MINI_NAME := "dsqr-mini-002"
+# Auto-detect hostname, fallback to dsqr-mini-001
+MINI_NAME := if uname == "Darwin" { `scutil --get LocalHostName 2>/dev/null || echo "dsqr-mini-001"` } else { "dsqr-mini-001" }
 
 # Default command
 default: switch
