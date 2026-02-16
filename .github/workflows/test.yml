@@ -21,7 +21,7 @@ jobs:
       - uses: DeterminateSystems/determinate-nix-action@v3
       - uses: DeterminateSystems/flakehub-cache-action@main
       - name: nixfmt check
-        run: nix fmt -- --check --formatter nixfmt
+        run: nix fmt -- --ci -f nixfmt
 
   biome:
     name: biome
@@ -34,7 +34,7 @@ jobs:
       - uses: DeterminateSystems/determinate-nix-action@v3
       - uses: DeterminateSystems/flakehub-cache-action@main
       - name: biome check
-        run: nix fmt -- --check --formatter biome
+        run: nix fmt -- --ci -f biome
 
   deadnix:
     name: deadnix
@@ -47,7 +47,7 @@ jobs:
       - uses: DeterminateSystems/determinate-nix-action@v3
       - uses: DeterminateSystems/flakehub-cache-action@main
       - name: deadnix check
-        run: nix fmt -- --check --formatter deadnix
+        run: nix fmt -- --ci -f deadnix
 
   statix:
     name: statix
@@ -60,7 +60,7 @@ jobs:
       - uses: DeterminateSystems/determinate-nix-action@v3
       - uses: DeterminateSystems/flakehub-cache-action@main
       - name: statix check
-        run: nix fmt -- --check --formatter statix
+        run: nix fmt -- --ci -f statix
 
   eval-configs:
     name: eval configs

@@ -1,93 +1,163 @@
-<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background -->
-  <circle cx="100" cy="100" r="95" fill="#A855F7" opacity="0.08"/>
+<svg width="200" height="240" viewBox="0 0 200 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#A855F7;stop-opacity:0.12" />
+      <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:0.05" />
+    </linearGradient>
+    <linearGradient id="flameGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#EF4444" />
+      <stop offset="50%" style="stop-color:#F97316" />
+      <stop offset="100%" style="stop-color:#FCD34D" />
+    </linearGradient>
+  </defs>
+  
+  <circle cx="100" cy="110" r="95" fill="url(#bgGrad)"/>
 
-  <!-- Owl Body (PURPLE!) -->
-  <g transform="translate(100, 60)">
+  <!-- Owl Body -->
+  <g transform="translate(100, 55)">
     <!-- Body -->
     <ellipse cx="0" cy="15" rx="28" ry="35" fill="#A855F7"/>
+    
+    <!-- Body feather texture -->
+    <ellipse cx="-10" cy="20" rx="8" ry="12" fill="#9333EA" opacity="0.4"/>
+    <ellipse cx="10" cy="20" rx="8" ry="12" fill="#9333EA" opacity="0.4"/>
 
     <!-- Head -->
     <circle cx="0" cy="-10" r="22" fill="#A855F7"/>
+    
+    <!-- Head feather accent -->
+    <circle cx="0" cy="-8" r="15" fill="#9333EA" opacity="0.3"/>
 
-    <!-- Ear tufts -->
-    <path d="M -15,-25 L -12,-32 L -8,-26 Z" fill="#A855F7"/>
-    <path d="M 15,-25 L 12,-32 L 8,-26 Z" fill="#A855F7"/>
+    <!-- Ear tufts with gradient -->
+    <path d="M -15,-25 L -12,-35 L -8,-26 Z" fill="#C084FC"/>
+    <path d="M 15,-25 L 12,-35 L 8,-26 Z" fill="#C084FC"/>
+    <path d="M -14,-26 L -12,-33 L -9,-27 Z" fill="#A855F7"/>
+    <path d="M 14,-26 L 12,-33 L 9,-27 Z" fill="#A855F7"/>
 
     <!-- Eyes (big and watchful) -->
-    <circle cx="-8" cy="-12" r="7" fill="#FFFFFF"/>
-    <circle cx="8" cy="-12" r="7" fill="#FFFFFF"/>
-    <circle cx="-8" cy="-12" r="4" fill="#1a1a1a"/>
-    <circle cx="8" cy="-12" r="4" fill="#1a1a1a"/>
+    <circle cx="-8" cy="-12" r="8" fill="#FFFFFF"/>
+    <circle cx="8" cy="-12" r="8" fill="#FFFFFF"/>
+    <circle cx="-8" cy="-11" r="5" fill="#1a1a1a"/>
+    <circle cx="8" cy="-11" r="5" fill="#1a1a1a"/>
 
     <!-- Eye highlights (alert look) -->
-    <circle cx="-7" cy="-14" r="2" fill="#FFFFFF"/>
-    <circle cx="9" cy="-14" r="2" fill="#FFFFFF"/>
+    <circle cx="-6" cy="-14" r="2.5" fill="#FFFFFF"/>
+    <circle cx="10" cy="-14" r="2.5" fill="#FFFFFF"/>
+    <circle cx="-9" cy="-9" r="1" fill="#FFFFFF" opacity="0.5"/>
+    <circle cx="7" cy="-9" r="1" fill="#FFFFFF" opacity="0.5"/>
 
     <!-- Beak -->
-    <path d="M 0,-6 L 3,0 L 0,2 L -3,0 Z" fill="#F59E0B"/>
+    <path d="M 0,-5 L 4,1 L 0,4 L -4,1 Z" fill="#F59E0B"/>
+    <path d="M 0,-5 L 2,0 L 0,2 L -2,0 Z" fill="#FBBF24"/>
 
-    <!-- Wings (folded, at rest) -->
-    <ellipse cx="-22" cy="10" rx="8" ry="20" fill="#C084FC" opacity="0.8"/>
-    <ellipse cx="22" cy="10" rx="8" ry="20" fill="#C084FC" opacity="0.8"/>
+    <!-- Wings (folded, with feather detail) -->
+    <ellipse cx="-24" cy="10" rx="9" ry="22" fill="#C084FC"/>
+    <ellipse cx="24" cy="10" rx="9" ry="22" fill="#C084FC"/>
+    <ellipse cx="-24" cy="12" rx="6" ry="18" fill="#A855F7" opacity="0.6"/>
+    <ellipse cx="24" cy="12" rx="6" ry="18" fill="#A855F7" opacity="0.6"/>
 
     <!-- Feet/talons on perch -->
-    <path d="M -8,45 L -8,50 M -5,45 L -5,50 M -11,45 L -11,50" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
-    <path d="M 8,45 L 8,50 M 5,45 L 5,50 M 11,45 L 11,50" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
+    <path d="M -8,47 L -8,53 M -5,47 L -5,53 M -11,47 L -11,53" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M 8,47 L 8,53 M 5,47 L 5,53 M 11,47 L 11,53" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round"/>
   </g>
 
-  <!-- Perch (branch/line) -->
-  <line x1="40" y1="110" x2="160" y2="110" stroke="#A855F7" stroke-width="3" stroke-linecap="round"/>
+  <!-- Perch (branch with texture) -->
+  <line x1="35" y1="108" x2="165" y2="108" stroke="#7C3AED" stroke-width="4" stroke-linecap="round"/>
+  <line x1="40" y1="108" x2="160" y2="108" stroke="#A855F7" stroke-width="3" stroke-linecap="round"/>
 
-  <!-- Server Racks Below (being watched over) -->
-  <g transform="translate(100, 155)">
-    <!-- Left server rack (healthy) -->
-    <g transform="translate(-35, 0)">
-      <rect x="-15" y="-15" width="30" height="25" rx="2" fill="#A855F7" opacity="0.7"/>
-      <rect x="-12" y="-12" width="24" height="4" rx="1" fill="#C084FC" opacity="0.5"/>
-      <rect x="-12" y="-6" width="24" height="4" rx="1" fill="#C084FC" opacity="0.5"/>
-      <rect x="-12" y="0" width="24" height="4" rx="1" fill="#C084FC" opacity="0.5"/>
-      <!-- LEDs (green - all good!) -->
-      <circle cx="-9" cy="-10" r="1.5" fill="#10B981"/>
-      <circle cx="-9" cy="-4" r="1.5" fill="#10B981"/>
-      <circle cx="-9" cy="2" r="1.5" fill="#10B981"/>
-    </g>
-
-    <!-- Middle server rack (healthy) -->
-    <g transform="translate(0, 0)">
-      <rect x="-15" y="-15" width="30" height="25" rx="2" fill="#A855F7" opacity="0.7"/>
-      <rect x="-12" y="-12" width="24" height="4" rx="1" fill="#C084FC" opacity="0.5"/>
-      <rect x="-12" y="-6" width="24" height="4" rx="1" fill="#C084FC" opacity="0.5"/>
-      <rect x="-12" y="0" width="24" height="4" rx="1" fill="#C084FC" opacity="0.5"/>
+  <!-- Server Racks Below -->
+  <g transform="translate(100, 150)">
+    <!-- Left server rack (healthy) with hammer -->
+    <g transform="translate(-40, 0)">
+      <rect x="-15" y="-12" width="30" height="22" rx="3" fill="#7C3AED"/>
+      <rect x="-15" y="-12" width="30" height="22" rx="3" fill="#A855F7" opacity="0.8"/>
+      <rect x="-12" y="-9" width="24" height="5" rx="1" fill="#C084FC" opacity="0.6"/>
+      <rect x="-12" y="-2" width="24" height="5" rx="1" fill="#C084FC" opacity="0.6"/>
       <!-- LEDs -->
-      <circle cx="-9" cy="-10" r="1.5" fill="#10B981"/>
-      <circle cx="-9" cy="-4" r="1.5" fill="#10B981"/>
-      <circle cx="-9" cy="2" r="1.5" fill="#10B981"/>
+      <circle cx="-9" cy="-6.5" r="1.5" fill="#10B981"/>
+      <circle cx="-9" cy="0.5" r="1.5" fill="#10B981"/>
+      <!-- Hammer icon -->
+      <g transform="translate(8, -6) scale(0.5)">
+        <rect x="-2" y="0" width="4" height="12" fill="#F59E0B" rx="1"/>
+        <rect x="-6" y="-4" width="12" height="6" fill="#94A3B8" rx="1"/>
+      </g>
     </g>
 
-    <!-- Right server rack (ON FIRE!) -->
-    <g transform="translate(35, 0)">
-      <rect x="-15" y="-15" width="30" height="25" rx="2" fill="#A855F7" opacity="0.7"/>
-      <rect x="-12" y="-12" width="24" height="4" rx="1" fill="#C084FC" opacity="0.5"/>
-      <rect x="-12" y="-6" width="24" height="4" rx="1" fill="#C084FC" opacity="0.5"/>
-      <rect x="-12" y="0" width="24" height="4" rx="1" fill="#C084FC" opacity="0.5"/>
-      <!-- LEDs (RED - FIRE!) -->
-      <circle cx="-9" cy="-10" r="1.5" fill="#EF4444"/>
-      <circle cx="-9" cy="-4" r="1.5" fill="#EF4444"/>
-      <circle cx="-9" cy="2" r="1.5" fill="#EF4444"/>
+    <!-- Middle server rack (healthy) with shuttle -->
+    <g transform="translate(0, 0)">
+      <rect x="-15" y="-12" width="30" height="22" rx="3" fill="#7C3AED"/>
+      <rect x="-15" y="-12" width="30" height="22" rx="3" fill="#A855F7" opacity="0.8"/>
+      <rect x="-12" y="-9" width="24" height="5" rx="1" fill="#C084FC" opacity="0.6"/>
+      <rect x="-12" y="-2" width="24" height="5" rx="1" fill="#C084FC" opacity="0.6"/>
+      <!-- LEDs -->
+      <circle cx="-9" cy="-6.5" r="1.5" fill="#10B981"/>
+      <circle cx="-9" cy="0.5" r="1.5" fill="#10B981"/>
+      <!-- Shuttle icon -->
+      <g transform="translate(6, -5) scale(0.4)">
+        <path d="M 0,-10 L 5,5 L 0,0 L -5,5 Z" fill="#E0E7FF"/>
+        <path d="M -3,5 L 0,12 L 3,5 Z" fill="#F97316"/>
+      </g>
+    </g>
 
-      <!-- Fire flames above server -->
-      <g transform="translate(0, -18)">
-        <path d="M -5,-5 Q -7,-10 -5,-15 Q -3,-12 -2,-8 Q -3,-10 -5,-5 Z" fill="#F97316" opacity="0.8"/>
-        <path d="M 0,-7 Q -2,-13 0,-18 Q 2,-14 3,-10 Q 1,-13 0,-7 Z" fill="#FB923C" opacity="0.9"/>
-        <path d="M 5,-4 Q 3,-9 5,-13 Q 7,-10 8,-7 Q 6,-9 5,-4 Z" fill="#FDBA74" opacity="0.7"/>
-        <!-- Inner yellow flame -->
-        <path d="M 0,-9 Q -1,-12 0,-14 Q 1,-12 1,-10 Q 0,-11 0,-9 Z" fill="#FCD34D" opacity="0.9"/>
+    <!-- Right server rack (ON FIRE!) with bulldozer -->
+    <g transform="translate(40, 0)">
+      <rect x="-15" y="-12" width="30" height="22" rx="3" fill="#7C3AED"/>
+      <rect x="-15" y="-12" width="30" height="22" rx="3" fill="#A855F7" opacity="0.8"/>
+      <rect x="-12" y="-9" width="24" height="5" rx="1" fill="#C084FC" opacity="0.6"/>
+      <rect x="-12" y="-2" width="24" height="5" rx="1" fill="#C084FC" opacity="0.6"/>
+      <!-- LEDs (RED - FIRE!) -->
+      <circle cx="-9" cy="-6.5" r="1.5" fill="#EF4444">
+        <animate attributeName="opacity" values="1;0.4;1" dur="0.5s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="-9" cy="0.5" r="1.5" fill="#EF4444">
+        <animate attributeName="opacity" values="1;0.4;1" dur="0.5s" repeatCount="indefinite" begin="0.25s"/>
+      </circle>
+      <!-- Bulldozer icon -->
+      <g transform="translate(6, -5) scale(0.4)">
+        <rect x="-8" y="0" width="16" height="8" fill="#FBBF24" rx="1"/>
+        <rect x="-10" y="2" width="4" height="10" fill="#94A3B8"/>
+        <circle cx="-5" cy="10" r="3" fill="#374151"/>
+        <circle cx="5" cy="10" r="3" fill="#374151"/>
+      </g>
+
+      <!-- Fire flames -->
+      <g transform="translate(0, -16)">
+        <path d="M -6,-3 Q -8,-10 -5,-16 Q -2,-10 -1,-5 Q -3,-8 -6,-3 Z" fill="url(#flameGrad)" opacity="0.9">
+          <animate attributeName="d" values="M -6,-3 Q -8,-10 -5,-16 Q -2,-10 -1,-5 Q -3,-8 -6,-3 Z;M -6,-4 Q -9,-12 -5,-18 Q -1,-11 0,-6 Q -2,-9 -6,-4 Z;M -6,-3 Q -8,-10 -5,-16 Q -2,-10 -1,-5 Q -3,-8 -6,-3 Z" dur="0.4s" repeatCount="indefinite"/>
+        </path>
+        <path d="M 0,-5 Q -2,-14 0,-20 Q 3,-13 4,-7 Q 2,-11 0,-5 Z" fill="url(#flameGrad)">
+          <animate attributeName="d" values="M 0,-5 Q -2,-14 0,-20 Q 3,-13 4,-7 Q 2,-11 0,-5 Z;M 0,-6 Q -3,-15 0,-22 Q 4,-14 5,-8 Q 2,-12 0,-6 Z;M 0,-5 Q -2,-14 0,-20 Q 3,-13 4,-7 Q 2,-11 0,-5 Z" dur="0.5s" repeatCount="indefinite"/>
+        </path>
+        <path d="M 6,-2 Q 4,-8 6,-14 Q 9,-9 10,-4 Q 7,-7 6,-2 Z" fill="url(#flameGrad)" opacity="0.85">
+          <animate attributeName="d" values="M 6,-2 Q 4,-8 6,-14 Q 9,-9 10,-4 Q 7,-7 6,-2 Z;M 6,-3 Q 3,-10 6,-16 Q 10,-10 11,-5 Q 8,-8 6,-3 Z;M 6,-2 Q 4,-8 6,-14 Q 9,-9 10,-4 Q 7,-7 6,-2 Z" dur="0.35s" repeatCount="indefinite"/>
+        </path>
       </g>
     </g>
   </g>
 
+  <!-- Pipeline connecting servers -->
+  <g transform="translate(100, 175)">
+    <line x1="-25" y1="0" x2="25" y2="0" stroke="#7C3AED" stroke-width="2" stroke-dasharray="4,2"/>
+    <circle cx="-25" cy="0" r="3" fill="#A855F7"/>
+    <circle cx="0" cy="0" r="3" fill="#A855F7"/>
+    <circle cx="25" cy="0" r="3" fill="#A855F7"/>
+    <!-- Data flow animation -->
+    <circle cx="0" cy="0" r="2" fill="#10B981">
+      <animate attributeName="cx" values="-25;25" dur="2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
   <!-- Watchful lines (subtle indication owl is watching) -->
-  <path d="M 92,72 L 65,145" stroke="#A855F7" stroke-width="0.5" opacity="0.3" stroke-dasharray="2,2"/>
-  <path d="M 108,72 L 135,145" stroke="#A855F7" stroke-width="0.5" opacity="0.3" stroke-dasharray="2,2"/>
+  <path d="M 92,68 L 60,138" stroke="#A855F7" stroke-width="0.8" opacity="0.25" stroke-dasharray="3,3"/>
+  <path d="M 108,68 L 140,138" stroke="#A855F7" stroke-width="0.8" opacity="0.25" stroke-dasharray="3,3"/>
+
+  <!-- Sparkle accents -->
+  <g fill="#C084FC" opacity="0.6">
+    <circle cx="25" cy="30" r="2"/>
+    <circle cx="175" cy="45" r="1.5"/>
+    <circle cx="20" cy="180" r="1.5"/>
+    <circle cx="180" cy="195" r="2"/>
+  </g>
 </svg>
