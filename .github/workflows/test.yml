@@ -97,7 +97,7 @@ jobs:
 
   flake-check:
     name: nix flake check
-    runs-on: [self-hosted, nix-config, nixos]
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write
@@ -110,7 +110,7 @@ jobs:
 
   build-sysdsqr:
     name: build sysdsqr
-    runs-on: [self-hosted, nix-config, nixos]
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write
@@ -120,6 +120,19 @@ jobs:
       - uses: DeterminateSystems/flakehub-cache-action@main
       - name: build sysdsqr
         run: nix build .#sysdsqr
+
+  self-hosted-check:
+    name: self-hosted check
+    runs-on: [self-hosted, nix-config, nixos]
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: nix version
+        run: nix --version
+      - name: system info
+        run: uname -a
 
   required:
     name: all checks passed
@@ -133,6 +146,7 @@ jobs:
       - eval-configs
       - flake-check
       - build-sysdsqr
+      - self-hosted-check
     steps:
       - name: verify all jobs passed
         run: |
