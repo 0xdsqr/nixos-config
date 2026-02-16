@@ -1,4 +1,4 @@
-inputs:
+_inputs:
 {
   config,
   pkgs,
@@ -9,7 +9,7 @@ let
   cfg = config.eevee;
   casks = import ./casks.nix {
     inherit lib;
-    exclude_casks = cfg.darwin.exclude_casks;
+    inherit (cfg.darwin) exclude_casks;
   };
 in
 {
@@ -21,7 +21,7 @@ in
   environment.systemPackages =
     (import ../packages.nix {
       inherit pkgs lib;
-      exclude_packages = cfg.nixos.exclude_packages;
+      inherit (cfg.nixos) exclude_packages;
     }).systemPackages;
 
   # Shell setup

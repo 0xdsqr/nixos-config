@@ -28,12 +28,10 @@ in
 
   # Isolated package set for cluster nodes.
   # Note: Avoid lib.mkForce here as it removes nix-darwin base packages (including darwin-rebuild)
-  environment.systemPackages =
-    packages.systemPackages
-    ++ [
-      inputs.opencode.packages.${pkgs.stdenv.hostPlatform.system}.default
-      inputs.exo.packages.${pkgs.stdenv.hostPlatform.system}.default
-    ];
+  environment.systemPackages = packages.systemPackages ++ [
+    inputs.opencode.packages.${pkgs.stdenv.hostPlatform.system}.default
+    inputs.exo.packages.${pkgs.stdenv.hostPlatform.system}.default
+  ];
   homebrew.casks = packages.homebrewCasks;
   homebrew.brews = packages.homebrewBrews;
 

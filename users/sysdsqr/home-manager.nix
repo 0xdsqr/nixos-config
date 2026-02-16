@@ -1,14 +1,9 @@
-{ isWSL, inputs, ... }:
+{ inputs, ... }:
 {
-  config,
-  lib,
   pkgs,
   ...
 }:
 
-let
-  isLinux = pkgs.stdenv.isLinux;
-in
 {
   imports = [
     (inputs.self.homeManagerModules.eevee inputs)

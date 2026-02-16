@@ -1,6 +1,6 @@
 (import (
   let
-    flake-compat = (builtins.fromJSON (builtins.readFile ./flake.lock)).nodes.flake-compat;
+    inherit ((builtins.fromJSON (builtins.readFile ./flake.lock)).nodes) flake-compat;
   in
   fetchTarball {
     url = "https://github.com/edolstra/flake-compat/archive/${flake-compat.locked.rev}.tar.gz";

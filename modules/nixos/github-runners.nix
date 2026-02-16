@@ -8,33 +8,6 @@ let
   cfg = config.dsqr.github-runners;
 
   # Helper to expand runners with count > 1 into multiple NixOS runner entries
-  expandRunners = lib.concatMapAttrs (
-    baseName: runnerCfg:
-    lib.listToAttrs (
-      lib.genList (
-        i:
-        let
-          # hoo-1, hoo-2, etc. (or just "hoo" if count=1)
-          instanceName = if runnerCfg.count == 1 then baseName else "${baseName}-${toString (i + 1)}";
-        in
-        lib.nameValuePair instanceName {
-          enable = true;
-          name = instanceName;
-          tokenFile = config.sops.secrets.${runnerCfg.tokenSecret}.path;
-          url = runnerCfg.url;
-          extraPackages = runnerCfg.extraPackages;
-          extraLabels = runnerCfg.extraLabels ++ [ "nixos" ];
-          replace = runnerCfg.replace;
-          user = cfg.user;
-          group = cfg.group;
-          workDir = "${cfg.workDir}/${instanceName}";
-        }
-        // lib.optionalAttrs (runnerCfg.nodeRuntimes != [ ]) {
-          nodeRuntimes = runnerCfg.nodeRuntimes;
-        }
-      ) runnerCfg.count
-    )
-  ) cfg.runners;
 in
 {
   options.dsqr.github-runners = {
@@ -134,9 +107,9 @@ in
     users.users.${cfg.user} = {
       isSystemUser = true;
       home = cfg.workDir;
-      extraGroups = cfg.extraGroups;
+      inherit (cfg) extraGroups;
       createHome = true;
-      group = cfg.group;
+      inherit (cfg) group;
       description = "GitHub Actions runner system user";
     };
 
@@ -148,11 +121,11 @@ in
 
     # Create sops secrets for each runner (one token per repo, shared by instances)
     sops.secrets = lib.mapAttrs' (
-      name: runnerCfg:
+      _name: runnerCfg:
       lib.nameValuePair runnerCfg.tokenSecret {
         mode = "0400";
         owner = cfg.user;
-        group = cfg.group;
+        inherit (cfg) group;
       }
     ) cfg.runners;
 
@@ -163,16 +136,16 @@ in
         enable = true;
         inherit name;
         tokenFile = config.sops.secrets.${runnerCfg.tokenSecret}.path;
-        url = runnerCfg.url;
-        extraPackages = runnerCfg.extraPackages;
+        inherit (runnerCfg) url;
+        inherit (runnerCfg) extraPackages;
         extraLabels = runnerCfg.extraLabels ++ [ "nixos" ];
-        replace = runnerCfg.replace;
-        user = cfg.user;
-        group = cfg.group;
+        inherit (runnerCfg) replace;
+        inherit (cfg) user;
+        inherit (cfg) group;
         # workDir = "${cfg.workDir}/${name}";
       }
       // lib.optionalAttrs (runnerCfg.nodeRuntimes != [ ]) {
-        nodeRuntimes = runnerCfg.nodeRuntimes;
+        inherit (runnerCfg) nodeRuntimes;
       }
     ) cfg.runners;
 

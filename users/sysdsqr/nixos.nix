@@ -1,4 +1,4 @@
-{ pkgs, inputs, ... }:
+_:
 
 {
   # add ~/.local/bin to PATH

@@ -1,4 +1,4 @@
-{ isWSL, inputs, ... }:
+{ inputs, ... }:
 {
   config,
   lib,
@@ -7,8 +7,8 @@
 }:
 
 let
-  isDarwin = pkgs.stdenv.isDarwin;
-  isLinux = pkgs.stdenv.isLinux;
+  inherit (pkgs.stdenv) isDarwin;
+  inherit (pkgs.stdenv) isLinux;
 in
 {
   imports = [

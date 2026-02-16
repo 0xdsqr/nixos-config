@@ -71,8 +71,8 @@ in
 
   config = {
     networking = {
-      hostName = cfg.hostName;
-      domain = cfg.domain;
+      inherit (cfg) hostName;
+      inherit (cfg) domain;
 
       # Static IP or DHCP
       useDHCP = !cfg.staticIP.enable;
@@ -80,7 +80,7 @@ in
       interfaces = lib.mkIf cfg.staticIP.enable {
         ${cfg.staticIP.interface}.ipv4.addresses = [
           {
-            address = cfg.staticIP.address;
+            inherit (cfg.staticIP) address;
             inherit (cfg.staticIP) prefixLength;
           }
         ];

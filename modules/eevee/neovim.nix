@@ -5,9 +5,7 @@
 # Updated December 2025
 inputs:
 {
-  config,
   pkgs,
-  lib,
   ...
 }:
 let

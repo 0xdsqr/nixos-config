@@ -1,9 +1,4 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
+_:
 {
   # boot loader configuration - manages system startup and kernel loading
   # using grub because proxmox virtual machines present as traditional bios

@@ -8,7 +8,7 @@ let
   cfg = config.eevee;
   packages = import ../packages.nix {
     inherit pkgs lib;
-    exclude_packages = cfg.nixos.exclude_packages;
+    inherit (cfg.nixos) exclude_packages;
   };
 in
 {

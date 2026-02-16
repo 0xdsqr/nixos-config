@@ -41,9 +41,6 @@
     {
       self,
       nixpkgs,
-      home-manager,
-      darwin,
-      sops-nix,
       treefmt-nix,
       opencode,
       ...
@@ -132,9 +129,7 @@
       nixosModules.dsqr-nix =
         inputs:
         {
-          config,
           lib,
-          pkgs,
           ...
         }:
         {
@@ -148,9 +143,6 @@
       nixosModules.dsqr-proxmox =
         inputs:
         {
-          config,
-          lib,
-          pkgs,
           ...
         }:
         {
@@ -164,9 +156,6 @@
       # ------------------------------------------------------------
       nixosModules.github-runners =
         {
-          config,
-          lib,
-          pkgs,
           ...
         }:
         {
@@ -180,9 +169,6 @@
       # ------------------------------------------------------------
       nixosModules.rustfs =
         {
-          config,
-          lib,
-          pkgs,
           ...
         }:
         {
@@ -197,9 +183,7 @@
       darwinModules.dsqr-nix =
         inputs:
         {
-          config,
           lib,
-          pkgs,
           ...
         }:
         {
@@ -212,10 +196,6 @@
       # ------------------------------------------------------------
       darwinModules.dsqr-mini-cluster =
         {
-          config,
-          lib,
-          pkgs,
-          inputs,
           ...
         }:
         {
@@ -228,10 +208,7 @@
       homeManagerModules.eevee =
         inputs:
         {
-          config,
           lib,
-          pkgs,
-          osConfig ? { },
           ...
         }:
         {

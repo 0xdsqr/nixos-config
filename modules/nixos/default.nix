@@ -1,4 +1,4 @@
-inputs:
+_inputs:
 { ... }:
 {
   imports = [
