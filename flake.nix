@@ -122,6 +122,7 @@
           homeManager = true;
         };
         dsqr-mini-001 = mkMiniDarwin { };
+        dsqr-mini-002 = mkMiniDarwin { };
       };
     in
     {
