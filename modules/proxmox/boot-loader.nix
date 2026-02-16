@@ -1,5 +1,4 @@
-_:
-{
+_: {
   # boot loader configuration - manages system startup and kernel loading
   # using grub because proxmox virtual machines present as traditional bios
   # systems (not UEFI), so grub handles the master boot record booting reliably

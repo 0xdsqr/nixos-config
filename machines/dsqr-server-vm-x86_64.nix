@@ -29,10 +29,11 @@
     environmentFile = "/etc/secrets/studio.env";
   };
 
-  services.tastingswithtay = {
-    enable = true;
-    environmentFile = "/etc/secrets/studio.env";
-  };
+  # TODO: services.tastingswithtay module not available yet
+  # services.tastingswithtay = {
+  #   enable = true;
+  #   environmentFile = "/etc/secrets/studio.env";
+  # };
 
   services.nginx = {
     enable = true;

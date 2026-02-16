@@ -77,7 +77,7 @@
           git
           nodejs_22
         ];
-        nodeRuntimes = [ "node22" ];
+        nodeRuntimes = [ "node24" ];
       };
 
       media-server-nixos = {
@@ -103,9 +103,9 @@
         ];
         extraPackages = with pkgs; [
           git
-          nodejs_20
+          nodejs_22
         ];
-        nodeRuntimes = [ "node20" ];
+        nodeRuntimes = [ "node24" ];
       };
 
       dsqr-dotdev = {

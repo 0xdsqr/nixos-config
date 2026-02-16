@@ -1,6 +1,4 @@
-_:
-
-{
+_: {
   # add ~/.local/bin to PATH
   environment.localBinInPath = true;
 

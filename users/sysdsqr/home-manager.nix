@@ -1,10 +1,5 @@
 { inputs, ... }:
 {
-  pkgs,
-  ...
-}:
-
-{
   imports = [
     (inputs.self.homeManagerModules.eevee inputs)
   ];

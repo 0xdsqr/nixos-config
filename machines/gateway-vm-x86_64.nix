@@ -15,13 +15,14 @@ in
     inputs.sops-nix.nixosModules.sops
   ];
 
-  networking.hostName = "gateway";
-  networking.domain = "dsqr.dev";
-  networking.firewall.allowedTCPPorts = [
-    22
-    80
-    443
-  ];
+  dsqr.proxmox.networking = {
+    hostName = "gateway";
+    firewall.allowedTCPPorts = [
+      22
+      80
+      443
+    ];
+  };
 
   users.users.cloudflared = {
     group = "cloudflared";

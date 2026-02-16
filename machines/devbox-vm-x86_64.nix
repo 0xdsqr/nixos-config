@@ -24,9 +24,8 @@
     nixos.exclude_packages = [ ]; # Add packages to exclude if needed
   };
 
-  networking = {
+  dsqr.proxmox.networking = {
     hostName = "dojo";
-    domain = "dsqr.dev";
   };
 
   system.stateVersion = "25.05";

@@ -22,7 +22,7 @@ let
     p.java
     p.javascript
     p.json
-    p.jsonc
+    p.json5
     p.kotlin
     p.lua
     p.markdown

@@ -2,6 +2,7 @@
 <img src="./.github/assets/nixos-homelab.svg" alt="Owl watching over homelab servers" width="200"/>
 
 <p align="center">
+  <a href="https://github.com/0xdsqr/nixos-config/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/0xdsqr/nixos-config/test.yml?branch=main&style=for-the-badge&logo=github&label=CI" alt="CI"></a>
   <a href="https://github.com/0xdsqr/nixos-config"><img src="https://img.shields.io/badge/github-nixos--config-blue?style=for-the-badge&logo=github" alt="GitHub"></a>
   <a href="#"><img src="https://img.shields.io/badge/NixOS-5277C3?style=for-the-badge&logo=nixos&logoColor=white" alt="NixOS"></a>
   <a href="#"><img src="https://img.shields.io/badge/nix--darwin-5277C3?style=for-the-badge&logo=apple&logoColor=white" alt="nix-darwin"></a>
@@ -187,6 +188,10 @@ sudo mv /etc/zshenv /etc/zshenv.before-nix-darwin 2>/dev/null || true
 # 10. Enter dev shell and switch
 nix develop
 just switch-mini
+
+# 11. Install Homebrew casks (Ghostty, Brave, Tailscale)
+#     nix-darwin declares these but Homebrew needs to actually install them
+/opt/homebrew/bin/brew bundle --file=/etc/homebrew/Brewfile
 ```
 
 ### Subsequent Updates
