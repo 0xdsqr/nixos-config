@@ -65,4 +65,22 @@ in
       autorestart 1 \
       powernap 1
   '';
+
+  # Exo service - runs on boot, auto-restarts
+  launchd.daemons.exo = {
+    serviceConfig = {
+      Label = "org.nixos.exo";
+      ProgramArguments = [
+        "${inputs.exo.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/exo"
+      ];
+      RunAtLoad = true;
+      KeepAlive = true;
+      StandardOutPath = "/var/log/exo.log";
+      StandardErrorPath = "/var/log/exo.error.log";
+      EnvironmentVariables = {
+        HOME = "/Users/${currentSystemUser}";
+        USER = currentSystemUser;
+      };
+    };
+  };
 }

@@ -5,6 +5,7 @@
     gh
     just
     tmux
+    screen
     direnv
     ripgrep
     fd

@@ -20,6 +20,8 @@ let
       unzip
       wget
       gnumake
+      screen
+      tmux
     ]
     ++ lib.optionals pkgs.stdenv.hostPlatform.isLinux [
       libnotify
