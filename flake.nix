@@ -264,7 +264,7 @@
       apps = forEachSystem (system: {
         sysdsqr = {
           type = "app";
-          program = "${self.packages.${system}.sysdsqr}/bin/sysdsqr";
+          program = "${self.packages.${system}.sysdsqr}/bin/dsqr";
         };
         sysdsqr-cli = self.apps.${system}.sysdsqr;
         default = self.apps.${system}.sysdsqr;
