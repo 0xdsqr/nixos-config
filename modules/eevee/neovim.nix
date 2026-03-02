@@ -73,7 +73,7 @@ in
 
       # ── Nix ──
       nil # Nix LSP
-      nixfmt-rfc-style # Nix formatter
+      nixfmt # Nix formatter
 
       # ── Java ──
       jdt-language-server
@@ -101,7 +101,7 @@ in
       marksman
 
       # ── Docker ──
-      dockerfile-language-server-nodejs
+      dockerfile-language-server
 
       # ── General Tools ──
       ripgrep # For telescope live_grep
@@ -358,7 +358,7 @@ in
     # ══════════════════════════════════════════════════════════════════════════
     # BASE CONFIGURATION + LSP (Neovim 0.11+ native)
     # ══════════════════════════════════════════════════════════════════════════
-    extraLuaConfig = ''
+    initLua = ''
       -- ════════════════════════════════════════════════════════════════════════
       -- LEADER KEY (must be set before anything else)
       -- ════════════════════════════════════════════════════════════════════════

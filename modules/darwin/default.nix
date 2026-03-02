@@ -44,4 +44,17 @@ in
     enable = true;
     inherit (casks) casks;
   };
+
+  # Declarative Dock setup via nix-darwin defaults.
+  system.defaults.dock = {
+    persistent-apps = [
+      "/Applications/Ghostty.app"
+      "/Applications/Helium.app"
+      "/Applications/Tailscale.app"
+      "/Applications/Codex.app"
+      "/Applications/Spotify.app"
+    ];
+    show-recents = true;
+    static-only = false;
+  };
 }

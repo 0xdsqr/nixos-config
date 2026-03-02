@@ -11,15 +11,8 @@
   system.stateVersion = 5;
   ids.gids.nixbld = 350; # For Determinate Nix installer
 
-  # Nix configuration
-  nix = {
-    extraOptions = ''
-      experimental-features = nix-command flakes
-    '';
-    settings = {
-      trusted-users = [ "@admin" ];
-    };
-  };
+  # Let Determinate manage the Nix installation on macOS.
+  nix.enable = false;
 
   # Configure eevee module
   eevee = (import ../users/eevee-defaults.nix) // {

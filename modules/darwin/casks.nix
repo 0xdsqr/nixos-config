@@ -16,8 +16,8 @@ let
     "typora"
     "dropbox"
     "chromium"
+    "helium-browser"
     "tailscale-app"
-    "tigervnc-viewer"
     "microsoft-remote-desktop"
     "remoteviewer"
   ];
