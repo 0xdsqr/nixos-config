@@ -138,6 +138,7 @@ in
               file_ignore_patterns = { "node_modules", ".git/", "dist/", "build/" },
             },
           })
+          telescope.load_extension('fzf')
 
           vim.keymap.set('n', '<leader>pf', builtin.find_files, { desc = "Find files" })
           vim.keymap.set('n', '<leader>pg', builtin.live_grep, { desc = "Live grep" })
@@ -147,16 +148,52 @@ in
             builtin.grep_string({ search = vim.fn.input("Grep > ") })
           end, { desc = "Grep string" })
           vim.keymap.set('n', '<leader>pd', builtin.diagnostics, { desc = "Diagnostics" })
+          vim.keymap.set('n', '<leader>ss', builtin.lsp_document_symbols, { desc = "Document symbols" })
+          vim.keymap.set('n', '<leader>sS', builtin.lsp_dynamic_workspace_symbols, { desc = "Workspace symbols" })
         '';
       }
       telescope-fzf-native-nvim
+
+      # ── Quick file navigation (harpoon) ──
+      {
+        plugin = harpoon;
+        type = "lua";
+        config = ''
+          require('harpoon').setup({
+            global_settings = {
+              save_on_toggle = true,
+              save_on_change = true,
+              mark_branch = true,
+            },
+          })
+
+          vim.keymap.set('n', '<leader>ha', function()
+            require('harpoon.mark').add_file()
+          end, { desc = "Harpoon add file" })
+          vim.keymap.set('n', '<leader>hh', function()
+            require('harpoon.ui').toggle_quick_menu()
+          end, { desc = "Harpoon menu" })
+          vim.keymap.set('n', '<leader>1', function()
+            require('harpoon.ui').nav_file(1)
+          end, { desc = "Harpoon file 1" })
+          vim.keymap.set('n', '<leader>2', function()
+            require('harpoon.ui').nav_file(2)
+          end, { desc = "Harpoon file 2" })
+          vim.keymap.set('n', '<leader>3', function()
+            require('harpoon.ui').nav_file(3)
+          end, { desc = "Harpoon file 3" })
+          vim.keymap.set('n', '<leader>4', function()
+            require('harpoon.ui').nav_file(4)
+          end, { desc = "Harpoon file 4" })
+        '';
+      }
 
       # ── TreeSitter ──
       {
         plugin = treesitterWithGrammars;
         type = "lua";
         config = ''
-          require('nvim-treesitter.configs').setup({
+          require('nvim-treesitter').setup({
             auto_install = false,
             highlight = {
               enable = true,
@@ -336,6 +373,11 @@ in
           require('nvim-tree').setup({
             view = { width = 35 },
             filters = { dotfiles = false },
+            sync_root_with_cwd = true,
+            update_focused_file = {
+              enable = true,
+              update_root = true,
+            },
           })
           vim.keymap.set('n', '<leader>tt', ':NvimTreeToggle<CR>', { desc = "Toggle file tree" })
           vim.keymap.set('n', '<leader>tf', ':NvimTreeFindFile<CR>', { desc = "Find file in tree" })
@@ -359,6 +401,8 @@ in
     # BASE CONFIGURATION + LSP (Neovim 0.11+ native)
     # ══════════════════════════════════════════════════════════════════════════
     initLua = ''
+      local telescope_builtin = require('telescope.builtin')
+
       -- ════════════════════════════════════════════════════════════════════════
       -- LEADER KEY (must be set before anything else)
       -- ════════════════════════════════════════════════════════════════════════
@@ -376,11 +420,11 @@ in
           local opts = { buffer = ev.buf, noremap = true, silent = true }
 
           -- ══ GO TO DEFINITION (the main ones you'll use constantly) ══
-          vim.keymap.set('n', 'gd', vim.lsp.buf.definition, vim.tbl_extend('force', opts, { desc = "Go to definition" }))
+          vim.keymap.set('n', 'gd', telescope_builtin.lsp_definitions, vim.tbl_extend('force', opts, { desc = "Go to definition" }))
           vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, vim.tbl_extend('force', opts, { desc = "Go to declaration" }))
-          vim.keymap.set('n', 'gr', vim.lsp.buf.references, vim.tbl_extend('force', opts, { desc = "Find references" }))
-          vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, vim.tbl_extend('force', opts, { desc = "Go to implementation" }))
-          vim.keymap.set('n', 'gy', vim.lsp.buf.type_definition, vim.tbl_extend('force', opts, { desc = "Go to type definition" }))
+          vim.keymap.set('n', 'gr', telescope_builtin.lsp_references, vim.tbl_extend('force', opts, { desc = "Find references" }))
+          vim.keymap.set('n', 'gi', telescope_builtin.lsp_implementations, vim.tbl_extend('force', opts, { desc = "Go to implementation" }))
+          vim.keymap.set('n', 'gy', telescope_builtin.lsp_type_definitions, vim.tbl_extend('force', opts, { desc = "Go to type definition" }))
 
           -- ══ HOVER & SIGNATURE ══
           vim.keymap.set('n', 'K', vim.lsp.buf.hover, vim.tbl_extend('force', opts, { desc = "Hover documentation" }))
@@ -389,7 +433,6 @@ in
           -- ══ ACTIONS ══
           vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, vim.tbl_extend('force', opts, { desc = "Rename symbol" }))
           vim.keymap.set({ 'n', 'v' }, '<leader>ca', vim.lsp.buf.code_action, vim.tbl_extend('force', opts, { desc = "Code action" }))
-          vim.keymap.set('n', '<leader>f', function() vim.lsp.buf.format({ async = true }) end, vim.tbl_extend('force', opts, { desc = "Format" }))
 
           -- ══ DIAGNOSTICS ══
           vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, vim.tbl_extend('force', opts, { desc = "Previous diagnostic" }))
@@ -410,6 +453,57 @@ in
           border = "rounded",
           source = true,
         },
+      })
+
+      -- General UX polish
+      vim.api.nvim_create_autocmd('TextYankPost', {
+        group = vim.api.nvim_create_augroup('UserYankHighlight', { clear = true }),
+        callback = function()
+          vim.highlight.on_yank({ timeout = 200 })
+        end,
+      })
+
+      vim.api.nvim_create_autocmd('VimResized', {
+        group = vim.api.nvim_create_augroup('UserResizeSplits', { clear = true }),
+        callback = function()
+          vim.cmd('tabdo wincmd =')
+        end,
+      })
+
+      vim.api.nvim_create_autocmd('BufReadPost', {
+        group = vim.api.nvim_create_augroup('UserLastLocation', { clear = true }),
+        callback = function(event)
+          local exclude = { gitcommit = true }
+          local buf = event.buf
+          if exclude[vim.bo[buf].filetype] or vim.b[buf].last_location_restored then
+            return
+          end
+
+          local mark = vim.api.nvim_buf_get_mark(buf, '"')
+          local line_count = vim.api.nvim_buf_line_count(buf)
+          if mark[1] > 0 and mark[1] <= line_count then
+            pcall(vim.api.nvim_win_set_cursor, 0, mark)
+            vim.b[buf].last_location_restored = true
+          end
+        end,
+      })
+
+      vim.api.nvim_create_autocmd({ 'FocusGained', 'TermClose', 'TermLeave' }, {
+        group = vim.api.nvim_create_augroup('UserCheckTime', { clear = true }),
+        callback = function()
+          if vim.o.buftype ~= 'nofile' then
+            vim.cmd('checktime')
+          end
+        end,
+      })
+
+      vim.api.nvim_create_autocmd('FileType', {
+        group = vim.api.nvim_create_augroup('UserCloseWithQ', { clear = true }),
+        pattern = { 'help', 'man', 'qf', 'lspinfo', 'checkhealth', 'notify' },
+        callback = function(event)
+          vim.bo[event.buf].buflisted = false
+          vim.keymap.set('n', 'q', '<cmd>close<CR>', { buffer = event.buf, silent = true, desc = "Close window" })
+        end,
       })
 
       -- ══════════════════════════════════════════════════════════════════════
@@ -606,18 +700,18 @@ in
       vim.opt.showmode = false
 
       -- Misc
+      vim.opt.autoread = true
+      vim.opt.timeoutlen = 300
       vim.opt.updatetime = 50
       vim.opt.isfname:append("@-@")
       vim.opt.splitright = true
       vim.opt.splitbelow = true
       vim.opt.clipboard = "unnamedplus"
+      vim.opt.smoothscroll = true
 
       -- ════════════════════════════════════════════════════════════════════════
       -- KEYMAPS
       -- ════════════════════════════════════════════════════════════════════════
-
-      -- File explorer
-      vim.keymap.set("n", "<leader>pv", vim.cmd.Ex, { desc = "Open netrw" })
 
       -- Window navigation
       vim.keymap.set("n", "<C-h>", "<C-w>h", { desc = "Move to left window" })

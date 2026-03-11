@@ -6,6 +6,7 @@ let
   discretionaryCasks = [
     "ghostty"
     "spotify"
+    "zoom"
     "1password"
     "cleanshot"
     "discord"

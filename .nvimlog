@@ -1,0 +1,3 @@
+WRN 2026-03-02T15:57:11.899 ?.52432    server_start:197: Failed to start server: operation not permitted: /var/folders/x8/hrpxdtrs2g79mgmj1fbj1xgc0000gn/T/nvim.dsqr/2S5CF9/nvim.52432.0
+WRN 2026-03-02T15:57:11.899 ?.52431    server_start:197: Failed to start server: operation not permitted: /var/folders/x8/hrpxdtrs2g79mgmj1fbj1xgc0000gn/T/nvim.dsqr/tntmbS/nvim.52431.0
+WRN 2026-03-02T15:57:11.903 ?.52435    server_start:197: Failed to start server: operation not permitted: /var/folders/x8/hrpxdtrs2g79mgmj1fbj1xgc0000gn/T/nvim.dsqr/Uit7Hn/nvim.52435.0

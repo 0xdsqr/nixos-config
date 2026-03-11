@@ -53,6 +53,7 @@ in
       "/Applications/Tailscale.app"
       "/Applications/Codex.app"
       "/Applications/Spotify.app"
+      "/Applications/Discord.app"
     ];
     show-recents = true;
     static-only = false;
