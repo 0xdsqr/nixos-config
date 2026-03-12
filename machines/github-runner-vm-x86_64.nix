@@ -1,9 +1,32 @@
 {
   inputs,
+  lib,
   pkgs,
   ...
 }:
 let
+  mergeProfiles =
+    left: right:
+    ({
+      extraLabels = lib.unique ((left.extraLabels or [ ]) ++ (right.extraLabels or [ ]));
+      extraPackages = lib.unique ((left.extraPackages or [ ]) ++ (right.extraPackages or [ ]));
+      extraEnvironment = lib.recursiveUpdate (left.extraEnvironment or { }) (right.extraEnvironment or { });
+      serviceOverrides = lib.recursiveUpdate (left.serviceOverrides or { }) (right.serviceOverrides or { });
+      docker = (left.docker or false) || (right.docker or false);
+    }
+    // lib.optionalAttrs (
+      lib.unique ((left.nodeRuntimes or [ ]) ++ (right.nodeRuntimes or [ ])) != [ ]
+    ) {
+      nodeRuntimes = lib.unique ((left.nodeRuntimes or [ ]) ++ (right.nodeRuntimes or [ ]));
+    });
+
+  composeProfiles =
+    names:
+    builtins.foldl'
+      (acc: name: mergeProfiles acc profiles.${name})
+      { }
+      names;
+
   mkRunner =
     repo:
     profile: overrides:
@@ -14,13 +37,31 @@ let
     // profile
     // overrides;
 
-  profiles = rec {
+  profiles = {
     nix = {
       extraLabels = [ "profile-nix" ];
       extraPackages = with pkgs; [
         git
         nixfmt-rfc-style
         nil
+      ];
+    };
+
+    go = {
+      extraLabels = [
+        "profile-go"
+        "go"
+      ];
+      extraPackages = [
+        pkgs.go
+        pkgs.gopls
+        pkgs.delve
+        pkgs.golangci-lint
+        pkgs.goreleaser
+        pkgs.gh
+        pkgs.gnupg
+        pkgs.deadnix
+        pkgs.statix
       ];
     };
   };
@@ -46,6 +87,15 @@ in
 
     runners = {
       nix-config = mkRunner "nixos-config" profiles.nix { };
+      sys-dsqr = mkRunner "sys-dsqr" (composeProfiles [
+        "nix"
+        "go"
+      ]) {
+        extraLabels = [
+          "sys-dsqr"
+          "release"
+        ];
+      };
     };
   };
 

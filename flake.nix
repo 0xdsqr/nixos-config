@@ -249,25 +249,11 @@
       });
 
       # ------------------------------------------------------------
-      # Packages (nix build .#sysdsqr)
+      # Packages
       # ------------------------------------------------------------
       packages = forEachSystem (system: {
-        sysdsqr = nixpkgs.legacyPackages.${system}.callPackage ./pkgs/sysdsqr-cli { };
-        sysdsqr-cli = self.packages.${system}.sysdsqr;
         opencode = opencode.packages.${system}.default;
-        default = self.packages.${system}.sysdsqr;
-      });
-
-      # ------------------------------------------------------------
-      # Apps (nix run .#sysdsqr)
-      # ------------------------------------------------------------
-      apps = forEachSystem (system: {
-        sysdsqr = {
-          type = "app";
-          program = "${self.packages.${system}.sysdsqr}/bin/dsqr";
-        };
-        sysdsqr-cli = self.apps.${system}.sysdsqr;
-        default = self.apps.${system}.sysdsqr;
+        default = self.packages.${system}.opencode;
       });
 
       # ------------------------------------------------------------
