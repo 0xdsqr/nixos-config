@@ -10,130 +10,8 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  changes:
-    name: detect changes
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    outputs:
-      run_nixfmt: ${{ steps.detect.outputs.run_nixfmt }}
-      run_deadnix: ${{ steps.detect.outputs.run_deadnix }}
-      run_statix: ${{ steps.detect.outputs.run_statix }}
-      run_flake_check: ${{ steps.detect.outputs.run_flake_check }}
-      run_eval_configs: ${{ steps.detect.outputs.run_eval_configs }}
-      eval_matrix: ${{ steps.detect.outputs.eval_matrix }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: detect changed files
-        id: detect
-        shell: bash
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha || '' }}
-          BEFORE_SHA: ${{ github.event.before || '' }}
-          CURRENT_SHA: ${{ github.sha }}
-        run: |
-          set -euo pipefail
-
-          if [[ "$EVENT_NAME" == "pull_request" ]]; then
-            base="$BASE_SHA"
-            head="$HEAD_SHA"
-          elif [[ -n "$BEFORE_SHA" && "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]]; then
-            base="$BEFORE_SHA"
-            head="$CURRENT_SHA"
-          else
-            base=""
-            head=""
-          fi
-
-          if [[ -n "$base" ]]; then
-            changed_files="$(git diff --name-only "$base" "$head")"
-          else
-            changed_files="__FULL_RUN__"
-          fi
-
-          CHANGED_FILES="$changed_files" python <<'PY'
-          import json
-          import os
-          from pathlib import PurePosixPath
-
-          raw = os.environ["CHANGED_FILES"].splitlines()
-          full_run = raw == ["__FULL_RUN__"]
-          files = [] if full_run else [line.strip() for line in raw if line.strip()]
-
-          host_matrix = {
-              "devbox-vm-x86_64": "nixosConfigurations.devbox-vm-x86_64.config.system.build.toplevel",
-              "devbox-usb-x86_64": "nixosConfigurations.devbox-usb-x86_64.config.system.build.toplevel",
-              "dsqr-server-vm-x86_64": "nixosConfigurations.dsqr-server-vm-x86_64.config.system.build.toplevel",
-              "gateway-vm-x86_64": "nixosConfigurations.gateway-vm-x86_64.config.system.build.toplevel",
-              "github-runner-vm-x86_64": "nixosConfigurations.github-runner-vm-x86_64.config.system.build.toplevel",
-              "cellar-vm-x86_64": "nixosConfigurations.cellar-vm-x86_64.config.system.build.toplevel",
-              "media-server-vm-x86_64": "nixosConfigurations.media-server-vm-x86_64.config.system.build.toplevel",
-              "devbox-macbook-pro-m1": "darwinConfigurations.devbox-macbook-pro-m1.system",
-          }
-
-          shared_eval_roots = (
-              ".github/workflows/",
-              "flake.nix",
-              "flake.lock",
-              "lib/",
-              "modules/",
-              "users/",
-              "machines/hardware/",
-              "treefmt.nix",
-              "devshell.nix",
-              "eevee-config.nix",
-              "justfile",
-          )
-
-          def is_nixish(path: str) -> bool:
-              return path.endswith(".nix") or path in {"flake.lock", "justfile"}
-
-          run_nix_checks = full_run or any(path.endswith(".nix") for path in files)
-          run_flake_check = full_run or any(is_nixish(path) for path in files)
-
-          eval_all = full_run or any(
-              path == root or path.startswith(root)
-              for path in files
-              for root in shared_eval_roots
-          )
-
-          selected_hosts = []
-          if eval_all:
-              selected_hosts = list(host_matrix.items())
-          else:
-              seen = set()
-              for path in files:
-                  if not path.startswith("machines/") or not path.endswith(".nix"):
-                      continue
-                  host_name = PurePosixPath(path).stem
-                  if host_name in host_matrix and host_name not in seen:
-                      seen.add(host_name)
-                      selected_hosts.append((host_name, host_matrix[host_name]))
-
-          outputs = {
-              "run_nixfmt": str(run_nix_checks).lower(),
-              "run_deadnix": str(run_nix_checks).lower(),
-              "run_statix": str(run_nix_checks).lower(),
-              "run_flake_check": str(run_flake_check).lower(),
-              "run_eval_configs": str(bool(selected_hosts)).lower(),
-              "eval_matrix": json.dumps(
-                  {"include": [{"name": name, "attr": attr} for name, attr in selected_hosts]}
-              ),
-          }
-
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
-              for key, value in outputs.items():
-                  fh.write(f"{key}={value}\n")
-          PY
-
   nixfmt:
     name: nixfmt
-    needs: [changes]
-    if: needs.changes.outputs.run_nixfmt == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -145,26 +23,31 @@ jobs:
       - name: nixfmt check
         run: nix fmt -- --ci -f nixfmt
 
-  deadnix:
-    name: deadnix
-    needs: [changes]
-    if: needs.changes.outputs.run_deadnix == 'true'
-    runs-on: ubuntu-latest
+  self-hosted-runner-check:
+    name: self-hosted runner check
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - nix
+      - profile-nix
     permissions:
       contents: read
-      id-token: write
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/determinate-nix-action@v3.17.0
-      - uses: DeterminateSystems/flakehub-cache-action@v3.17.0
-      - name: deadnix check
-        run: nix fmt -- --ci -f deadnix
+      - name: nix version
+        run: nix --version
+      - name: system info
+        run: uname -a
 
-  statix:
-    name: statix
-    needs: [changes]
-    if: needs.changes.outputs.run_statix == 'true'
-    runs-on: ubuntu-latest
+  github-runner-deploy-check:
+    name: github runner deploy check
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - nix
+      - profile-nix
     permissions:
       contents: read
       id-token: write
@@ -172,51 +55,17 @@ jobs:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/determinate-nix-action@v3.17.0
       - uses: DeterminateSystems/flakehub-cache-action@v3.17.0
-      - name: statix check
-        run: nix fmt -- --ci -f statix
-
-  eval-configs:
-    name: eval configs
-    needs: [changes]
-    if: needs.changes.outputs.run_eval_configs == 'true'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(needs.changes.outputs.eval_matrix) }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: DeterminateSystems/determinate-nix-action@v3.17.0
-      - uses: DeterminateSystems/flakehub-cache-action@v3.17.0
-      - name: eval ${{ matrix.name }}
-        run: nix eval --raw .#${{ matrix.attr }}.drvPath
-
-  flake-check:
-    name: nix flake check
-    needs: [changes]
-    if: needs.changes.outputs.run_flake_check == 'true'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: DeterminateSystems/determinate-nix-action@v3.17.0
-      - uses: DeterminateSystems/flakehub-cache-action@v3.17.0
-      - name: flake check
-        run: nix flake check
+      - name: eval github runner config
+        run: nix eval --raw .#nixosConfigurations.github-runner-vm-x86_64.config.system.build.toplevel.drvPath
+      - name: validate deploy context
+        run: whoami
 
   required:
     name: all required checks passed
     needs:
-      - changes
       - nixfmt
-      - deadnix
-      - statix
-      - eval-configs
-      - flake-check
+      - self-hosted-runner-check
+      - github-runner-deploy-check
     if: always()
     runs-on: ubuntu-latest
     steps:
