@@ -42,6 +42,7 @@ let
       extraLabels = [ "profile-nix" ];
       extraPackages = with pkgs; [
         git
+        xz
         nixfmt-rfc-style
         nil
       ];
