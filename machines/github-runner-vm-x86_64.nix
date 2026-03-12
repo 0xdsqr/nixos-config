@@ -92,7 +92,6 @@ in
         "nix"
         "go"
       ]) {
-        count = 3;
         extraLabels = [
           "sys-dsqr"
           "release"

@@ -23,8 +23,34 @@ jobs:
       - name: nixfmt check
         run: nix fmt -- --ci -f nixfmt
 
-  self-hosted-runner-check:
-    name: self-hosted runner check
+  deadnix:
+    name: deadnix
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/determinate-nix-action@v3.17.0
+      - uses: DeterminateSystems/flakehub-cache-action@v3.17.0
+      - name: deadnix check
+        run: nix fmt -- --ci -f deadnix
+
+  statix:
+    name: statix
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/determinate-nix-action@v3.17.0
+      - uses: DeterminateSystems/flakehub-cache-action@v3.17.0
+      - name: statix check
+        run: nix fmt -- --ci -f statix
+
+  system-health-check:
+    name: system health check
     runs-on:
       - self-hosted
       - linux
@@ -40,14 +66,9 @@ jobs:
       - name: system info
         run: uname -a
 
-  github-runner-deploy-check:
-    name: github runner deploy check
-    runs-on:
-      - self-hosted
-      - linux
-      - x64
-      - nix
-      - profile-nix
+  github-runner-eval:
+    name: github runner eval
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write
@@ -57,6 +78,22 @@ jobs:
       - uses: DeterminateSystems/flakehub-cache-action@v3.17.0
       - name: eval github runner config
         run: nix eval --raw .#nixosConfigurations.github-runner-vm-x86_64.config.system.build.toplevel.drvPath
+
+  github-runner-deploy-check:
+    name: github runner deploy check
+    needs:
+      - system-health-check
+      - github-runner-eval
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - nix
+      - profile-nix
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
       - name: validate deploy context
         run: whoami
 
@@ -64,7 +101,9 @@ jobs:
     name: all required checks passed
     needs:
       - nixfmt
-      - self-hosted-runner-check
+      - deadnix
+      - statix
+      - system-health-check
       - github-runner-deploy-check
     if: always()
     runs-on: ubuntu-latest
