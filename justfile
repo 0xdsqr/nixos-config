@@ -29,6 +29,18 @@ host target='':
   fi
 
   case "$target" in
+    github-runner) target="github-runner-vm-x86_64" ;;
+    gateway) target="gateway-vm-x86_64" ;;
+    server) target="dsqr-server-vm-x86_64" ;;
+    cellar) target="cellar-vm-x86_64" ;;
+    media-server) target="media-server-vm-x86_64" ;;
+    dojo)
+      echo "hostname 'dojo' is ambiguous; pass the flake target explicitly (devbox-vm-x86_64 or devbox-usb-x86_64)" >&2
+      exit 1
+      ;;
+  esac
+
+  case "$target" in
     devbox-macbook-pro-m1|dsqr-mini-001|dsqr-mini-002) kind="darwin" ;;
     *) kind="nixos" ;;
   esac
@@ -54,6 +66,18 @@ switch target='':
       target="$(hostname -s 2>/dev/null || hostname)"
     fi
   fi
+
+  case "$target" in
+    github-runner) target="github-runner-vm-x86_64" ;;
+    gateway) target="gateway-vm-x86_64" ;;
+    server) target="dsqr-server-vm-x86_64" ;;
+    cellar) target="cellar-vm-x86_64" ;;
+    media-server) target="media-server-vm-x86_64" ;;
+    dojo)
+      echo "hostname 'dojo' is ambiguous; pass the flake target explicitly (devbox-vm-x86_64 or devbox-usb-x86_64)" >&2
+      exit 1
+      ;;
+  esac
 
   case "$target" in
     devbox-macbook-pro-m1|dsqr-mini-001|dsqr-mini-002)
@@ -89,6 +113,18 @@ test target='':
       target="$(hostname -s 2>/dev/null || hostname)"
     fi
   fi
+
+  case "$target" in
+    github-runner) target="github-runner-vm-x86_64" ;;
+    gateway) target="gateway-vm-x86_64" ;;
+    server) target="dsqr-server-vm-x86_64" ;;
+    cellar) target="cellar-vm-x86_64" ;;
+    media-server) target="media-server-vm-x86_64" ;;
+    dojo)
+      echo "hostname 'dojo' is ambiguous; pass the flake target explicitly (devbox-vm-x86_64 or devbox-usb-x86_64)" >&2
+      exit 1
+      ;;
+  esac
 
   case "$target" in
     devbox-macbook-pro-m1|dsqr-mini-001|dsqr-mini-002)
