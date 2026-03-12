@@ -1,7 +1,8 @@
 {
   lib,
-  exclude_casks ? [],
-}: let
+  exclude_casks ? [ ],
+}:
+let
   discretionaryCasks = [
     "ghostty"
     "spotify"
@@ -23,6 +24,7 @@
   ];
 
   filtered = lib.lists.subtractLists exclude_casks discretionaryCasks;
-in {
+in
+{
   casks = filtered;
 }

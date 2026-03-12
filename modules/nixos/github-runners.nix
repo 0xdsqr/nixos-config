@@ -7,13 +7,15 @@
 let
   cfg = config.dsqr.github-runners;
 
-  nodeRuntimeType = with lib.types; nonEmptyListOf (enum [
-    "node20"
-    "node24"
-  ]);
+  nodeRuntimeType =
+    with lib.types;
+    nonEmptyListOf (enum [
+      "node20"
+      "node24"
+    ]);
 
   runnerType =
-    { ... }:
+    _:
     {
       options = {
         url = lib.mkOption {
@@ -130,10 +132,9 @@ let
         else
           "${cfg.workDir}/${instanceName}";
 
-      dockerOverrides =
-        lib.optionalAttrs runnerCfg.docker {
-          SupplementaryGroups = (runnerCfg.serviceOverrides.SupplementaryGroups or [ ]) ++ [ "docker" ];
-        };
+      dockerOverrides = lib.optionalAttrs runnerCfg.docker {
+        SupplementaryGroups = (runnerCfg.serviceOverrides.SupplementaryGroups or [ ]) ++ [ "docker" ];
+      };
     in
     lib.nameValuePair instanceName (
       {
@@ -148,14 +149,11 @@ let
         inherit (runnerCfg) extraEnvironment;
         inherit workDir;
         name = instanceName;
-        user = cfg.user;
-        group = cfg.group;
-        extraLabels =
-          lib.unique (
-            runtimeLabels
-            ++ runnerCfg.extraLabels
-            ++ lib.optional runnerCfg.docker "docker"
-          );
+        inherit (cfg) user;
+        inherit (cfg) group;
+        extraLabels = lib.unique (
+          runtimeLabels ++ runnerCfg.extraLabels ++ lib.optional runnerCfg.docker "docker"
+        );
         serviceOverrides = lib.recursiveUpdate runnerCfg.serviceOverrides dockerOverrides;
       }
       // lib.optionalAttrs (runnerCfg.nodeRuntimes != null) {
@@ -165,11 +163,7 @@ let
 
   expandedRunners = lib.concatMapAttrs (
     name: runnerCfg:
-    builtins.listToAttrs (
-      map
-        (index: mkInstance name runnerCfg index)
-        (lib.range 1 runnerCfg.count)
-    )
+    builtins.listToAttrs (map (index: mkInstance name runnerCfg index) (lib.range 1 runnerCfg.count))
   ) cfg.runners;
 
   workDirs = lib.mapAttrsToList (_: runnerCfg: runnerCfg.workDir) expandedRunners;
@@ -231,11 +225,10 @@ in
       }
     ) cfg.runners;
 
-    systemd.tmpfiles.rules =
-      [
-        "d ${cfg.workDir} 0750 ${cfg.user} ${cfg.group} -"
-      ]
-      ++ map (dir: "d ${dir} 0750 ${cfg.user} ${cfg.group} -") workDirs;
+    systemd.tmpfiles.rules = [
+      "d ${cfg.workDir} 0750 ${cfg.user} ${cfg.group} -"
+    ]
+    ++ map (dir: "d ${dir} 0750 ${cfg.user} ${cfg.group} -") workDirs;
 
     services.github-runners = expandedRunners;
 

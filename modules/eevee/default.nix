@@ -1,4 +1,6 @@
-inputs: {...}: {
+inputs:
+{ ... }:
+{
   imports = [
     (import ./neovim.nix inputs)
     (import ./opencode.nix inputs)

@@ -1,15 +1,18 @@
-_inputs: {
+_inputs:
+{
   config,
   pkgs,
   lib,
   ...
-}: let
+}:
+let
   cfg = config.eevee;
   casks = import ./casks.nix {
     inherit lib;
     inherit (cfg.darwin) exclude_casks;
   };
-in {
+in
+{
   imports = [
     ../common/nixpkgs.nix
   ];
