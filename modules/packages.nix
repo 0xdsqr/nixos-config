@@ -1,14 +1,13 @@
 {
   pkgs,
   lib,
-  exclude_packages ? [ ],
-}:
-let
+  exclude_packages ? [],
+}: let
   # Essential system packages - cannot be excluded
-  systemPackages =
-    with pkgs;
+  systemPackages = with pkgs;
     [
       git
+      just
       vim
       alejandra
       fzf
@@ -31,8 +30,7 @@ let
     ];
 
   # Discretionary packages - can be excluded by user
-  discretionaryPackages =
-    with pkgs;
+  discretionaryPackages = with pkgs;
     [
       # TUIs (cross-platform)
       lazygit
@@ -43,6 +41,7 @@ let
       # Development tools (CLI only)
       gh
       cachix
+      vscode
 
       # Containers
       docker-compose
@@ -64,8 +63,7 @@ let
   # Only allow excluding discretionary packages to prevent breaking the system
   filteredDiscretionaryPackages = lib.lists.subtractLists exclude_packages discretionaryPackages;
   allSystemPackages = systemPackages ++ filteredDiscretionaryPackages;
-in
-{
+in {
   # Regular packages
   systemPackages = allSystemPackages;
 

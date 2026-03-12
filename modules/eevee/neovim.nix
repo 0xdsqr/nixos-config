@@ -3,12 +3,7 @@
 # Pure Nix approach - no Mason, no runtime downloads
 # Uses Neovim 0.11+ native LSP (vim.lsp.config/vim.lsp.enable)
 # Updated December 2025
-inputs:
-{
-  pkgs,
-  ...
-}:
-let
+inputs: {pkgs, ...}: let
   # TreeSitter grammars - installed via Nix, not at runtime
   treesitterWithGrammars = pkgs.vimPlugins.nvim-treesitter.withPlugins (p: [
     p.bash
@@ -37,15 +32,14 @@ let
     p.vimdoc
     p.yaml
   ]);
-in
-{
+in {
   programs.neovim = {
     enable = true;
     package = inputs.neovim-nightly-overlay.packages.${pkgs.stdenv.hostPlatform.system}.default;
     viAlias = true;
     vimAlias = true;
     vimdiffAlias = true;
-    defaultEditor = true;
+    defaultEditor = false;
 
     # ══════════════════════════════════════════════════════════════════════════
     # LANGUAGE SERVERS & TOOLS

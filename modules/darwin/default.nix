@@ -1,18 +1,15 @@
-_inputs:
-{
+_inputs: {
   config,
   pkgs,
   lib,
   ...
-}:
-let
+}: let
   cfg = config.eevee;
   casks = import ./casks.nix {
     inherit lib;
     inherit (cfg.darwin) exclude_casks;
   };
-in
-{
+in {
   imports = [
     ../common/nixpkgs.nix
   ];
@@ -48,6 +45,7 @@ in
   # Declarative Dock setup via nix-darwin defaults.
   system.defaults.dock = {
     persistent-apps = [
+      "${pkgs.vscode}/Applications/Visual Studio Code.app"
       "/Applications/Ghostty.app"
       "/Applications/Helium.app"
       "/Applications/Tailscale.app"

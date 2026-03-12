@@ -3,8 +3,7 @@
   pkgs,
   lib,
   ...
-}:
-{
+}: {
   programs.git = {
     enable = true;
     signing = {
@@ -23,6 +22,7 @@
       };
       branch.autosetuprebase = "always";
       color.ui = true;
+      core.editor = "code --wait";
       core.askPass = ""; # Use terminal for askpass
       credential.helper = "store"; # want to make this more secure
       github.user = "0xdsqr";

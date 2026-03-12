@@ -1,8 +1,4 @@
-inputs:
-{
-  ...
-}:
-{
+inputs: {...}: {
   imports = [
     (import ./neovim.nix inputs)
     (import ./opencode.nix inputs)
@@ -27,14 +23,21 @@ inputs:
       };
     };
     shellAliases = {
-      v = "nvim";
+      v = "code --wait";
       vim = "nvim";
       lg = "lazygit";
       ll = "ls -la";
       la = "ls -a";
     };
     extraConfig = ''
-      $env.config.buffer_editor = "nvim"
+      $env.EDITOR = "code --wait"
+      $env.VISUAL = "code --wait"
+      $env.config.buffer_editor = "code --wait"
     '';
+  };
+
+  home.sessionVariables = {
+    EDITOR = "code --wait";
+    VISUAL = "code --wait";
   };
 }
