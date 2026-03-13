@@ -5,7 +5,7 @@ default:
 
 hosts:
   @printf '%s\n' \
-    'nixos: dsqr-server-vm-x86_64 gateway-vm-x86_64' \
+    'nixos: dsqr-server-vm-x86_64 gateway-vm-x86_64 github-runner-vm-x86_64' \
     'darwin: devbox-macbook-pro-m1 dsqr-mini-001 dsqr-mini-002'
 
 host target='':
@@ -29,6 +29,7 @@ host target='':
   fi
 
   case "$target" in
+    github-runner) target="github-runner-vm-x86_64" ;;
     gateway) target="gateway-vm-x86_64" ;;
     server) target="dsqr-server-vm-x86_64" ;;
     dojo)
@@ -65,6 +66,7 @@ switch target='':
   fi
 
   case "$target" in
+    github-runner) target="github-runner-vm-x86_64" ;;
     gateway) target="gateway-vm-x86_64" ;;
     server) target="dsqr-server-vm-x86_64" ;;
     dojo)
@@ -109,6 +111,7 @@ test target='':
   fi
 
   case "$target" in
+    github-runner) target="github-runner-vm-x86_64" ;;
     gateway) target="gateway-vm-x86_64" ;;
     server) target="dsqr-server-vm-x86_64" ;;
     dojo)

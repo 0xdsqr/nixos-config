@@ -72,6 +72,11 @@
         };
 
       nixosHosts = {
+        github-runner-vm-x86_64 = {
+          system = "x86_64-linux";
+          user = "sysdsqr";
+          homeManager = true;
+        };
         dsqr-server-vm-x86_64 = {
           system = "x86_64-linux";
           user = "sysdsqr";

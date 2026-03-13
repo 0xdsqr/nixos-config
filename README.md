@@ -24,6 +24,7 @@ I got tired of my machines drifting apart. Spend a week setting up Neovim on my 
 | devbox-macbook-pro-m1 | Darwin | Daily driver |
 | dsqr-mini-001 | Darwin | Mini cluster node |
 | dsqr-mini-002 | Darwin | Mini cluster node |
+| github-runner-vm-x86_64 | NixOS | CI runner |
 | gateway-vm-x86_64 | NixOS | Network gateway |
 | dsqr-server-vm-x86_64 | NixOS | Main homelab server |
 
