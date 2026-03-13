@@ -15,6 +15,7 @@ _: {
       "networkmanager"
     ];
     description = "its me dave";
+    initialPassword = "changeme";
     # Prefer hashedPasswordFile (e.g., from sops) for persistent secrets.
     #hashedPassword = "$6$eupftIGTj5TR3pZE$UKnZlQkUxWJpLUcYjVKtDP23b0p5c2tf66qyBZJZL7/ZrITmQ1epwjmQe0gKxzJuaUKZ8jlW/CyfrCcICIvN.0";
     #openssh.authorizedKeys.keys = [
