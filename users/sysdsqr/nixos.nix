@@ -18,8 +18,8 @@ _: {
     initialPassword = "changeme";
     # Prefer hashedPasswordFile (e.g., from sops) for persistent secrets.
     #hashedPassword = "$6$eupftIGTj5TR3pZE$UKnZlQkUxWJpLUcYjVKtDP23b0p5c2tf66qyBZJZL7/ZrITmQ1epwjmQe0gKxzJuaUKZ8jlW/CyfrCcICIvN.0";
-    #openssh.authorizedKeys.keys = [
-    #  "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAfvrJELCv6dQp2VoceeVrtx1e0mnVo2FgNgu9o98BtF me@dsqr.dev"
-    #];
+    openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAfvrJELCv6dQp2VoceeVrtx1e0mnVo2FgNgu9o98BtF me@dsqr.dev"
+    ];
   };
 }
