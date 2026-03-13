@@ -5,7 +5,7 @@ default:
 
 hosts:
   @printf '%s\n' \
-    'nixos: devbox-vm-x86_64 devbox-usb-x86_64 dsqr-server-vm-x86_64 gateway-vm-x86_64 github-runner-vm-x86_64 cellar-vm-x86_64 media-server-vm-x86_64' \
+    'nixos: dsqr-server-vm-x86_64 gateway-vm-x86_64' \
     'darwin: devbox-macbook-pro-m1 dsqr-mini-001 dsqr-mini-002'
 
 host target='':
@@ -29,13 +29,10 @@ host target='':
   fi
 
   case "$target" in
-    github-runner) target="github-runner-vm-x86_64" ;;
     gateway) target="gateway-vm-x86_64" ;;
     server) target="dsqr-server-vm-x86_64" ;;
-    cellar) target="cellar-vm-x86_64" ;;
-    media-server) target="media-server-vm-x86_64" ;;
     dojo)
-      echo "hostname 'dojo' is ambiguous; pass the flake target explicitly (devbox-vm-x86_64 or devbox-usb-x86_64)" >&2
+      echo "hostname 'dojo' no longer has an active flake target" >&2
       exit 1
       ;;
   esac
@@ -68,13 +65,10 @@ switch target='':
   fi
 
   case "$target" in
-    github-runner) target="github-runner-vm-x86_64" ;;
     gateway) target="gateway-vm-x86_64" ;;
     server) target="dsqr-server-vm-x86_64" ;;
-    cellar) target="cellar-vm-x86_64" ;;
-    media-server) target="media-server-vm-x86_64" ;;
     dojo)
-      echo "hostname 'dojo' is ambiguous; pass the flake target explicitly (devbox-vm-x86_64 or devbox-usb-x86_64)" >&2
+      echo "hostname 'dojo' no longer has an active flake target" >&2
       exit 1
       ;;
   esac
@@ -115,13 +109,10 @@ test target='':
   fi
 
   case "$target" in
-    github-runner) target="github-runner-vm-x86_64" ;;
     gateway) target="gateway-vm-x86_64" ;;
     server) target="dsqr-server-vm-x86_64" ;;
-    cellar) target="cellar-vm-x86_64" ;;
-    media-server) target="media-server-vm-x86_64" ;;
     dojo)
-      echo "hostname 'dojo' is ambiguous; pass the flake target explicitly (devbox-vm-x86_64 or devbox-usb-x86_64)" >&2
+      echo "hostname 'dojo' no longer has an active flake target" >&2
       exit 1
       ;;
   esac

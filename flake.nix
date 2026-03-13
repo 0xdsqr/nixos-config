@@ -25,8 +25,6 @@
     # Services
     rustfs.url = "github:rustfs/rustfs";
     rustfs.inputs.nixpkgs.follows = "nixpkgs";
-    media-server.url = "github:0xdsqr/media-server-nixos/master";
-    media-server.inputs.nixpkgs.follows = "nixpkgs";
     dsqr-dotdev.url = "github:0xdsqr/dsqr-dotdev/main";
     dsqr-dotdev.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -74,37 +72,12 @@
         };
 
       nixosHosts = {
-        devbox-vm-x86_64 = {
-          system = "x86_64-linux";
-          user = "dsqr";
-          homeManager = true;
-        };
-        devbox-usb-x86_64 = {
-          system = "x86_64-linux";
-          user = "dsqr";
-          homeManager = true;
-        };
         dsqr-server-vm-x86_64 = {
           system = "x86_64-linux";
           user = "sysdsqr";
           homeManager = true;
         };
         gateway-vm-x86_64 = {
-          system = "x86_64-linux";
-          user = "sysdsqr";
-          homeManager = true;
-        };
-        github-runner-vm-x86_64 = {
-          system = "x86_64-linux";
-          user = "sysdsqr";
-          homeManager = true;
-        };
-        cellar-vm-x86_64 = {
-          system = "x86_64-linux";
-          user = "sysdsqr";
-          homeManager = true;
-        };
-        media-server-vm-x86_64 = {
           system = "x86_64-linux";
           user = "sysdsqr";
           homeManager = true;
@@ -236,17 +209,6 @@
         system:
         (treefmt-nix.lib.evalModule nixpkgs.legacyPackages.${system} ./treefmt.nix).config.build.wrapper
       );
-
-      # ------------------------------------------------------------
-      # Checks (nix flake check)
-      # Runs treefmt in check mode to ensure the repo is properly formatted.
-      # Useful in CI to fail builds if formatting or linting issues exist.
-      # ------------------------------------------------------------
-      checks = forEachSystem (system: {
-        formatting =
-          (treefmt-nix.lib.evalModule nixpkgs.legacyPackages.${system} ./treefmt.nix).config.build.check
-            self;
-      });
 
       # ------------------------------------------------------------
       # Packages
