@@ -52,10 +52,10 @@ let
     dsqr-mini-001 = mkMiniDarwin { };
     dsqr-mini-002 = mkMiniDarwin { };
   };
-        mkSystem = import ./lib/mksystem.nix {
-        inherit nixpkgs inputs;
-        overlays = [ ];
-      };
+  mkSystem = import ../lib/mksystem.nix {
+    inherit nixpkgs inputs;
+    overlays = [ ];
+  };
 
 in
 {

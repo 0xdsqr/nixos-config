@@ -52,9 +52,9 @@
       ];
       forEachSystem = nixpkgs.lib.genAttrs systems;
 
-     inventory = import ./inventory/machines.nix {
+      inventory = import ./inventory/machines.nix {
         inherit nixpkgs inputs;
-     };
+      };
     in
     {
       # ------------------------------------------------------------
@@ -69,6 +69,17 @@
         {
           imports = [ (import ./modules/nixos/default.nix inputs) ];
           options.eevee = (import ./eevee-config.nix lib).eeveeOptions;
+        };
+
+      nixosModules.dsqr-k8 =
+        inputs:
+        {
+          ...
+        }:
+        {
+          imports = [
+            (import ./modules/k8/default.nix inputs)
+          ];
         };
 
       # ------------------------------------------------------------
@@ -182,8 +193,12 @@
       # ------------------------------------------------------------
       # System Configurations
       # ------------------------------------------------------------
-      nixosConfigurations = nixpkgs.lib.mapAttrs (name: cfg: inventory.mkSystem name cfg) inventory.nixosHosts;
-      darwinConfigurations = nixpkgs.lib.mapAttrs (name: cfg: inventory.mkSystem name cfg) inventory.darwinHosts;
+      nixosConfigurations = nixpkgs.lib.mapAttrs (
+        name: cfg: inventory.mkSystem name cfg
+      ) inventory.nixosHosts;
+      darwinConfigurations = nixpkgs.lib.mapAttrs (
+        name: cfg: inventory.mkSystem name cfg
+      ) inventory.darwinHosts;
 
       lib.mkSystem = inventory.mkSystem;
     };
