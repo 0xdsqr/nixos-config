@@ -3,4 +3,6 @@ _: {
   services.openssh.enable = true;
   services.openssh.settings.PermitRootLogin = "no";
   services.openssh.settings.PasswordAuthentication = true;
+
+  services.tailscale.enable = true;
 }

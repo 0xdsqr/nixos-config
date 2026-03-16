@@ -14,106 +14,104 @@ let
       "node24"
     ]);
 
-  runnerType =
-    _:
-    {
-      options = {
-        url = lib.mkOption {
-          type = lib.types.str;
-          example = "https://github.com/myuser/myrepo";
-          description = "GitHub repository URL for this runner.";
-        };
+  runnerType = _: {
+    options = {
+      url = lib.mkOption {
+        type = lib.types.str;
+        example = "https://github.com/myuser/myrepo";
+        description = "GitHub repository URL for this runner.";
+      };
 
-        tokenSecret = lib.mkOption {
-          type = lib.types.str;
-          example = "github_runners/myrepo/token";
-          description = "SOPS secret path containing the runner PAT.";
-        };
+      tokenSecret = lib.mkOption {
+        type = lib.types.str;
+        example = "github_runners/myrepo/token";
+        description = "SOPS secret path containing the runner PAT.";
+      };
 
-        count = lib.mkOption {
-          type = lib.types.ints.positive;
-          default = 1;
-          example = 2;
-          description = "Number of runner instances to register for this repository.";
-        };
+      count = lib.mkOption {
+        type = lib.types.ints.positive;
+        default = 1;
+        example = 2;
+        description = "Number of runner instances to register for this repository.";
+      };
 
-        extraPackages = lib.mkOption {
-          type = lib.types.listOf lib.types.package;
-          default = [ ];
-          description = "Extra packages exposed to workflow jobs.";
-        };
+      extraPackages = lib.mkOption {
+        type = lib.types.listOf lib.types.package;
+        default = [ ];
+        description = "Extra packages exposed to workflow jobs.";
+      };
 
-        extraLabels = lib.mkOption {
-          type = lib.types.listOf lib.types.str;
-          default = [ ];
-          example = [
-            "nix"
-            "docker"
-            "node24"
-          ];
-          description = "Extra capability labels for the runner.";
-        };
+      extraLabels = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        example = [
+          "nix"
+          "docker"
+          "node24"
+        ];
+        description = "Extra capability labels for the runner.";
+      };
 
-        replace = lib.mkOption {
-          type = lib.types.bool;
-          default = true;
-          description = "Replace any existing runner with the same name.";
-        };
+      replace = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Replace any existing runner with the same name.";
+      };
 
-        tokenType = lib.mkOption {
-          type = lib.types.enum [
-            "auto"
-            "access"
-            "registration"
-          ];
-          default = "access";
-          description = "Authentication mode used to register the runner.";
-        };
+      tokenType = lib.mkOption {
+        type = lib.types.enum [
+          "auto"
+          "access"
+          "registration"
+        ];
+        default = "access";
+        description = "Authentication mode used to register the runner.";
+      };
 
-        ephemeral = lib.mkOption {
-          type = lib.types.bool;
-          default = true;
-          description = "Register the runner as ephemeral so it handles one job per lifecycle.";
-        };
+      ephemeral = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Register the runner as ephemeral so it handles one job per lifecycle.";
+      };
 
-        noDefaultLabels = lib.mkOption {
-          type = lib.types.bool;
-          default = false;
-          description = "Disable GitHub's default self-hosted labels.";
-        };
+      noDefaultLabels = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = "Disable GitHub's default self-hosted labels.";
+      };
 
-        docker = lib.mkOption {
-          type = lib.types.bool;
-          default = false;
-          description = "Grant this runner access to the local Docker daemon.";
-        };
+      docker = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = "Grant this runner access to the local Docker daemon.";
+      };
 
-        nodeRuntimes = lib.mkOption {
-          type = lib.types.nullOr nodeRuntimeType;
-          default = null;
-          example = [ "node24" ];
-          description = "Node runtimes bundled into the runner package for JavaScript actions.";
-        };
+      nodeRuntimes = lib.mkOption {
+        type = lib.types.nullOr nodeRuntimeType;
+        default = null;
+        example = [ "node24" ];
+        description = "Node runtimes bundled into the runner package for JavaScript actions.";
+      };
 
-        extraEnvironment = lib.mkOption {
-          type = lib.types.attrs;
-          default = { };
-          description = "Extra environment variables exposed to the runner service.";
-        };
+      extraEnvironment = lib.mkOption {
+        type = lib.types.attrs;
+        default = { };
+        description = "Extra environment variables exposed to the runner service.";
+      };
 
-        serviceOverrides = lib.mkOption {
-          type = lib.types.attrs;
-          default = { };
-          description = "Additional systemd service overrides for this runner.";
-        };
+      serviceOverrides = lib.mkOption {
+        type = lib.types.attrs;
+        default = { };
+        description = "Additional systemd service overrides for this runner.";
+      };
 
-        workDir = lib.mkOption {
-          type = with lib.types; nullOr str;
-          default = null;
-          description = "Override the default per-instance work directory.";
-        };
+      workDir = lib.mkOption {
+        type = with lib.types; nullOr str;
+        default = null;
+        description = "Override the default per-instance work directory.";
       };
     };
+  };
 
   runtimeLabels = [
     "nix"

@@ -24,11 +24,11 @@ let
   dbNames = builtins.attrNames databases;
 
   mkAppUser = name: {
-    name = name;
+    inherit name;
     ensureDBOwnership = true;
     ensureClauses = {
       login = true;
-      password = databases.${name}.password;
+      inherit (databases.${name}) password;
       connection_limit = databases.${name}.connectionLimit;
     };
   };
@@ -36,20 +36,20 @@ let
   appUsers = map mkAppUser dbNames;
 
   adminUser = {
-    name = adminRole.name;
+    inherit (adminRole) name;
     ensureClauses = {
       login = true;
       createrole = true;
       createdb = true;
       replication = false;
-      password = adminRole.password;
+      inherit (adminRole) password;
       connection_limit = adminRole.connectionLimit;
     };
   };
 
   pgbouncerDatabases = builtins.listToAttrs (
     map (name: {
-      name = name;
+      inherit name;
       value = "host=127.0.0.1 port=5432 dbname=${name}";
     }) dbNames
   );
@@ -67,7 +67,16 @@ in
 
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ 5432 6432 ];
+    allowedTCPPorts = [
+      5432
+      6432
+    ];
+    extraCommands = ''
+        iptables -A INPUT -p tcp --dport 5432 -s 127.0.0.1 -j ACCEPT
+      iptables -A INPUT -p tcp --dport 5432 ! -s ${lanCidr} -j DROP
+      iptables -A INPUT -p tcp --dport 6432 -s 127.0.0.1 -j ACCEPT
+      iptables -A INPUT -p tcp --dport 6432 ! -s ${lanCidr} -j DROP
+    '';
   };
 
   environment.systemPackages = with pkgs; [
@@ -104,8 +113,7 @@ in
       max_wal_senders = 3;
       max_replication_slots = 3;
       archive_mode = true;
-      archive_command =
-        "test ! -f /var/lib/postgresql/archive/%f && cp %p /var/lib/postgresql/archive/%f";
+      archive_command = "test ! -f /var/lib/postgresql/archive/%f && cp %p /var/lib/postgresql/archive/%f";
 
       max_connections = 100;
       shared_buffers = "1GB";
@@ -127,10 +135,11 @@ in
       host    all             all             ${lanCidr}              scram-sha-256
     '';
 
-    extensions = ps: with ps; [
-      pgvector
-      postgis
-    ];
+    extensions =
+      ps: with ps; [
+        pgvector
+        postgis
+      ];
   };
 
   systemd.tmpfiles.rules = [
