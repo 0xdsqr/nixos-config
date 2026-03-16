@@ -27,6 +27,7 @@ let
     p.nix
     p.python
     p.rust
+    p.svelte
     p.toml
     p.tsx
     p.typescript
@@ -55,6 +56,8 @@ in
       # ── TypeScript / JavaScript ──
       typescript
       nodePackages.typescript-language-server
+      svelte-language-server
+      tailwindcss-language-server
       biome # Replaces prettier + eslint (faster, single tool)
 
       # ── Go ──
@@ -202,6 +205,7 @@ in
           })
         '';
       }
+      vim-svelte
 
       # ── Completion (blink.cmp) ──
       {
@@ -254,6 +258,7 @@ in
               typescriptreact = { "treefmt", "biome", stop_after_first = true, lsp_format = "never" },
               javascript = { "treefmt", "biome", stop_after_first = true, lsp_format = "never" },
               javascriptreact = { "treefmt", "biome", stop_after_first = true, lsp_format = "never" },
+              svelte = { "treefmt", lsp_format = "never" },
               json = { "treefmt", "biome", stop_after_first = true, lsp_format = "never" },
               jsonc = { "treefmt", "biome", stop_after_first = true, lsp_format = "never" },
               nix = { "treefmt", lsp_format = "fallback" },
@@ -514,6 +519,48 @@ in
         root_markers = { 'tsconfig.json', 'jsconfig.json', 'package.json', '.git' },
       }
 
+      -- Svelte
+      vim.lsp.config.svelte = {
+        cmd = { 'svelte-language-server', '--stdio' },
+        filetypes = { 'svelte' },
+        root_markers = {
+          'svelte.config.js',
+          'svelte.config.cjs',
+          'svelte.config.mjs',
+          'svelte.config.ts',
+          'package.json',
+          '.git',
+        },
+      }
+
+      -- Tailwind CSS
+      vim.lsp.config.tailwindcss = {
+        cmd = { 'tailwindcss-language-server', '--stdio' },
+        filetypes = {
+          'html',
+          'css',
+          'scss',
+          'less',
+          'javascript',
+          'javascriptreact',
+          'typescript',
+          'typescriptreact',
+          'svelte',
+        },
+        root_markers = {
+          'tailwind.config.js',
+          'tailwind.config.cjs',
+          'tailwind.config.mjs',
+          'tailwind.config.ts',
+          'postcss.config.js',
+          'postcss.config.cjs',
+          'postcss.config.mjs',
+          'postcss.config.ts',
+          'package.json',
+          '.git',
+        },
+      }
+
       -- Biome (linting + formatting for TS/JS/JSON)
       vim.lsp.config.biome = {
         cmd = { 'biome', 'lsp-proxy' },
@@ -641,6 +688,8 @@ in
 
       -- Enable all configured language servers
       vim.lsp.enable('ts_ls')
+      vim.lsp.enable('svelte')
+      vim.lsp.enable('tailwindcss')
       vim.lsp.enable('biome')
       vim.lsp.enable('gopls')
       vim.lsp.enable('pyright')

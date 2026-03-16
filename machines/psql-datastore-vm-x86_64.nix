@@ -71,12 +71,6 @@ in
       5432
       6432
     ];
-    extraCommands = ''
-        iptables -A INPUT -p tcp --dport 5432 -s 127.0.0.1 -j ACCEPT
-      iptables -A INPUT -p tcp --dport 5432 ! -s ${lanCidr} -j DROP
-      iptables -A INPUT -p tcp --dport 6432 -s 127.0.0.1 -j ACCEPT
-      iptables -A INPUT -p tcp --dport 6432 ! -s ${lanCidr} -j DROP
-    '';
   };
 
   environment.systemPackages = with pkgs; [
