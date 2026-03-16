@@ -9,8 +9,9 @@ in
 {
   options.dsqr.proxmox.networking = {
     hostName = lib.mkOption {
-      type = lib.types.str;
-      description = "The hostname for this machine";
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "Optional hostname for this machine.";
     };
 
     domain = lib.mkOption {
@@ -71,7 +72,7 @@ in
 
   config = {
     networking = {
-      inherit (cfg) hostName;
+      hostName = lib.mkIf (cfg.hostName != null) cfg.hostName;
       inherit (cfg) domain;
 
       # Static IP or DHCP
