@@ -77,6 +77,11 @@
           user = "sysdsqr";
           homeManager = true;
         };
+        k8-control-plane = {
+          system = "x86_64-linux";
+          user = "sysdsqr";
+          homeManager = true;
+        };
         psql-datastore-vm-x86_64 = {
           system = "x86_64-linux";
           user = "sysdsqr";
