@@ -138,8 +138,34 @@ This guide is based on your actual config in [modules/eevee/neovim.nix](/Users/d
 - `:q!` quit without saving
 - `:split` horizontal split
 - `:vsplit` vertical split
+- `:terminal` open an interactive terminal
+- `:split | terminal` open terminal in a horizontal split
+- `:vsplit | terminal` open terminal in a vertical split
 - `:tabnew` open a new tab
 - `:Ex` open netrw if you ever want plain built-in file browsing
+
+## Running shell commands inside Neovim
+
+- `:!cmd` run one shell command, then return to Neovim
+- `:w | !cmd` save, then run a command
+- `:terminal` for an interactive shell session
+- `:r !cmd` insert command output below the cursor
+- `:%!cmd` replace the whole buffer with command output
+
+Examples:
+
+- `:!git status`
+- `:!npm test`
+- `:w | !python %`
+- `:r !date`
+- `:%!jq`
+
+Best practice in this setup:
+
+- Use `:!cmd` for quick one-off commands
+- Use `:split | terminal` when you want to stay in your editing layout
+- Use `Space pg` for searching code instead of shelling out to `rg`
+- Use `Space pf` for file finding instead of shelling out to `find`
 
 ## File tree workflow
 
@@ -154,7 +180,29 @@ This guide is based on your actual config in [modules/eevee/neovim.nix](/Users/d
 - In the tree, `R` refreshes
 - In the tree, `H` toggles hidden files
 
+Rename flow:
+
+- `Space tt`
+- move to the file with `j` / `k`
+- press `r`
+- type the new name
+- press `Enter`
+
 That last set is an inference from the fact that your config uses default `nvim-tree` mappings and does not replace them.
+
+## Resizing splits and terminal windows
+
+- `Ctrl-h`, `Ctrl-j`, `Ctrl-k`, `Ctrl-l` move between splits
+- `:resize +5` make the current horizontal split taller
+- `:resize -5` make the current horizontal split shorter
+- `:vertical resize +10` make the current vertical split wider
+- `:vertical resize -10` make the current vertical split narrower
+- `Ctrl-w =` make splits equal size
+
+If you are in terminal mode first:
+
+- press `Ctrl-\\ Ctrl-n` to leave terminal insert mode
+- then resize with the commands above
 
 ## Harpoon workflow that fits this setup
 
