@@ -46,6 +46,16 @@
             service = "http://192.168.50.70:9090";
           };
 
+          "rustfs.dsqr.dev" = {
+            service = "http://192.168.50.71:9001";
+          };
+          "s3.dsqr.dev" = {
+            service = "http://192.168.50.71:9000";
+          };
+          "cdn.dsqr.dev" = {
+            service = "http://192.168.50.71:9000";
+          };
+
           "tastingswithtay.com" = {
             service = "http://192.168.50.240";
             originRequest = {
