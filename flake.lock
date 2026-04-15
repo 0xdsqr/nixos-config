@@ -631,45 +631,23 @@
         "type": "github"
       }
     },
-    "rust-overlay": {
-      "inputs": {
-        "nixpkgs": [
-          "rustfs",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1775877051,
-        "narHash": "sha256-wpSQm2PD/w4uRo2wb8utk0b5hOBkkg/CZ1xICY+qB7M=",
-        "owner": "oxalica",
-        "repo": "rust-overlay",
-        "rev": "08b4f3633471874c8894632ade1b78d75dbda002",
-        "type": "github"
-      },
-      "original": {
-        "owner": "oxalica",
-        "repo": "rust-overlay",
-        "type": "github"
-      }
-    },
     "rustfs": {
       "inputs": {
         "nixpkgs": [
           "nixpkgs"
-        ],
-        "rust-overlay": "rust-overlay"
+        ]
       },
       "locked": {
-        "lastModified": 1776261247,
-        "narHash": "sha256-5NMUEBQS8kftLSZzKHN5uqx7KIIewmoQGXULBc/y9JE=",
+        "lastModified": 1775655146,
+        "narHash": "sha256-Y8JmjEdNaSqI7T05XS9P81pgvl/QEVPDYiu2K7RUC1U=",
         "owner": "rustfs",
-        "repo": "rustfs",
-        "rev": "49366ee2004fccff239cdf00f1449f492d913b67",
+        "repo": "rustfs-flake",
+        "rev": "6cb981c68ed1f834d720dd4c0dd9c12d25ca46a1",
         "type": "github"
       },
       "original": {
         "owner": "rustfs",
-        "repo": "rustfs",
+        "repo": "rustfs-flake",
         "type": "github"
       }
     },

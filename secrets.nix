@@ -17,7 +17,8 @@ in
   "hosts/blue/me-password.age".publicKeys = [ blue ] ++ admins;
 
   "hosts/gateway/cloudflared/credentials.json.age".publicKeys = [ gateway ] ++ admins;
-  "hosts/khaos/rustfs/env.age".publicKeys = [ khaos ] ++ admins;
+  "hosts/khaos/rustfs/access-key.age".publicKeys = [ khaos ] ++ admins;
+  "hosts/khaos/rustfs/secret-key.age".publicKeys = [ khaos ] ++ admins;
 
   "modules/nixos/restic/password.age".publicKeys = all;
 }
