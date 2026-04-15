@@ -1,0 +1,74 @@
+name: test
+
+on:
+  push: {}
+  pull_request: {}
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  nixfmt:
+    name: nixfmt
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/determinate-nix-action@v3.17.0
+      - uses: DeterminateSystems/flakehub-cache-action@v3.17.0
+      - name: Run nixfmt
+        run: nix fmt -- --ci -f nixfmt
+
+  deadnix:
+    name: deadnix
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/determinate-nix-action@v3.17.0
+      - uses: DeterminateSystems/flakehub-cache-action@v3.17.0
+      - name: Run deadnix
+        run: nix fmt -- --ci -f deadnix
+
+  statix:
+    name: statix
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/determinate-nix-action@v3.17.0
+      - uses: DeterminateSystems/flakehub-cache-action@v3.17.0
+      - name: Run statix
+        run: nix fmt -- --ci -f statix
+
+  required:
+    name: all required checks passed
+    needs:
+      - nixfmt
+      - deadnix
+      - statix
+    if: always() 
+    runs-on: ubuntu-latest
+    steps:
+      - name: verify all jobs passed
+        env:
+          NIXFMT_RESULT: ${{ needs.nixfmt.result }}
+          DEADNIX_RESULT: ${{ needs.deadnix.result }}
+          STATIX_RESULT: ${{ needs.statix.result }}
+        run: |
+          if [ "$NIXFMT_RESULT" != "success" ] || [ "$DEADNIX_RESULT" != "success" ] || [ "$STATIX_RESULT" != "success" ]; then
+            echo "required jobs failed:"
+            echo "  nixfmt: $NIXFMT_RESULT"
+            echo "  deadnix: $DEADNIX_RESULT"
+            echo "  statix: $STATIX_RESULT"
+            exit 1
+          fi
+          echo "all required jobs passed"

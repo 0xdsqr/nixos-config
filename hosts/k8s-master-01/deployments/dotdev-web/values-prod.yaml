@@ -1,0 +1,32 @@
+fullnameOverride: dotdev-web
+
+image:
+  repository: ghcr.io/0xdsqr/dotdev-web
+  tag: latest
+  pullPolicy: Always
+
+imagePullSecrets:
+  - name: ghcr-creds
+
+env:
+  BASE_URL: https://dsqr.dev
+  TRUSTED_ORIGINS: https://dsqr.dev
+
+existingSecret: dotdev-web-secrets
+
+ingress:
+  enabled: true
+  className: traefik
+  hosts:
+    - host: dsqr.dev
+      paths:
+        - path: /
+          pathType: Prefix
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 1Gi
+  limits:
+    cpu: 500m
+    memory: 2Gi

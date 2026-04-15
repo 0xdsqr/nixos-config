@@ -1,0 +1,34 @@
+{ agenix, pkgs, ... }:
+let
+  agenixPackage = agenix.packages.${pkgs.stdenv.hostPlatform.system}.default;
+in
+{
+  config.environment.systemPackages = with pkgs; [
+    agenixPackage
+    postgresql
+    git
+    just
+    vim
+    alejandra
+    fzf
+    zoxide
+    ripgrep
+    eza
+    fd
+    curl
+    unzip
+    wget
+    gnumake
+    screen
+    tmux
+    lazygit
+    lazydocker
+    btop
+    fastfetch
+    gh
+    cachix
+    vscode
+    docker-compose
+    ffmpeg
+  ];
+}
