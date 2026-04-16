@@ -1,4 +1,4 @@
-{ keys, lib, ... }:
+{ lib, ... }:
 let
   inherit (lib.filesystem) listFilesRecursive;
   inherit (lib.lists) filter remove;
@@ -23,18 +23,6 @@ in
   networking = {
     hostName = "k8s-node-02";
     domain = "dsqr.dev";
-  };
-
-  users.users.dsqr = {
-    isNormalUser = true;
-    home = "/home/dsqr";
-    extraGroups = [
-      "wheel"
-      "networkmanager"
-    ];
-    description = "its me dave";
-    initialPassword = "changeme";
-    openssh.authorizedKeys.keys = keys.admins;
   };
 
   system.stateVersion = "25.05";

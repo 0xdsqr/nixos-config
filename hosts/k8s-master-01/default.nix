@@ -1,4 +1,4 @@
-{ keys, lib, ... }:
+{ lib, ... }:
 let
   inherit (lib.filesystem) listFilesRecursive;
   inherit (lib.lists) filter remove;
@@ -37,18 +37,6 @@ in
       10257
       10259
     ];
-  };
-
-  users.users.dsqr = {
-    isNormalUser = true;
-    home = "/home/dsqr";
-    extraGroups = [
-      "wheel"
-      "networkmanager"
-    ];
-    description = "its me dave";
-    initialPassword = "changeme";
-    openssh.authorizedKeys.keys = keys.admins;
   };
 
   system.stateVersion = "25.05";

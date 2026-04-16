@@ -11,6 +11,11 @@ imagePullSecrets:
 env:
   BASE_URL: https://dsqr.dev
   TRUSTED_ORIGINS: https://dsqr.dev
+  S3_BUCKET: dsqr-dotdev
+  S3_ENDPOINT: s3.dsqr.dev
+  S3_USE_SSL: "true"
+  S3_FORCE_PATH_STYLE: "true"
+  S3_REGION: us-east-1
 
 existingSecret: dotdev-web-secrets
 

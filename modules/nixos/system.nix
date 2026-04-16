@@ -1,6 +1,17 @@
-{ lib, ... }:
+{ keys, lib, ... }:
 {
   users.mutableUsers = false;
+
+  users.users.dsqr = {
+    isNormalUser = true;
+    home = "/home/dsqr";
+    description = "its me dave";
+    extraGroups = lib.mkDefault [
+      "wheel"
+      "networkmanager"
+    ];
+    openssh.authorizedKeys.keys = keys.admins;
+  };
 
   boot.tmp.cleanOnBoot = true;
 

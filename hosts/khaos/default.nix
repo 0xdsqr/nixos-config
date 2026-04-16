@@ -1,5 +1,4 @@
 {
-  keys,
   pkgs,
   lib,
   ...
@@ -31,19 +30,12 @@ in
 
   environment.systemPackages = [ pkgs.ghostty.terminfo ];
 
-  users.users.dsqr = {
-    isNormalUser = true;
-    home = "/home/dsqr";
-    extraGroups = [
-      "docker"
-      "lxd"
-      "wheel"
-      "networkmanager"
-    ];
-    description = "its me dave";
-    initialPassword = "changeme";
-    openssh.authorizedKeys.keys = keys.admins;
-  };
+  users.users.dsqr.extraGroups = [
+    "docker"
+    "lxd"
+    "wheel"
+    "networkmanager"
+  ];
 
   system.stateVersion = "25.05";
 }
