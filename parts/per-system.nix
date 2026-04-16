@@ -10,19 +10,32 @@
   perSystem =
     { system, ... }:
     let
-      treefmtEval = inputs.treefmt-nix.lib.evalModule (import inputs.nixpkgs { inherit system; }) ./../treefmt.nix;
+      pkgs = import inputs.nixpkgs {
+        inherit system;
+        config = { };
+        overlays = [ ];
+      };
+      treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs {
+        projectRootFile = "flake.nix";
+
+        # Formats Nix files consistently.
+        programs.nixfmt = {
+          enable = true;
+          strict = true;
+          width = 120;
+        };
+
+        # Finds and removes unused Nix code.
+        programs.deadnix.enable = true;
+        # Flags style issues and simplification opportunities in Nix code.
+        programs.statix.enable = true;
+      };
     in
     {
       formatter = treefmtEval.config.build.wrapper;
 
       checks = {
         formatting = treefmtEval.config.build.check self;
-      };
-
-      devShells.default = import ./../devshell.nix {
-        inherit system;
-        inherit (inputs) agenix;
-        inherit (inputs) nixpkgs;
       };
     };
 }

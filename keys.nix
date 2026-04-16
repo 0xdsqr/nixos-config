@@ -4,7 +4,6 @@ let
     beacon = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOCE5HjvopVhcx9Wib2SKQjIJWAkqsIQ+yWuXKKp0fst root@beacon";
     gateway = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICf3SJzSds97qSOnaihrdcQk0GRIkeCY2PSobD+Rj4Zt root@gateway";
     khaos = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIICiSoBRJAqEH2DGnNLSmDF6PFKZevfntV2FXaPa9EC8 root@khaos";
-    blue = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPPXE/xtpyr5m6iugu70Js/M6POxJ/2ByRsEYS4zzVDM root@nixos-minimal-dsqr-server";
   };
 in
 keys

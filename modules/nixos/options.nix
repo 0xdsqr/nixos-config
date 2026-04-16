@@ -33,6 +33,56 @@ in
         type = types.str;
         description = "Prometheus remote_write receiver URL on beacon";
       };
+
+      kubernetes = {
+        enable = mkEnableOption "Enable Kubernetes-aware Alloy scraping on this host";
+
+        kubeconfigFile = mkOption {
+          type = types.str;
+          default = "/etc/kubernetes/admin.conf";
+          description = "Kubeconfig file Alloy should use for Kubernetes API discovery.";
+        };
+
+        cluster = mkOption {
+          type = types.str;
+          default = "homelab";
+          description = "Stable cluster label applied to Kubernetes metrics scraped by Alloy.";
+        };
+
+        kubeStateMetrics = {
+          enable = mkEnableOption "Scrape kube-state-metrics through Alloy";
+
+          namespace = mkOption {
+            type = types.str;
+            default = "kube-system";
+            description = "Namespace where kube-state-metrics runs.";
+          };
+
+          labelSelector = mkOption {
+            type = types.str;
+            default = "app.kubernetes.io/name=kube-state-metrics";
+            description = "Kubernetes label selector used to discover kube-state-metrics pods.";
+          };
+
+          port = mkOption {
+            type = types.port;
+            default = 8080;
+            description = "Metrics port exposed by kube-state-metrics.";
+          };
+
+          scrapeInterval = mkOption {
+            type = types.str;
+            default = "30s";
+            description = "Scrape interval for kube-state-metrics.";
+          };
+        };
+      };
+
+      extraConfig = mkOption {
+        type = types.lines;
+        default = "";
+        description = "Additional Alloy configuration appended to the default host monitoring pipeline.";
+      };
     };
 
     postgresql = {

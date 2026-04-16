@@ -19,9 +19,6 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-    flake-compat.url = "github:edolstra/flake-compat";
-    flake-compat.flake = false;
-
     flake-parts.url = "github:hercules-ci/flake-parts";
 
     treefmt-nix = {
@@ -71,11 +68,6 @@
     };
 
     exo.url = "github:exo-explore/exo";
-
-    mailserver = {
-      url = "gitlab:simple-nixos-mailserver/nixos-mailserver/main";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
 
     agenix = {
       url = "github:ryantm/agenix";

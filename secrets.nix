@@ -2,7 +2,6 @@ let
   inherit (import ./keys.nix)
     admins
     beacon
-    blue
     all
     gateway
     khaos
@@ -12,9 +11,6 @@ in
   "hosts/beacon/grafana/secret-key.age".publicKeys = [ beacon ] ++ admins;
   "hosts/beacon/grafana/password.age".publicKeys = [ beacon ] ++ admins;
   "hosts/beacon/grafana/db-password.age".publicKeys = [ beacon ] ++ admins;
-
-  "hosts/blue/cloudflare-acme.env.age".publicKeys = [ blue ] ++ admins;
-  "hosts/blue/me-password.age".publicKeys = [ blue ] ++ admins;
 
   "hosts/gateway/cloudflared/credentials.json.age".publicKeys = [ gateway ] ++ admins;
   "hosts/khaos/rustfs/access-key.age".publicKeys = [ khaos ] ++ admins;

@@ -16,6 +16,7 @@ in
     alloy = {
       enable = true;
       remoteWriteUrl = "http://192.168.50.70:9090/api/v1/write";
+      role = "k8s-worker";
     };
   };
 
