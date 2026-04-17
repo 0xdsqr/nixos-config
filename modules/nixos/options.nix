@@ -34,6 +34,21 @@ in
         description = "Prometheus remote_write receiver URL on beacon";
       };
 
+      loki = {
+        enable = mkEnableOption "Enable Loki log shipping through Alloy on NixOS hosts";
+
+        writeUrl = mkOption {
+          type = types.str;
+          description = "Loki push endpoint on beacon";
+        };
+
+        journalMaxAge = mkOption {
+          type = types.str;
+          default = "24h";
+          description = "How far back Alloy should read journald entries on startup.";
+        };
+      };
+
       kubernetes = {
         enable = mkEnableOption "Enable Kubernetes-aware Alloy scraping on this host";
 
@@ -94,6 +109,10 @@ in
         description = "Databases and matching users to create automatically.";
       };
 
+    };
+
+    kubeadm = {
+      enable = mkEnableOption "Enable the shared kubeadm baseline";
     };
   };
 }

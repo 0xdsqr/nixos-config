@@ -14,15 +14,19 @@ in
       ];
     };
 
-    systemd.services.alloy.serviceConfig = mkIf k8sCfg.enable {
-      # Kubernetes API discovery needs kubeconfig access on the host. Running
-      # Alloy as root on cluster nodes keeps the setup simple and avoids
-      # managing a second kubeconfig copy just for the agent.
-      DynamicUser = mkForce false;
-      User = "root";
-      Group = "root";
-      SupplementaryGroups = [ "systemd-journal" ];
-    };
+    systemd.services.alloy.serviceConfig = lib.mkMerge [
+      {
+        SupplementaryGroups = lib.mkAfter (lib.optionals cfg.loki.enable [ "systemd-journal" ]);
+      }
+      (mkIf k8sCfg.enable {
+        # Kubernetes API discovery needs kubeconfig access on the host. Running
+        # Alloy as root on cluster nodes keeps the setup simple and avoids
+        # managing a second kubeconfig copy just for the agent.
+        DynamicUser = mkForce false;
+        User = "root";
+        Group = "root";
+      })
+    ];
 
     environment.etc."alloy/config.alloy".text = ''
       prometheus.exporter.unix "host" {}
@@ -66,6 +70,43 @@ in
         endpoint {
           name = "beacon"
           url  = "${cfg.remoteWriteUrl}"
+        }
+      }
+    ''
+    + optionalString cfg.loki.enable ''
+
+      loki.write "beacon" {
+        endpoint {
+          url = "${cfg.loki.writeUrl}"
+        }
+      }
+
+      loki.relabel "journal" {
+        forward_to = [loki.write.beacon.receiver]
+
+        rule {
+          source_labels = ["__journal__systemd_unit"]
+          target_label  = "unit"
+        }
+
+        rule {
+          source_labels = ["__journal_priority_keyword"]
+          target_label  = "level"
+        }
+      }
+
+      loki.source.journal "systemd" {
+        forward_to    = [loki.write.beacon.receiver]
+        relabel_rules = loki.relabel.journal.rules
+        max_age       = "${cfg.loki.journalMaxAge}"
+
+        labels = {
+          "job"      = "systemd-journal",
+          "instance" = "${cfg.instance}",
+          "host"     = "${cfg.instance}",
+          "role"     = "${cfg.role}",
+          "env"      = "${cfg.environment}",
+          "os"       = "linux",
         }
       }
     ''

@@ -33,6 +33,10 @@ in
       enable = true;
       remoteWriteUrl = "http://127.0.0.1:9090/api/v1/write";
       role = "beacon";
+      loki = {
+        enable = true;
+        writeUrl = "http://127.0.0.1:3100/loki/api/v1/push";
+      };
     };
   };
 

@@ -33,6 +33,10 @@ in
       enable = true;
       remoteWriteUrl = "http://192.168.50.70:9090/api/v1/write";
       role = "k8s-control-plane";
+      loki = {
+        enable = true;
+        writeUrl = "http://192.168.50.70:3100/loki/api/v1/push";
+      };
       kubernetes = {
         enable = true;
 

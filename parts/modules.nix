@@ -20,8 +20,7 @@ let
   nixosModules = {
     alloy = import ./../modules/nixos/alloy.nix;
     docker = import ./../modules/nixos/docker.nix;
-    kubeadm = import ./../modules/nixos/kubeadm/default.nix;
-    kubeadmOptions = import ./../modules/nixos/kubeadm/options.nix;
+    kubeadm = import ./../modules/nixos/kubeadm.nix;
     openssh = import ./../modules/nixos/openssh.nix;
     options = import ./../modules/nixos/options.nix;
     packages = import ./../modules/nixos/packages.nix;
