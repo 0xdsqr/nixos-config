@@ -6,6 +6,7 @@ let target_config = "/root/kubeadm-init.yaml"
 let cri_socket = "unix:///run/containerd/containerd.sock"
 let kube_dir = ($env.HOME | path join ".kube")
 let kube_config = ($kube_dir | path join "config")
+let kube_state_metrics_values = ($script_dir | path dirname | path join "deployments" "kube-state-metrics" "values-prod.yaml")
 let uid = (^id -u | str trim)
 let gid = (^id -g | str trim)
 
@@ -16,6 +17,11 @@ if not ($source_config | path exists) {
 
 if ((which kubeadm | length) == 0) {
   print "kubeadm is not installed on this host"
+  exit 1
+}
+
+if ((which helm | length) == 0) {
+  print "helm is not installed on this host"
   exit 1
 }
 
@@ -44,5 +50,21 @@ print "Checking nodes"
 print "Checking pods"
 ^kubectl get pods -A
 
-print "Install Cilium in another shell, then watch pods settle here. Press Ctrl-C when done."
-^kubectl get pods -A -w
+print ""
+print "Install Cilium first so cluster networking is up."
+print "After Cilium is healthy, press Enter and this script will install kube-state-metrics."
+input
+
+print "Installing kube-state-metrics Helm repo"
+^helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+^helm repo update
+
+print "Installing kube-state-metrics into kube-system"
+^helm upgrade --install kube-state-metrics prometheus-community/kube-state-metrics --namespace kube-system --create-namespace --wait --values $kube_state_metrics_values
+
+print "Checking kube-state-metrics rollout"
+^kubectl -n kube-system get pods -l app.kubernetes.io/name=kube-state-metrics -o wide
+
+print ""
+print "Bootstrap complete."
+print "Suggested next add-ons: MetalLB, Traefik, then app deployments."

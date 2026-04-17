@@ -1,11 +1,12 @@
 { keys, lib, ... }:
 {
-  users.mutableUsers = false;
+  users.mutableUsers = true;
 
   users.users.dsqr = {
     isNormalUser = true;
     home = "/home/dsqr";
     description = "its me dave";
+    password = "changeme";
     extraGroups = lib.mkDefault [
       "wheel"
       "networkmanager"
