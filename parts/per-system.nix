@@ -34,6 +34,16 @@
     {
       formatter = treefmtEval.config.build.wrapper;
 
+      devShells.default = pkgs.mkShellNoCC {
+        packages = with pkgs; [
+          deadnix
+          nil
+          nixd
+          statix
+          treefmtEval.config.build.wrapper
+        ];
+      };
+
       checks = {
         formatting = treefmtEval.config.build.check self;
       };
