@@ -5,19 +5,18 @@ import (
 	"fmt"
 
 	click "github.com/0xdsqr/go-click"
-	"github.com/0xdsqr/moonshot/internal/host"
 )
 
-func Host() click.Command[RootOptions] {
-	return click.Command[RootOptions]{
+func Host() click.Command[Root] {
+	return click.Command[Root]{
 		Name:        "host",
 		Description: "print host information",
 		Usage:       "moonshot host",
-		Run: func(ctx context.Context, env click.Env[RootOptions], args []string, pass []string) error {
-			info := host.DetectHost()
-			fmt.Println("os:", info.GOOS)
-			fmt.Println("arch:", info.GOARCH)
-			fmt.Println("nixos:", info.IsNixOS)
+		Run: func(ctx context.Context, env click.Env[Root], args []string, pass []string) error {
+			info := env.Root.Host
+			fmt.Fprintln(env.Stdout, "os:", info.GOOS)
+			fmt.Fprintln(env.Stdout, "arch:", info.GOARCH)
+			fmt.Fprintln(env.Stdout, "nixos:", info.IsNixOS)
 			return nil
 		},
 	}

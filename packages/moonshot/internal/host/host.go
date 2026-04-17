@@ -12,12 +12,7 @@ type HostInfo struct {
 
 func DetectHost() HostInfo {
 	return HostInfo{
-		GOOS:    runtime.GOOS,
-		GOARCH:  runtime.GOARCH,
-		IsNixOS: detectNixOS(),
+		GOOS:   runtime.GOOS,
+		GOARCH: runtime.GOARCH,
 	}
-}
-
-func detectNixOS() bool {
-	return true
 }

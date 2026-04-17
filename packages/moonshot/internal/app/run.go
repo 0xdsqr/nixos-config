@@ -5,12 +5,16 @@ import (
 
 	click "github.com/0xdsqr/go-click"
 	"github.com/0xdsqr/moonshot/internal/commands"
+	"github.com/0xdsqr/moonshot/internal/host"
 )
 
 func Run(args []string) error {
-	app := click.App[commands.RootOptions]{
+	app := click.App[commands.Root]{
 		Name: "moonshot",
-		Commands: []click.Command[commands.RootOptions]{
+		ConfigureRoot: func(root *commands.Root) {
+			root.Host = host.DetectHost()
+		},
+		Commands: []click.Command[commands.Root]{
 			commands.Version(),
 			commands.Host(),
 		},

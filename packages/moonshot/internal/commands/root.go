@@ -1,3 +1,9 @@
 package commands
 
-type RootOptions struct{}
+import (
+	"github.com/0xdsqr/moonshot/internal/host"
+)
+
+type Root struct {
+	Host host.HostInfo
+}
