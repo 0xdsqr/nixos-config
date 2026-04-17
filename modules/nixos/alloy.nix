@@ -1,6 +1,6 @@
 { config, lib, ... }:
 let
-  inherit (lib) mkIf optionalString;
+  inherit (lib) mkForce mkIf optionalString;
   cfg = config.dsqr.nixos.alloy;
   k8sCfg = cfg.kubernetes;
 in
@@ -12,6 +12,16 @@ in
         "--server.http.listen-addr=127.0.0.1:12345"
         "--disable-reporting"
       ];
+    };
+
+    systemd.services.alloy.serviceConfig = mkIf k8sCfg.enable {
+      # Kubernetes API discovery needs kubeconfig access on the host. Running
+      # Alloy as root on cluster nodes keeps the setup simple and avoids
+      # managing a second kubeconfig copy just for the agent.
+      DynamicUser = mkForce false;
+      User = "root";
+      Group = "root";
+      SupplementaryGroups = [ "systemd-journal" ];
     };
 
     environment.etc."alloy/config.alloy".text = ''
