@@ -46,8 +46,10 @@ in
     # Keep Neovim on a clean nixpkgs stable package for now. The nightly
     # overlay is currently failing during rebuilds on Linux because its package
     # hook expects `share/applications/nvim.desktop` to exist when it does not.
-    # Revisit switching back once the upstream nightly packaging stabilizes.
-    package = stablePkgs.neovim;
+    # Home Manager wraps the unwrapped derivation itself, so we intentionally
+    # use `neovim-unwrapped` here. Revisit switching back once the upstream
+    # nightly packaging stabilizes.
+    package = stablePkgs.neovim-unwrapped;
     viAlias = true;
     vimAlias = true;
     vimdiffAlias = true;
