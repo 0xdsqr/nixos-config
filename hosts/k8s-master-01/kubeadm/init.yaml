@@ -1,0 +1,30 @@
+apiVersion: kubeadm.k8s.io/v1beta4
+kind: InitConfiguration
+nodeRegistration:
+  name: k8s-master-01
+  criSocket: unix:///run/containerd/containerd.sock
+  kubeletExtraArgs:
+    - name: node-ip
+      value: 192.168.50.75
+localAPIEndpoint:
+  advertiseAddress: 192.168.50.75
+  bindPort: 6443
+---
+apiVersion: kubeadm.k8s.io/v1beta4
+kind: ClusterConfiguration
+clusterName: homelab
+kubernetesVersion: stable
+controlPlaneEndpoint: "192.168.50.75:6443"
+networking:
+  serviceSubnet: "10.96.0.0/12"
+apiServer:
+  certSANs:
+    - "192.168.50.75"
+    - "k8s-master-01"
+    - "k8s-master-01.dsqr.dev"
+controllerManager: {}
+scheduler: {}
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+cgroupDriver: systemd
