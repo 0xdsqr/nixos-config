@@ -5,6 +5,11 @@
 # Updated December 2025
 { inputs, pkgs, ... }:
 let
+  stablePkgs = import inputs.nixpkgs {
+    inherit (pkgs.stdenv.hostPlatform) system;
+    inherit (pkgs) config;
+  };
+
   # TreeSitter grammars - installed via Nix, not at runtime
   treesitterWithGrammars = pkgs.vimPlugins.nvim-treesitter.withPlugins (p: [
     p.bash
@@ -38,7 +43,11 @@ in
 {
   programs.neovim = {
     enable = true;
-    package = inputs.neovim-nightly-overlay.packages.${pkgs.stdenv.hostPlatform.system}.default;
+    # Keep Neovim on a clean nixpkgs stable package for now. The nightly
+    # overlay is currently failing during rebuilds on Linux because its package
+    # hook expects `share/applications/nvim.desktop` to exist when it does not.
+    # Revisit switching back once the upstream nightly packaging stabilizes.
+    package = stablePkgs.neovim;
     viAlias = true;
     vimAlias = true;
     vimdiffAlias = true;
