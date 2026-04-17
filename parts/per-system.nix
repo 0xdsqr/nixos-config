@@ -31,7 +31,7 @@
       formatter = treefmtEval.config.build.wrapper;
 
       packages = {
-        moonshot = moonshot;
+        inherit moonshot;
         default = moonshot;
       };
 
@@ -54,11 +54,7 @@
         ];
       };
 
-      devShells.moonshot = pkgs.mkShellNoCC {
-        packages = with pkgs; [
-          go
-        ];
-      };
+      devShells.moonshot = pkgs.mkShellNoCC { packages = with pkgs; [ go ]; };
 
       checks = {
         formatting = treefmtEval.config.build.check self;

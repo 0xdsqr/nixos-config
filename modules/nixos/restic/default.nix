@@ -12,6 +12,7 @@ let
     mkOption
     types
     ;
+  cfg = config.services.restic;
 in
 {
   options.services.restic.hosts = mkOption {
@@ -26,8 +27,21 @@ in
     description = "Hosts that should receive this machine's restic backups.";
   };
 
-  config = mkIf (config.services.restic.hosts != [ ]) {
-    age.secrets.resticPassword.file = ./password.age;
+  options.services.restic.passwordAgeFile = mkOption {
+    type = types.nullOr types.path;
+    default = null;
+    description = "Encrypted age file that stores the shared restic repository password.";
+  };
+
+  config = mkIf (cfg.hosts != [ ]) {
+    assertions = [
+      {
+        assertion = cfg.passwordAgeFile != null;
+        message = "services.restic.passwordAgeFile must be set when services.restic.hosts is non-empty.";
+      }
+    ];
+
+    age.secrets.resticPassword.file = cfg.passwordAgeFile;
 
     environment.systemPackages = [ pkgs.restic ];
 
@@ -37,7 +51,7 @@ in
       openssh.authorizedKeys.keys = keys.all;
     };
 
-    services.restic.backups = genAttrs config.services.restic.hosts (host: {
+    services.restic.backups = genAttrs cfg.hosts (host: {
       repository = "sftp:backup@${host}:${config.networking.hostName}-backup";
       passwordFile = config.age.secrets.resticPassword.path;
       initialize = true;

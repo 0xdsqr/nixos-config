@@ -27,5 +27,6 @@ in
   "hosts/khaos/rustfs/access-key.age".publicKeys = [ khaos ] ++ admins;
   "hosts/khaos/rustfs/secret-key.age".publicKeys = [ khaos ] ++ admins;
 
-  "modules/nixos/restic/password.age".publicKeys = all;
+  "hosts/beacon/restic-password.age".publicKeys = all;
+  "hosts/khaos/restic-password.age".publicKeys = all;
 }

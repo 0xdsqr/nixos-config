@@ -15,6 +15,7 @@ in
   imports = remove ./meta.nix (remove ./default.nix nixFiles);
 
   age.secrets.hostPassword.file = ./password.age;
+  services.restic.passwordAgeFile = ./restic-password.age;
 
   users.users.dsqr = {
     isNormalUser = true;
