@@ -1,8 +1,4 @@
-{
-  pkgs,
-  lib,
-  ...
-}:
+{ config, keys, pkgs, lib, ... }:
 let
   inherit (lib.filesystem) listFilesRecursive;
   inherit (lib.lists) filter remove;
@@ -11,6 +7,24 @@ let
 in
 {
   imports = remove ./meta.nix (remove ./default.nix nixFiles);
+
+  age.secrets.hostPassword.file = ./password.age;
+
+  users.users.dsqr = {
+    isNormalUser = true;
+    home = "/home/dsqr";
+    description = "its me dave";
+    hashedPasswordFile = config.age.secrets.hostPassword.path;
+    extraGroups = [
+      "docker"
+      "lxd"
+      "wheel"
+      "networkmanager"
+    ];
+    openssh.authorizedKeys.keys = keys.admins;
+  };
+
+  users.users.root.hashedPasswordFile = config.age.secrets.hostPassword.path;
 
   dsqr.nixos = {
     proxmox.enable = true;
@@ -29,13 +43,5 @@ in
   networking.firewall.allowedUDPPorts = [ ];
 
   environment.systemPackages = [ pkgs.ghostty.terminfo ];
-
-  users.users.dsqr.extraGroups = [
-    "docker"
-    "lxd"
-    "wheel"
-    "networkmanager"
-  ];
-
   system.stateVersion = "25.05";
 }

@@ -1,18 +1,8 @@
-{ keys, lib, ... }:
+{ lib, ... }:
 {
-  users.mutableUsers = true;
+  users.mutableUsers = false;
 
-  users.users.dsqr = {
-    isNormalUser = true;
-    home = "/home/dsqr";
-    description = "its me dave";
-    password = "changeme";
-    extraGroups = lib.mkDefault [
-      "wheel"
-      "networkmanager"
-    ];
-    openssh.authorizedKeys.keys = keys.admins;
-  };
+  security.sudo.wheelNeedsPassword = false;
 
   boot.tmp.cleanOnBoot = true;
 
