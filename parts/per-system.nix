@@ -8,8 +8,9 @@
   ];
 
   perSystem =
-    { pkgs, ... }:
+    { config, pkgs, ... }:
     let
+      moonshot = pkgs.callPackage ../packages/moonshot { };
       treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs {
         projectRootFile = "flake.nix";
 
@@ -29,7 +30,19 @@
     {
       formatter = treefmtEval.config.build.wrapper;
 
-      packages.moonshot = pkgs.callPackage ../packages/moonshot { };
+      packages = {
+        moonshot = moonshot;
+        default = moonshot;
+      };
+
+      apps = {
+        moonshot = {
+          type = "app";
+          program = "${moonshot}/bin/moonshot";
+        };
+
+        default = config.apps.moonshot;
+      };
 
       devShells.default = pkgs.mkShellNoCC {
         packages = with pkgs; [

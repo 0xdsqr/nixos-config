@@ -32,10 +32,10 @@
             };
           };
 
-          "admin.dsqr.dev" = {
+          "studio.dsqr.dev" = {
             service = "http://192.168.50.240";
             originRequest = {
-              httpHostHeader = "admin.dsqr.dev";
+              httpHostHeader = "studio.dsqr.dev";
             };
           };
 

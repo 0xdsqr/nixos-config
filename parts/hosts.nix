@@ -19,7 +19,7 @@ let
   ];
 
   specialArgs = inputs // {
-    inherit inputs keys;
+    inherit inputs keys self;
   };
 
   inputModulesNixos = builtins.map (name: inputs.${name}.nixosModules.default) nixosModuleInputNames;

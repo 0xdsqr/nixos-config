@@ -1,6 +1,5 @@
 { lib, go, stdenv }:
-
-stdenv.mkDerivation rec {
+let
   pname = "moonshot";
   version = "0.0.0-sandbox.0";
 
@@ -8,13 +7,24 @@ stdenv.mkDerivation rec {
   # pinning a Git revision yet.
   src = ./.;
 
-  # Go is a build-time tool, so it belongs in nativeBuildInputs.
   nativeBuildInputs = [ go ];
-
   doCheck = true;
 
-  # We keep the default unpack/fixup phases and only customize the parts
-  # specific to this small Go CLI: build, test, and install.
+  description = "Moonshot CLI";
+  mainProgram = "moonshot";
+in
+stdenv.mkDerivation {
+  inherit
+    pname
+    version
+    src
+    nativeBuildInputs
+    doCheck
+    ;
+
+  # We leave unpackPhase at the default: unpack the source tree into the build dir.
+  # We skip configurePhase entirely because this small Go CLI has nothing to configure.
+  # We keep fixupPhase at the default so Nix can do its normal post-install cleanup.
   buildPhase = ''
     runHook preBuild
 
@@ -52,8 +62,7 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with lib; {
-    description = "Moonshot CLI";
-    mainProgram = "moonshot";
+    inherit description mainProgram;
     platforms = platforms.all;
   };
 }
