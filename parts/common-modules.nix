@@ -27,6 +27,7 @@ in
     };
 
     sharedHomeManager = {
+      home-manager.backupFileExtension = "pre-home-manager";
       home-manager.sharedModules = inputHomeModules ++ nixLib.attrValues self.homeModules;
       home-manager.extraSpecialArgs = specialArgs;
       home-manager.useGlobalPkgs = true;

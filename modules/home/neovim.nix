@@ -54,6 +54,8 @@ in
     vimAlias = true;
     vimdiffAlias = true;
     defaultEditor = false;
+    withPython3 = false;
+    withRuby = false;
 
     # ══════════════════════════════════════════════════════════════════════════
     # LANGUAGE SERVERS & TOOLS
