@@ -8,13 +8,8 @@
   ];
 
   perSystem =
-    { system, ... }:
+    { pkgs, ... }:
     let
-      pkgs = import inputs.nixpkgs {
-        inherit system;
-        config = { };
-        overlays = [ ];
-      };
       treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs {
         projectRootFile = "flake.nix";
 
@@ -34,6 +29,8 @@
     {
       formatter = treefmtEval.config.build.wrapper;
 
+      packages.moonshot = pkgs.callPackage ../packages/moonshot { };
+
       devShells.default = pkgs.mkShellNoCC {
         packages = with pkgs; [
           deadnix
@@ -41,6 +38,12 @@
           nixd
           statix
           treefmtEval.config.build.wrapper
+        ];
+      };
+
+      devShells.moonshot = pkgs.mkShellNoCC {
+        packages = with pkgs; [
+          go
         ];
       };
 

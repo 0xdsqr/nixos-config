@@ -1,4 +1,9 @@
-{ config, keys, lib, ... }:
+{
+  config,
+  keys,
+  lib,
+  ...
+}:
 let
   inherit (lib.filesystem) listFilesRecursive;
   inherit (lib.lists) filter remove;

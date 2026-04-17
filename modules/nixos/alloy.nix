@@ -15,9 +15,7 @@ in
     };
 
     systemd.services.alloy.serviceConfig = lib.mkMerge [
-      {
-        SupplementaryGroups = lib.mkAfter (lib.optionals cfg.loki.enable [ "systemd-journal" ]);
-      }
+      { SupplementaryGroups = lib.mkAfter (lib.optionals cfg.loki.enable [ "systemd-journal" ]); }
       (mkIf k8sCfg.enable {
         # Kubernetes API discovery needs kubeconfig access on the host. Running
         # Alloy as root on cluster nodes keeps the setup simple and avoids
