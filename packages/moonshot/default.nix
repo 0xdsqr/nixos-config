@@ -1,68 +1,71 @@
-{ lib, go, stdenv }:
+{ buildGoModule, lib }:
 let
   pname = "moonshot";
   version = "0.0.0-sandbox.0";
-
-  # Build from the local nested module first so we can iterate without
-  # pinning a Git revision yet.
   src = ./.;
 
-  nativeBuildInputs = [ go ];
-  doCheck = true;
+  subPackages = [ "./cmd/moonshot" ];
 
   description = "Moonshot CLI";
   mainProgram = "moonshot";
 in
-stdenv.mkDerivation {
+buildGoModule {
   inherit
     pname
     version
     src
-    nativeBuildInputs
-    doCheck
+    subPackages
     ;
 
-  # We leave unpackPhase at the default: unpack the source tree into the build dir.
-  # We skip configurePhase entirely because this small Go CLI has nothing to configure.
-  # We keep fixupPhase at the default so Nix can do its normal post-install cleanup.
-  buildPhase = ''
-    runHook preBuild
+  ldflags = [
+    "-X github.com/0xdsqr/moonshot/internal/version.Value=${version}"
+  ];
 
-    export HOME="$TMPDIR"
-    export GOCACHE="$TMPDIR/go-build"
-    export GOMODCACHE="$TMPDIR/go-mod"
+  # Pin the Go module dependency graph so builds stay fully offline.
+  vendorHash = "sha256-ad//bCpgy4DfL35U6voHPpwNE93YTMdJoyI2+Vpn1mU=";
 
-    go build \
-      -ldflags="-X github.com/0xdsqr/moonshot/internal/version.Value=${version}" \
-      -o moonshot \
-      ./cmd/moonshot
+  doCheck = true;
 
-    runHook postBuild
-  '';
+  # buildGoModule handles the normal Go build pipeline for us.
+  # These are the raw phase hook shapes we would customize with mkDerivation:
+  #
+  # unpackPhase = ''
+  #   runHook preUnpack
+  #   runHook postUnpack
+  # '';
+  #
+  # patchPhase = ''
+  #   runHook prePatch
+  #   runHook postPatch
+  # '';
+  #
+  # configurePhase = ''
+  #   runHook preConfigure
+  #   runHook postConfigure
+  # '';
+  #
+  # buildPhase = ''
+  #   runHook preBuild
+  #   runHook postBuild
+  # '';
+  #
+  # checkPhase = ''
+  #   runHook preCheck
+  #   runHook postCheck
+  # '';
+  #
+  # installPhase = ''
+  #   runHook preInstall
+  #   runHook postInstall
+  # '';
+  #
+  # fixupPhase = ''
+  #   runHook preFixup
+  #   runHook postFixup
+  # '';
 
-  checkPhase = ''
-    runHook preCheck
-
-    export HOME="$TMPDIR"
-    export GOCACHE="$TMPDIR/go-build"
-    export GOMODCACHE="$TMPDIR/go-mod"
-
-    go test ./...
-
-    runHook postCheck
-  '';
-
-  installPhase = ''
-    runHook preInstall
-
-    mkdir -p "$out/bin"
-    install -m755 moonshot "$out/bin/moonshot"
-
-    runHook postInstall
-  '';
-
-  meta = with lib; {
+  meta = {
     inherit description mainProgram;
-    platforms = platforms.all;
+    platforms = lib.platforms.all;
   };
 }
