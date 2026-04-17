@@ -113,6 +113,8 @@ in
 
     kubeadm = {
       enable = mkEnableOption "Enable the shared kubeadm baseline";
+
+      helm.enable = mkEnableOption "Install the Helm CLI alongside the kubeadm baseline";
     };
   };
 }

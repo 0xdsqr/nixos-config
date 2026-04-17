@@ -12,6 +12,7 @@ func Run(args []string) error {
 		Name: "moonshot",
 		Commands: []click.Command[commands.RootOptions]{
 			commands.Version(),
+			commands.Host(),
 		},
 	}
 	return app.Run(context.Background(), args)

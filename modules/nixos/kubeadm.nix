@@ -32,17 +32,18 @@ in
 
     swapDevices = [ ];
 
-    environment.systemPackages = with pkgs; [
-      k8s
-      kubernetes-helm
-      cri-tools
-      cni-plugins
-      conntrack-tools
-      ethtool
-      socat
-      iproute2
-      iptables
-    ];
+    environment.systemPackages =
+      (with pkgs; [
+        k8s
+        cri-tools
+        cni-plugins
+        conntrack-tools
+        ethtool
+        socat
+        iproute2
+        iptables
+      ])
+      ++ lib.optionals cfg.helm.enable [ pkgs.kubernetes-helm ];
 
     virtualisation.containerd = {
       enable = true;
