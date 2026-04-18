@@ -26,35 +26,20 @@ in
   services.grafana = {
     enable = true;
     openFirewall = false;
-    provision.alerting = {
-      rules.settings = {
+    provision = {
+      dashboards.settings = {
         apiVersion = 1;
-        groups = [ ];
-        deleteRules = [ ];
-      };
-
-      contactPoints.settings = {
-        apiVersion = 1;
-        contactPoints = [ ];
-        deleteContactPoints = [ ];
-      };
-
-      policies.settings = {
-        apiVersion = 1;
-        policies = [ ];
-        resetPolicies = [ ];
-      };
-
-      templates.settings = {
-        apiVersion = 1;
-        templates = [ ];
-        deleteTemplates = [ ];
-      };
-
-      muteTimings.settings = {
-        apiVersion = 1;
-        muteTimes = [ ];
-        deleteMuteTimes = [ ];
+        providers = [
+          {
+            name = "homelab";
+            type = "file";
+            disableDeletion = false;
+            allowUiUpdates = false;
+            updateIntervalSeconds = 30;
+            options.path = ./grafana-dashboards;
+            options.foldersFromFilesStructure = true;
+          }
+        ];
       };
     };
 
