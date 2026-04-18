@@ -16,7 +16,7 @@ in
   "hosts/beacon/grafana/admin.password.age".publicKeys = [ beacon ] ++ admins;
   "hosts/beacon/grafana/database.password.age".publicKeys = [ beacon ] ++ admins;
 
-  "hosts/gateway/cloudflared/tunnel.credentials.age".publicKeys = [ gateway ] ++ admins;
+  "hosts/gateway/tunnel.credentials.age".publicKeys = [ gateway ] ++ admins;
   "hosts/gateway/host.password.age".publicKeys = [ gateway ] ++ admins;
 
   "hosts/k8s-master-01/host.password.age".publicKeys = [ k8s-master-01 ] ++ admins;
