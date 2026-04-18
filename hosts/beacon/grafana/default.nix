@@ -5,12 +5,12 @@ let
 in
 {
   age.secrets.grafanaPassword = {
-    file = ./password.age;
+    file = ./admin.password.age;
     owner = "grafana";
   };
 
   age.secrets.grafanaDbPassword = {
-    file = ./db-password.age;
+    file = ./database.password.age;
     owner = "grafana";
   };
 
@@ -26,6 +26,20 @@ in
   services.grafana = {
     enable = true;
     openFirewall = false;
+    provision.dashboards.settings = {
+      apiVersion = 1;
+      providers = [
+        {
+          name = "homelab";
+          folder = "Homelab";
+          type = "file";
+          disableDeletion = false;
+          updateIntervalSeconds = 30;
+          options.path = ./dashboards/homelab;
+        }
+      ];
+    };
+
     settings = {
       analytics.reporting_enabled = false;
 

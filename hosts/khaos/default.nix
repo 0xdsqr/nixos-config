@@ -1,10 +1,4 @@
-{
-  config,
-  keys,
-  pkgs,
-  lib,
-  ...
-}:
+{ pkgs, lib, ... }:
 let
   inherit (lib.filesystem) listFilesRecursive;
   inherit (lib.lists) filter remove;
@@ -14,26 +8,15 @@ in
 {
   imports = remove ./meta.nix (remove ./default.nix nixFiles);
 
-  age.secrets.hostPassword.file = ./password.age;
-  services.restic.passwordAgeFile = ./restic-password.age;
-
-  users.users.dsqr = {
-    isNormalUser = true;
-    home = "/home/dsqr";
-    description = "its me dave";
-    hashedPasswordFile = config.age.secrets.hostPassword.path;
-    extraGroups = [
-      "docker"
-      "lxd"
-      "wheel"
-      "networkmanager"
-    ];
-    openssh.authorizedKeys.keys = keys.admins;
-  };
-
-  users.users.root.hashedPasswordFile = config.age.secrets.hostPassword.path;
+  services.restic.passwordAgeFile = ./restic.password.age;
 
   dsqr.nixos = {
+    user = {
+      enable = true;
+      passwordAgeFile = ./host.password.age;
+      serverAdmin.enable = true;
+    };
+
     proxmox.enable = true;
 
     alloy = {

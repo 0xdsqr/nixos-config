@@ -33,14 +33,7 @@ in
     description = "Encrypted age file that stores the shared restic repository password.";
   };
 
-  config = mkIf (cfg.hosts != [ ]) {
-    assertions = [
-      {
-        assertion = cfg.passwordAgeFile != null;
-        message = "services.restic.passwordAgeFile must be set when services.restic.hosts is non-empty.";
-      }
-    ];
-
+  config = mkIf (cfg.hosts != [ ] && cfg.passwordAgeFile != null) {
     age.secrets.resticPassword.file = cfg.passwordAgeFile;
 
     environment.systemPackages = [ pkgs.restic ];

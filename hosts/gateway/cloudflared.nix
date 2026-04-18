@@ -11,7 +11,7 @@
   users.groups.cloudflared = { };
 
   age.secrets.cloudflaredCredentials = {
-    file = ./credentials.json.age;
+    file = ./tunnel.credentials.age;
     path = "/etc/cloudflared/credentials.json";
     owner = "cloudflared";
     group = "cloudflared";
@@ -37,6 +37,10 @@
             originRequest = {
               httpHostHeader = "studio.dsqr.dev";
             };
+          };
+
+          "vault.dsqr.dev" = {
+            service = "http://192.168.50.71:8200";
           };
 
           "grafana.dsqr.dev" = {

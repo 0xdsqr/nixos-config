@@ -26,7 +26,7 @@ in
   dsqr.darwin.exo.enable = true;
   dsqr.darwin.alloy = {
     enable = true;
-    instance = "exo-mac-mini-01";
+    instance = "exo-macmini-02";
     remoteWriteUrl = "http://192.168.50.70:9090/api/v1/write";
     loki.enable = true;
   };

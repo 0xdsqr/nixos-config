@@ -1,9 +1,9 @@
 package commands
 
 import (
-	"github.com/0xdsqr/moonshot/internal/host"
+	"github.com/0xdsqr/moonshot/internal/hostinfo"
 )
 
 type Root struct {
-	Host host.HostInfo
+	HostInfo hostinfo.HostInfo
 }
