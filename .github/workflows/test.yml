@@ -1,4 +1,4 @@
-name: test
+name: check
 
 on:
   push: {}
@@ -62,28 +62,46 @@ jobs:
       - name: Run flake check
         run: nix flake check
 
-  required:
-    name: all required checks passed
+  formatting-required:
+    name: formatting checks passed
     needs:
       - nixfmt
       - deadnix
       - statix
-      - flake-check
-    if: always() 
+    if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: verify all jobs passed
+      - name: verify formatting jobs passed
         env:
           NIXFMT_RESULT: ${{ needs.nixfmt.result }}
           DEADNIX_RESULT: ${{ needs.deadnix.result }}
           STATIX_RESULT: ${{ needs.statix.result }}
-          FLAKE_CHECK_RESULT: ${{ needs.flake-check.result }}
         run: |
-          if [ "$NIXFMT_RESULT" != "success" ] || [ "$DEADNIX_RESULT" != "success" ] || [ "$STATIX_RESULT" != "success" ] || [ "$FLAKE_CHECK_RESULT" != "success" ]; then
-            echo "required jobs failed:"
+          if [ "$NIXFMT_RESULT" != "success" ] || [ "$DEADNIX_RESULT" != "success" ] || [ "$STATIX_RESULT" != "success" ]; then
+            echo "formatting jobs failed:"
             echo "  nixfmt: $NIXFMT_RESULT"
             echo "  deadnix: $DEADNIX_RESULT"
             echo "  statix: $STATIX_RESULT"
+            exit 1
+          fi
+          echo "all formatting jobs passed"
+
+  required:
+    name: all required checks passed
+    needs:
+      - formatting-required
+      - flake-check
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: verify all jobs passed
+        env:
+          FORMATTING_RESULT: ${{ needs.formatting-required.result }}
+          FLAKE_CHECK_RESULT: ${{ needs.flake-check.result }}
+        run: |
+          if [ "$FORMATTING_RESULT" != "success" ] || [ "$FLAKE_CHECK_RESULT" != "success" ]; then
+            echo "required jobs failed:"
+            echo "  formatting-required: $FORMATTING_RESULT"
             echo "  flake-check: $FLAKE_CHECK_RESULT"
             exit 1
           fi

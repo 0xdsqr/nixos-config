@@ -9,10 +9,9 @@ let
   importModules =
     dir:
     builtins.listToAttrs (
-      map (
-        file:
-        nameValuePair (removeSuffix ".nix" (builtins.baseNameOf file)) (import file)
-      ) (filter (hasSuffix ".nix") (listFilesRecursive dir))
+      map (file: nameValuePair (removeSuffix ".nix" (builtins.baseNameOf file)) (import file)) (
+        filter (hasSuffix ".nix") (listFilesRecursive dir)
+      )
     );
 
   homeModules = importModules ./../modules/home;

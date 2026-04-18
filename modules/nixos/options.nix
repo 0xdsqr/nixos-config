@@ -5,7 +5,14 @@
   ...
 }:
 let
-  inherit (lib) mkEnableOption mkIf mkOption optionals types unique;
+  inherit (lib)
+    mkEnableOption
+    mkIf
+    mkOption
+    optionals
+    types
+    unique
+    ;
   userCfg = config.dsqr.nixos.user;
 in
 {
@@ -173,10 +180,13 @@ in
       home = "/home/dsqr";
       description = "its me dave";
       hashedPasswordFile = config.age.secrets.hostPassword.path;
-      extraGroups = unique (userCfg.extraGroups ++ optionals userCfg.serverAdmin.enable [
-        "docker"
-        "lxd"
-      ]);
+      extraGroups = unique (
+        userCfg.extraGroups
+        ++ optionals userCfg.serverAdmin.enable [
+          "docker"
+          "lxd"
+        ]
+      );
       openssh.authorizedKeys.keys = keys.admins;
     };
 

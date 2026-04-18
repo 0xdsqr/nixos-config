@@ -38,9 +38,9 @@
               httpHostHeader = "studio.dsqr.dev";
             };
           };
-            
+
           "vault.dsqr.dev" = {
-              service = "http://192.168.50.71:8200";
+            service = "http://192.168.50.71:8200";
           };
 
           "grafana.dsqr.dev" = {
