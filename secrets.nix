@@ -12,9 +12,9 @@ let
 in
 {
   "hosts/beacon/host.password.age".publicKeys = [ beacon ] ++ admins;
-  "hosts/beacon/grafana/secret-key.age".publicKeys = [ beacon ] ++ admins;
-  "hosts/beacon/grafana/admin.password.age".publicKeys = [ beacon ] ++ admins;
-  "hosts/beacon/grafana/database.password.age".publicKeys = [ beacon ] ++ admins;
+  "hosts/beacon/grafana.secret-key.age".publicKeys = [ beacon ] ++ admins;
+  "hosts/beacon/grafana.admin.password.age".publicKeys = [ beacon ] ++ admins;
+  "hosts/beacon/grafana.database.password.age".publicKeys = [ beacon ] ++ admins;
 
   "hosts/gateway/tunnel.credentials.age".publicKeys = [ gateway ] ++ admins;
   "hosts/gateway/host.password.age".publicKeys = [ gateway ] ++ admins;
