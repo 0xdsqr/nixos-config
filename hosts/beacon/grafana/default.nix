@@ -5,12 +5,12 @@ let
 in
 {
   age.secrets.grafanaPassword = {
-    file = ./password.age;
+    file = ./admin.password.age;
     owner = "grafana";
   };
 
   age.secrets.grafanaDbPassword = {
-    file = ./db-password.age;
+    file = ./database.password.age;
     owner = "grafana";
   };
 

@@ -1,11 +1,38 @@
-{ lib, config, ... }:
+{
+  config,
+  keys,
+  lib,
+  ...
+}:
 let
-  inherit (lib) mkEnableOption mkOption types;
+  inherit (lib) mkEnableOption mkIf mkOption optionals types unique;
+  userCfg = config.dsqr.nixos.user;
 in
 {
   options.dsqr.nixos = {
     proxmox = {
       enable = mkEnableOption "Enable Proxmox-based host leveraging NixOS";
+    };
+
+    user = {
+      enable = mkEnableOption "Enable the shared dsqr/root account baseline";
+
+      passwordAgeFile = mkOption {
+        type = types.nullOr types.path;
+        default = null;
+        description = "Encrypted age file that stores the shared password hash for dsqr and root.";
+      };
+
+      extraGroups = mkOption {
+        type = types.listOf types.str;
+        default = [
+          "wheel"
+          "networkmanager"
+        ];
+        description = "Additional groups granted to the dsqr user on this host.";
+      };
+
+      serverAdmin.enable = mkEnableOption "Grant dsqr the extra groups commonly needed for heavier server administration";
     };
 
     alloy = {
@@ -120,5 +147,39 @@ in
         description = "Install the Helm CLI alongside the kubeadm baseline.";
       };
     };
+
+    rustfs = {
+      enable = mkEnableOption "Enable the shared RustFS host profile";
+
+      accessKeyAgeFile = mkOption {
+        type = types.nullOr types.path;
+        default = null;
+        description = "Encrypted age file that stores the RustFS access key.";
+      };
+
+      secretKeyAgeFile = mkOption {
+        type = types.nullOr types.path;
+        default = null;
+        description = "Encrypted age file that stores the RustFS secret key.";
+      };
+    };
+  };
+
+  config = mkIf (userCfg.enable && userCfg.passwordAgeFile != null) {
+    age.secrets.hostPassword.file = userCfg.passwordAgeFile;
+
+    users.users.dsqr = {
+      isNormalUser = true;
+      home = "/home/dsqr";
+      description = "its me dave";
+      hashedPasswordFile = config.age.secrets.hostPassword.path;
+      extraGroups = unique (userCfg.extraGroups ++ optionals userCfg.serverAdmin.enable [
+        "docker"
+        "lxd"
+      ]);
+      openssh.authorizedKeys.keys = keys.admins;
+    };
+
+    users.users.root.hashedPasswordFile = config.age.secrets.hostPassword.path;
   };
 }
