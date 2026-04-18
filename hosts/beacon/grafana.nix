@@ -31,12 +31,12 @@ in
       providers = [
         {
           name = "homelab";
+          folder = "Homelab";
           type = "file";
           disableDeletion = false;
           allowUiUpdates = false;
           updateIntervalSeconds = 30;
-          options.path = ./grafana-dashboards;
-          options.foldersFromFilesStructure = true;
+          options.path = ./grafana-dashboards/overview;
         }
       ];
     };
