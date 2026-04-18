@@ -26,6 +26,22 @@ in
   services.grafana = {
     enable = true;
     openFirewall = false;
+    provision = {
+      dashboards.settings = {
+        apiVersion = 1;
+        providers = [
+          {
+            name = "homelab";
+            type = "file";
+            disableDeletion = false;
+            allowUiUpdates = false;
+            updateIntervalSeconds = 30;
+            options.path = ./grafana-dashboards;
+            options.foldersFromFilesStructure = true;
+          }
+        ];
+      };
+    };
 
     settings = {
       analytics.reporting_enabled = false;
