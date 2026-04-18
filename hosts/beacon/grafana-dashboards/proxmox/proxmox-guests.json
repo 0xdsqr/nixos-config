@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "Guest-centric Proxmox dashboard for VMs and LXCs. Built for prometheus-pve-exporter metrics.",
+  "description": "Fleet-level rollup for the homelab. Uses the host telemetry and logs Beacon already collects, which makes it useful right now even before native Proxmox guest metrics are wired in.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -28,11 +28,18 @@
       },
       "fieldConfig": {
         "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 1
               }
             ]
           },
@@ -61,12 +68,12 @@
       },
       "targets": [
         {
-          "expr": "sum(pve_up{id=~\"qemu/.+\"} * on(id) group_left(name,node,type) pve_guest_info{node=~\"$node\", type=\"qemu\"})",
+          "expr": "count(max by (host) (node_uname_info{env=\"homelab\", role=~\"$role\"}))",
           "instant": true,
           "refId": "A"
         }
       ],
-      "title": "Running VMs",
+      "title": "Hosts in Scope",
       "type": "stat"
     },
     {
@@ -76,15 +83,25 @@
       },
       "fieldConfig": {
         "defaults": {
+          "max": 100,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 60
+              },
+              {
+                "color": "red",
+                "value": 85
               }
             ]
           },
-          "unit": "none"
+          "unit": "percent"
         },
         "overrides": []
       },
@@ -109,12 +126,12 @@
       },
       "targets": [
         {
-          "expr": "sum(pve_up{id=~\"lxc/.+\"} * on(id) group_left(name,node,type) pve_guest_info{node=~\"$node\", type=\"lxc\"})",
+          "expr": "100 * (1 - avg(rate(node_cpu_seconds_total{env=\"homelab\", role=~\"$role\", mode=\"idle\"}[$__rate_interval])))",
           "instant": true,
           "refId": "A"
         }
       ],
-      "title": "Running LXCs",
+      "title": "Avg CPU Busy",
       "type": "stat"
     },
     {
@@ -124,15 +141,25 @@
       },
       "fieldConfig": {
         "defaults": {
+          "max": 100,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
               }
             ]
           },
-          "unit": "none"
+          "unit": "percent"
         },
         "overrides": []
       },
@@ -157,12 +184,12 @@
       },
       "targets": [
         {
-          "expr": "count(pve_guest_info{node=~\"$node\", type=~\"qemu|lxc\"})",
+          "expr": "100 * (1 - (sum(node_memory_MemAvailable_bytes{env=\"homelab\", role=~\"$role\"}) / sum(node_memory_MemTotal_bytes{env=\"homelab\", role=~\"$role\"})))",
           "instant": true,
           "refId": "A"
         }
       ],
-      "title": "Total Guests",
+      "title": "Avg Memory Used",
       "type": "stat"
     },
     {
@@ -177,10 +204,18 @@
             "steps": [
               {
                 "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 1000000
+              },
+              {
+                "color": "red",
+                "value": 10000000
               }
             ]
           },
-          "unit": "none"
+          "unit": "Bps"
         },
         "overrides": []
       },
@@ -205,12 +240,12 @@
       },
       "targets": [
         {
-          "expr": "count(((pve_up{id=~\"(qemu|lxc)/.+\"} == 0) * on(id) group_left(name,node,type) pve_guest_info{node=~\"$node\", type=~\"qemu|lxc\"}) > 0)",
+          "expr": "sum(rate(node_network_receive_bytes_total{env=\"homelab\", role=~\"$role\", device!~\"lo|lo0|veth.*|cali.*|flannel.*|cni.*|docker.*\"}[5m])) + sum(rate(node_network_transmit_bytes_total{env=\"homelab\", role=~\"$role\", device!~\"lo|lo0|veth.*|cali.*|flannel.*|cni.*|docker.*\"}[5m]))",
           "instant": true,
           "refId": "A"
         }
       ],
-      "title": "Guests Down",
+      "title": "Total Throughput",
       "type": "stat"
     },
     {
@@ -268,13 +303,13 @@
       },
       "targets": [
         {
-          "expr": "topk(10, 100 * (pve_cpu_usage_ratio{id=~\"(qemu|lxc)/.+\"} * on(id) group_left(name,node,type) pve_guest_info{node=~\"$node\", type=~\"qemu|lxc\"}))",
+          "expr": "topk(12, 100 * (1 - avg by (host) (rate(node_cpu_seconds_total{env=\"homelab\", role=~\"$role\", mode=\"idle\"}[$__rate_interval]))))",
           "instant": true,
-          "legendFormat": "{{name}} ({{type}})",
+          "legendFormat": "{{host}}",
           "refId": "A"
         }
       ],
-      "title": "Top CPU Guests",
+      "title": "CPU Busy by Host",
       "type": "bargauge"
     },
     {
@@ -332,13 +367,13 @@
       },
       "targets": [
         {
-          "expr": "topk(10, 100 * ((pve_memory_usage_bytes{id=~\"(qemu|lxc)/.+\"} / clamp_min(pve_memory_size_bytes{id=~\"(qemu|lxc)/.+\"}, 1)) * on(id) group_left(name,node,type) pve_guest_info{node=~\"$node\", type=~\"qemu|lxc\"}))",
+          "expr": "topk(12, 100 * (1 - (node_memory_MemAvailable_bytes{env=\"homelab\", role=~\"$role\"} / node_memory_MemTotal_bytes{env=\"homelab\", role=~\"$role\"})))",
           "instant": true,
-          "legendFormat": "{{name}} ({{type}})",
+          "legendFormat": "{{host}}",
           "refId": "A"
         }
       ],
-      "title": "Top Memory Guests",
+      "title": "Memory Used by Host",
       "type": "bargauge"
     },
     {
@@ -349,7 +384,23 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 1000000
+              },
+              {
+                "color": "red",
+                "value": 10000000
+              }
+            ]
           },
           "unit": "Bps"
         },
@@ -363,75 +414,29 @@
       },
       "id": 7,
       "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
+        "displayMode": "gradient",
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
         },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
+        "showUnfilled": true,
+        "sizing": "auto"
       },
       "targets": [
         {
-          "expr": "topk(8, rate(pve_disk_written_bytes_total{id=~\"(qemu|lxc)/.+\"}[5m]) * on(id) group_left(name,node,type) pve_guest_info{node=~\"$node\", type=~\"qemu|lxc\"})",
-          "legendFormat": "{{name}} write",
-          "range": true,
-          "refId": "A"
-        },
-        {
-          "expr": "topk(8, rate(pve_disk_read_bytes_total{id=~\"(qemu|lxc)/.+\"}[5m]) * on(id) group_left(name,node,type) pve_guest_info{node=~\"$node\", type=~\"qemu|lxc\"})",
-          "legendFormat": "{{name}} read",
-          "range": true,
-          "refId": "B"
-        }
-      ],
-      "title": "Disk IO by Guest",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 12
-      },
-      "id": 8,
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "expr": "topk(12, pve_uptime_seconds{id=~\"(qemu|lxc)/.+\"} * on(id) group_left(name,node,type) pve_guest_info{node=~\"$node\", type=~\"qemu|lxc\"})",
-          "legendFormat": "{{name}} ({{type}})",
-          "range": true,
+          "expr": "topk(12, sum by (host) (rate(node_network_receive_bytes_total{env=\"homelab\", role=~\"$role\", device!~\"lo|lo0|veth.*|cali.*|flannel.*|cni.*|docker.*\"}[5m]) + rate(node_network_transmit_bytes_total{env=\"homelab\", role=~\"$role\", device!~\"lo|lo0|veth.*|cali.*|flannel.*|cni.*|docker.*\"}[5m])))",
+          "instant": true,
+          "legendFormat": "{{host}}",
           "refId": "A"
         }
       ],
-      "title": "Guest Uptime",
-      "type": "timeseries"
+      "title": "Network Traffic by Host",
+      "type": "bargauge"
     },
     {
       "datasource": {
@@ -443,43 +448,86 @@
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "color": "red",
-                  "index": 0,
-                  "text": "Down"
-                },
-                "1": {
-                  "color": "green",
-                  "index": 1,
-                  "text": "Up"
-                }
-              },
-              "type": "value"
-            }
-          ],
+          "max": 100,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "red"
+                "color": "green"
               },
               {
-                "color": "green",
-                "value": 1
+                "color": "orange",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
               }
             ]
           },
-          "unit": "none"
+          "unit": "percent"
         },
         "overrides": []
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
-        "x": 12,
+        "w": 8,
+        "x": 0,
+        "y": 12
+      },
+      "id": 8,
+      "options": {
+        "displayMode": "gradient",
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto"
+      },
+      "targets": [
+        {
+          "expr": "topk(12, 100 * (1 - (node_filesystem_avail_bytes{env=\"homelab\", role=~\"$role\", mountpoint=\"/\", fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{env=\"homelab\", role=~\"$role\", mountpoint=\"/\", fstype!~\"tmpfs|overlay\"})))",
+          "instant": true,
+          "legendFormat": "{{host}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Root Filesystem Used",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
         "y": 12
       },
       "id": 9,
@@ -499,14 +547,107 @@
       },
       "targets": [
         {
-          "expr": "sort_desc((pve_up{id=~\"(qemu|lxc)/.+\"} * on(id) group_left(name,node,type) pve_guest_info{node=~\"$node\", type=~\"qemu|lxc\"}))",
+          "expr": "topk(12, node_time_seconds{env=\"homelab\", role=~\"$role\"} - node_boot_time_seconds{env=\"homelab\", role=~\"$role\"})",
           "instant": true,
-          "legendFormat": "{{name}} ({{type}})",
+          "legendFormat": "{{host}}",
           "refId": "A"
         }
       ],
-      "title": "Current Guest Status",
+      "title": "Longest Uptimes",
       "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 10
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 12
+      },
+      "id": 10,
+      "options": {
+        "displayMode": "gradient",
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true,
+        "sizing": "auto"
+      },
+      "targets": [
+        {
+          "expr": "topk(12, sum by (host, unit) (count_over_time({env=\"homelab\", role=~\"$role\", job=\"systemd-journal\"}[15m])))",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "Noisy Host/Unit Pairs (15m)",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
+      "id": 11,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "expr": "{env=\"homelab\", role=~\"$role\", level=~\"err|crit|alert|emerg\"}",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Recent Error Logs",
+      "type": "logs"
     }
   ],
   "refresh": "30s",
@@ -514,31 +655,31 @@
   "style": "dark",
   "tags": [
     "homelab",
-    "proxmox",
-    "guests"
+    "fleet",
+    "nodes"
   ],
   "templating": {
     "list": [
       {
         "current": {
-          "selected": false,
-          "text": ".*",
+          "selected": true,
+          "text": "All",
           "value": ".*"
         },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(pve_guest_info, node)",
+        "definition": "label_values(node_uname_info{env=\"homelab\"}, role)",
         "hide": 0,
         "includeAll": true,
-        "label": "Node",
+        "label": "Role",
         "multi": false,
-        "name": "node",
+        "name": "role",
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(pve_guest_info, node)",
+          "query": "label_values(node_uname_info{env=\"homelab\"}, role)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
@@ -555,8 +696,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Proxmox Guests",
+  "title": "Fleet Nodes",
   "uid": "proxmox-guests",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }

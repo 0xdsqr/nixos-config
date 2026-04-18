@@ -31,7 +31,7 @@ in
         apiVersion = 1;
         providers = [
           {
-            name = "homelab";
+            name = "beacon";
             type = "file";
             disableDeletion = false;
             allowUiUpdates = false;

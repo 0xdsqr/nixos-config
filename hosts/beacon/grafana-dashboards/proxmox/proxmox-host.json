@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "Focused view of the Proxmox host. This dashboard assumes Prometheus is receiving pve_* metrics from prometheus-pve-exporter.",
+  "description": "Focused view of a core host in the rack. Uses the host telemetry Beacon has today and leaves room for native Proxmox exporter metrics later.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -30,7 +30,7 @@
       },
       "id": 1,
       "options": {
-        "content": "<div style=\"line-height:1.5;\"><strong>Design note</strong><br/>This dashboard is built around <code>pve_*</code> metrics from <code>prometheus-pve-exporter</code>. Once Beacon scrapes that exporter, these panels become the dedicated wallboard for the Dell R730xd / Proxmox host.</div>",
+        "content": "<div style=\"line-height:1.5;\"><strong>Core host view</strong><br/>This replaces the empty Proxmox host page for now. It tracks one Linux host at a time with Prometheus and Loki, which gives you real CPU, memory, disk, network, and log signal while we wait to wire in native <code>pve_*</code> exporter metrics.</div>",
         "mode": "markdown"
       },
       "title": "About",
@@ -97,12 +97,12 @@
       },
       "targets": [
         {
-          "expr": "max(pve_up{id=~\"node/$node\"})",
+          "expr": "count(node_uname_info{env=\"homelab\", host=~\"$host\"})",
           "instant": true,
           "refId": "A"
         }
       ],
-      "title": "Node Status",
+      "title": "Host Status",
       "type": "stat"
     },
     {
@@ -126,7 +126,7 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 5,
+        "w": 4,
         "x": 4,
         "y": 3
       },
@@ -145,7 +145,7 @@
       },
       "targets": [
         {
-          "expr": "max(pve_uptime_seconds{id=~\"node/$node\"})",
+          "expr": "max(node_time_seconds{env=\"homelab\", host=~\"$host\"} - node_boot_time_seconds{env=\"homelab\", host=~\"$host\"})",
           "instant": true,
           "refId": "A"
         }
@@ -184,8 +184,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 5,
-        "x": 9,
+        "w": 4,
+        "x": 8,
         "y": 3
       },
       "id": 4,
@@ -203,12 +203,12 @@
       },
       "targets": [
         {
-          "expr": "100 * max(pve_cpu_usage_ratio{id=~\"node/$node\"})",
+          "expr": "100 * (1 - avg(rate(node_cpu_seconds_total{env=\"homelab\", host=~\"$host\", mode=\"idle\"}[$__rate_interval])))",
           "instant": true,
           "refId": "A"
         }
       ],
-      "title": "CPU Usage",
+      "title": "CPU Busy",
       "type": "stat"
     },
     {
@@ -242,8 +242,8 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 5,
-        "x": 14,
+        "w": 4,
+        "x": 12,
         "y": 3
       },
       "id": 5,
@@ -261,7 +261,7 @@
       },
       "targets": [
         {
-          "expr": "100 * max(pve_memory_usage_bytes{id=~\"node/$node\"}) / clamp_min(max(pve_memory_size_bytes{id=~\"node/$node\"}), 1)",
+          "expr": "100 * (1 - max(node_memory_MemAvailable_bytes{env=\"homelab\", host=~\"$host\"}) / max(node_memory_MemTotal_bytes{env=\"homelab\", host=~\"$host\"}))",
           "instant": true,
           "refId": "A"
         }
@@ -276,143 +276,6 @@
       },
       "fieldConfig": {
         "defaults": {
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green"
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 5,
-        "x": 19,
-        "y": 3
-      },
-      "id": 6,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "none",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "value_and_name"
-      },
-      "targets": [
-        {
-          "expr": "max(pve_cpu_usage_limit{id=~\"node/$node\"})",
-          "instant": true,
-          "refId": "A"
-        }
-      ],
-      "title": "CPU Threads",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 7
-      },
-      "id": 7,
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "expr": "100 * pve_cpu_usage_ratio{id=~\"node/$node\"}",
-          "legendFormat": "CPU busy",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "CPU Usage Trend",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 7
-      },
-      "id": 8,
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "expr": "100 * pve_memory_usage_bytes{id=~\"node/$node\"} / clamp_min(pve_memory_size_bytes{id=~\"node/$node\"}, 1)",
-          "legendFormat": "Memory used",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Memory Usage Trend",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
           "max": 100,
           "min": 0,
           "thresholds": {
@@ -436,12 +299,441 @@
         "overrides": []
       },
       "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 3
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "expr": "100 * (1 - max(node_filesystem_avail_bytes{env=\"homelab\", host=~\"$host\", mountpoint=\"/\", fstype!~\"tmpfs|overlay\"}) / max(node_filesystem_size_bytes{env=\"homelab\", host=~\"$host\", mountpoint=\"/\", fstype!~\"tmpfs|overlay\"}))",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Root FS Used",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 2
+              },
+              {
+                "color": "red",
+                "value": 4
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 3
+      },
+      "id": 7,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "expr": "max(node_load1{env=\"homelab\", host=~\"$host\"})",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Load (1m)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 18,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 4,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
         "h": 8,
-        "w": 12,
+        "w": 8,
+        "x": 0,
+        "y": 7
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "100 * (1 - avg by (host) (rate(node_cpu_seconds_total{env=\"homelab\", host=~\"$host\", mode=\"idle\"}[$__rate_interval])))",
+          "legendFormat": "{{host}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "CPU Busy Trend",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 18,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 4,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 7
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "max(node_memory_MemTotal_bytes{env=\"homelab\", host=~\"$host\"}) - max(node_memory_MemAvailable_bytes{env=\"homelab\", host=~\"$host\"})",
+          "legendFormat": "used",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "expr": "max(node_memory_MemTotal_bytes{env=\"homelab\", host=~\"$host\"})",
+          "legendFormat": "total",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Memory Footprint",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 18,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 4,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "unit": "Bps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 7
+      },
+      "id": 10,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(node_network_receive_bytes_total{env=\"homelab\", host=~\"$host\", device!~\"lo|lo0|veth.*|cali.*|flannel.*|cni.*|docker.*\"}[$__rate_interval]))",
+          "legendFormat": "receive",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(node_network_transmit_bytes_total{env=\"homelab\", host=~\"$host\", device!~\"lo|lo0|veth.*|cali.*|flannel.*|cni.*|docker.*\"}[$__rate_interval]))",
+          "legendFormat": "transmit",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Network Throughput",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 18,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 4,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "unit": "Bps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
         "x": 0,
         "y": 15
       },
-      "id": 9,
+      "id": 11,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(node_disk_read_bytes_total{env=\"homelab\", host=~\"$host\"}[$__rate_interval]))",
+          "legendFormat": "read",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(node_disk_written_bytes_total{env=\"homelab\", host=~\"$host\"}[$__rate_interval]))",
+          "legendFormat": "write",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Disk Throughput",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 20
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 15
+      },
+      "id": 12,
       "options": {
         "displayMode": "gradient",
         "namePlacement": "auto",
@@ -458,57 +750,45 @@
       },
       "targets": [
         {
-          "expr": "100 * pve_disk_usage_bytes{id=~\"storage/$node/.+\"} / clamp_min(pve_disk_size_bytes{id=~\"storage/$node/.+\"}, 1)",
-          "instant": true,
-          "legendFormat": "{{id}}",
+          "expr": "topk(10, sum by (unit) (count_over_time({env=\"homelab\", host=~\"$host\", job=\"systemd-journal\"}[15m])))",
+          "queryType": "instant",
           "refId": "A"
         }
       ],
-      "title": "Storage Used by Datastore",
+      "title": "Top Noisy Units (15m)",
       "type": "bargauge"
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "unit": "decgbytes"
-        },
-        "overrides": []
+        "type": "loki",
+        "uid": "loki"
       },
       "gridPos": {
         "h": 8,
-        "w": 12,
-        "x": 12,
+        "w": 8,
+        "x": 16,
         "y": 15
       },
-      "id": 10,
+      "id": 13,
       "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
       },
       "targets": [
         {
-          "expr": "pve_disk_usage_bytes{id=~\"storage/$node/.+\"} / 1000 / 1000 / 1000",
-          "legendFormat": "{{id}} used",
-          "range": true,
+          "expr": "{env=\"homelab\", host=~\"$host\"}",
+          "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "Datastore Usage Trend",
-      "type": "timeseries"
+      "title": "Recent Host Logs",
+      "type": "logs"
     }
   ],
   "refresh": "30s",
@@ -516,30 +796,31 @@
   "style": "dark",
   "tags": [
     "homelab",
-    "proxmox"
+    "core",
+    "compute"
   ],
   "templating": {
     "list": [
       {
         "current": {
           "selected": true,
-          "text": "All",
-          "value": ".*"
+          "text": "beacon",
+          "value": "beacon"
         },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(pve_node_info, name)",
+        "definition": "label_values(node_uname_info{env=\"homelab\", os=\"linux\"}, host)",
         "hide": 0,
-        "includeAll": true,
-        "label": "Node",
+        "includeAll": false,
+        "label": "Host",
         "multi": false,
-        "name": "node",
+        "name": "host",
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(pve_node_info, name)",
+          "query": "label_values(node_uname_info{env=\"homelab\", os=\"linux\"}, host)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
@@ -556,8 +837,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Proxmox Host",
+  "title": "Core Compute",
   "uid": "proxmox-host",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }

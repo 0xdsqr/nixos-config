@@ -15,7 +15,7 @@
       }
     ]
   },
-  "description": "Primary wallboard for the homelab. Combines fleet health from Prometheus with recent critical log activity from Loki.",
+  "description": "Wallboard for the physical homelab rack. Summarizes edge, compute, fleet health, and log pressure using the Prometheus and Loki data Beacon already has today.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -31,7 +31,6 @@
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -71,13 +70,8 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
           "expr": "count(max by (host) (node_uname_info{env=\"homelab\"}))",
           "instant": true,
-          "legendFormat": "",
           "refId": "A"
         }
       ],
@@ -94,7 +88,6 @@
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -134,16 +127,12 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "count(max by (host) (node_uname_info{env=\"homelab\", os=\"linux\"}))",
+          "expr": "count(max by (host) (node_uname_info{env=\"homelab\", host=~\"gateway|beacon|khaos\"}))",
           "instant": true,
           "refId": "A"
         }
       ],
-      "title": "Linux Hosts",
+      "title": "Core Nodes",
       "type": "stat"
     },
     {
@@ -156,7 +145,6 @@
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -196,16 +184,69 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
+          "expr": "count(max by (host) (node_uname_info{env=\"homelab\", role=~\"k8s-control-plane|k8s-worker\"}))",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "title": "K8s Nodes",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
           },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 12,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
           "expr": "count(max by (host) (node_uname_info{env=\"homelab\", role=\"mac-mini\"}))",
           "instant": true,
           "refId": "A"
         }
       ],
-      "title": "Mac Mini Nodes",
+      "title": "Mac Minis",
       "type": "stat"
     },
     {
@@ -218,7 +259,6 @@
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -241,11 +281,11 @@
       },
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 12,
+        "w": 4,
+        "x": 16,
         "y": 0
       },
-      "id": 4,
+      "id": 5,
       "options": {
         "colorMode": "value",
         "graphMode": "none",
@@ -262,16 +302,73 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
           "expr": "sum(count_over_time({env=\"homelab\", level=~\"err|crit|alert|emerg\"}[15m]))",
           "queryType": "instant",
           "refId": "A"
         }
       ],
       "title": "Critical Logs (15m)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 25
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 0
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "expr": "sum(count_over_time({env=\"homelab\", host=\"gateway\", unit=\"cloudflared.service\"}[15m]))",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "Tunnel Events (15m)",
       "type": "stat"
     },
     {
@@ -284,7 +381,187 @@
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 65
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 4
+      },
+      "id": 7,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "expr": "100 * (1 - avg(rate(node_cpu_seconds_total{env=\"homelab\", mode=\"idle\"}[$__rate_interval])))",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Rack CPU Avg",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 4
+      },
+      "id": 8,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "expr": "100 * (1 - (sum(node_memory_MemAvailable_bytes{env=\"homelab\"}) / sum(node_memory_MemTotal_bytes{env=\"homelab\"})))",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Rack Memory Used",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 10000000
+              },
+              {
+                "color": "red",
+                "value": 100000000
+              }
+            ]
+          },
+          "unit": "Bps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 4
+      },
+      "id": 9,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(node_network_receive_bytes_total{env=\"homelab\", device!~\"lo|lo0|veth.*|cali.*|flannel.*|cni.*|docker.*\"}[5m])) + sum(rate(node_network_transmit_bytes_total{env=\"homelab\", device!~\"lo|lo0|veth.*|cali.*|flannel.*|cni.*|docker.*\"}[5m]))",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Rack Throughput",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
           "max": 100,
           "min": 0,
           "thresholds": {
@@ -311,9 +588,9 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 4
+        "y": 8
       },
-      "id": 5,
+      "id": 10,
       "options": {
         "displayMode": "gradient",
         "namePlacement": "auto",
@@ -330,10 +607,6 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
           "expr": "100 * (1 - avg by (host) (rate(node_cpu_seconds_total{env=\"homelab\", mode=\"idle\"}[$__rate_interval])))",
           "instant": true,
           "legendFormat": "{{host}}",
@@ -353,7 +626,6 @@
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [],
           "max": 100,
           "min": 0,
           "thresholds": {
@@ -380,9 +652,9 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 4
+        "y": 8
       },
-      "id": 6,
+      "id": 11,
       "options": {
         "displayMode": "gradient",
         "namePlacement": "auto",
@@ -399,10 +671,6 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
           "expr": "100 * (1 - (node_memory_MemAvailable_bytes{env=\"homelab\"} / node_memory_MemTotal_bytes{env=\"homelab\"}))",
           "instant": true,
           "legendFormat": "{{host}}",
@@ -422,7 +690,6 @@
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [],
           "max": 100,
           "min": 0,
           "thresholds": {
@@ -449,9 +716,9 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 4
+        "y": 8
       },
-      "id": 7,
+      "id": 12,
       "options": {
         "displayMode": "gradient",
         "namePlacement": "auto",
@@ -468,11 +735,7 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "100 * (1 - (node_filesystem_avail_bytes{env=\"homelab\", mountpoint=\"/\", fstype!=\"tmpfs\"} / node_filesystem_size_bytes{env=\"homelab\", mountpoint=\"/\", fstype!=\"tmpfs\"}))",
+          "expr": "100 * (1 - (node_filesystem_avail_bytes{env=\"homelab\", mountpoint=\"/\", fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{env=\"homelab\", mountpoint=\"/\", fstype!~\"tmpfs|overlay\"}))",
           "instant": true,
           "legendFormat": "{{host}}",
           "refId": "A"
@@ -491,7 +754,6 @@
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -516,9 +778,9 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 12
+        "y": 16
       },
-      "id": 8,
+      "id": 13,
       "options": {
         "displayMode": "gradient",
         "namePlacement": "auto",
@@ -535,10 +797,6 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
           "expr": "topk(10, sum by (unit) (count_over_time({env=\"homelab\", job=\"systemd-journal\"}[15m])))",
           "queryType": "instant",
           "refId": "A"
@@ -555,42 +813,25 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 18,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "orange",
+                "value": 1000000
+              },
+              {
+                "color": "red",
+                "value": 10000000
+              }
+            ]
           },
-          "mappings": [],
-          "unit": "percent"
+          "unit": "Bps"
         },
         "overrides": []
       },
@@ -598,35 +839,33 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 12
+        "y": 16
       },
-      "id": 9,
+      "id": 14,
       "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
+        "displayMode": "gradient",
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
         },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "none"
-        }
+        "showUnfilled": true,
+        "sizing": "auto"
       },
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "100 * (1 - avg by (host) (rate(node_cpu_seconds_total{env=\"homelab\", mode=\"idle\"}[$__rate_interval])))",
+          "expr": "topk(10, sum by (host) (rate(node_network_receive_bytes_total{env=\"homelab\", device!~\"lo|lo0|veth.*|cali.*|flannel.*|cni.*|docker.*\"}[5m]) + rate(node_network_transmit_bytes_total{env=\"homelab\", device!~\"lo|lo0|veth.*|cali.*|flannel.*|cni.*|docker.*\"}[5m])))",
+          "instant": true,
           "legendFormat": "{{host}}",
-          "range": true,
           "refId": "A"
         }
       ],
-      "title": "CPU Busy Trend",
-      "type": "timeseries"
+      "title": "Network Traffic by Host",
+      "type": "bargauge"
     },
     {
       "datasource": {
@@ -637,9 +876,9 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 12
+        "y": 16
       },
-      "id": 10,
+      "id": 15,
       "options": {
         "dedupStrategy": "none",
         "enableLogDetails": true,
@@ -652,10 +891,6 @@
       },
       "targets": [
         {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
           "expr": "{env=\"homelab\", level=~\"err|crit|alert|emerg\"}",
           "queryType": "range",
           "refId": "A"
@@ -671,7 +906,8 @@
   "tags": [
     "homelab",
     "overview",
-    "wallboard"
+    "wallboard",
+    "rack"
   ],
   "templating": {
     "list": []
@@ -684,6 +920,6 @@
   "timezone": "browser",
   "title": "Rack Overview",
   "uid": "rack-overview",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }
