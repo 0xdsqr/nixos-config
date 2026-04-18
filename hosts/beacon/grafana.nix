@@ -5,17 +5,17 @@ let
 in
 {
   age.secrets.grafanaPassword = {
-    file = ./admin.password.age;
+    file = ./grafana.admin.password.age;
     owner = "grafana";
   };
 
   age.secrets.grafanaDbPassword = {
-    file = ./database.password.age;
+    file = ./grafana.database.password.age;
     owner = "grafana";
   };
 
   age.secrets.grafanaSecretKey = {
-    file = ./secret-key.age;
+    file = ./grafana.secret-key.age;
     owner = "grafana";
   };
 
@@ -31,11 +31,12 @@ in
       providers = [
         {
           name = "homelab";
-          folder = "Homelab";
           type = "file";
           disableDeletion = false;
+          allowUiUpdates = false;
           updateIntervalSeconds = 30;
-          options.path = ./dashboards/homelab;
+          options.path = ./grafana-dashboards;
+          options.foldersFromFilesStructure = true;
         }
       ];
     };
