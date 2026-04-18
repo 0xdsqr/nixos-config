@@ -26,6 +26,37 @@ in
   services.grafana = {
     enable = true;
     openFirewall = false;
+    provision.alerting = {
+      rules.settings = {
+        apiVersion = 1;
+        groups = [ ];
+        deleteRules = [ ];
+      };
+
+      contactPoints.settings = {
+        apiVersion = 1;
+        contactPoints = [ ];
+        deleteContactPoints = [ ];
+      };
+
+      policies.settings = {
+        apiVersion = 1;
+        policies = [ ];
+        resetPolicies = [ ];
+      };
+
+      templates.settings = {
+        apiVersion = 1;
+        templates = [ ];
+        deleteTemplates = [ ];
+      };
+
+      muteTimings.settings = {
+        apiVersion = 1;
+        muteTimes = [ ];
+        deleteMuteTimes = [ ];
+      };
+    };
 
     settings = {
       analytics.reporting_enabled = false;

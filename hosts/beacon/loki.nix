@@ -2,11 +2,9 @@ _: {
   services.grafana.provision.datasources.settings.datasources = [
     {
       name = "Loki";
-      uid = "loki";
       type = "loki";
       access = "proxy";
       url = "http://127.0.0.1:3100";
-      editable = false;
     }
   ];
 
