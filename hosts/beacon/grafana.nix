@@ -31,13 +31,12 @@ in
         apiVersion = 1;
         providers = [
           {
-            name = "homelab";
+            name = "overview";
             type = "file";
             disableDeletion = false;
             allowUiUpdates = false;
             updateIntervalSeconds = 30;
-            options.path = ./grafana-dashboards;
-            options.foldersFromFilesStructure = true;
+            options.path = ./grafana-dashboards/overview;
           }
         ];
       };

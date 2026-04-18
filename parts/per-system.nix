@@ -46,6 +46,7 @@
       devShells.default = pkgs.mkShellNoCC {
         packages = with pkgs; [
           deadnix
+          moonshot
           nil
           nixd
           statix
@@ -53,7 +54,12 @@
         ];
       };
 
-      devShells.moonshot = pkgs.mkShellNoCC { packages = with pkgs; [ go ]; };
+      devShells.moonshot = pkgs.mkShellNoCC {
+        packages = with pkgs; [
+          go
+          moonshot
+        ];
+      };
 
       checks = {
         formatting = treefmtEval.config.build.check self;

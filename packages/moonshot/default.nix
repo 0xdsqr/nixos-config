@@ -20,7 +20,7 @@ buildGoModule {
   ldflags = [ "-X github.com/0xdsqr/moonshot/internal/version.Value=${version}" ];
 
   # Pin the Go module dependency graph so builds stay fully offline.
-  vendorHash = "sha256-ad//bCpgy4DfL35U6voHPpwNE93YTMdJoyI2+Vpn1mU=";
+  vendorHash = "sha256-VJRsp48Btr1dJzf3RRKh+yIvm8G0xjGtJGTpwxYzmwY=";
 
   doCheck = true;
 
