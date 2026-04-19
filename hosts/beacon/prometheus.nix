@@ -40,7 +40,7 @@ _: {
         job_name = "postgres-khaos";
         static_configs = [
           {
-            targets = [ "10.10.30.40:9187" ];
+            targets = [ "10.10.30.107:9187" ];
             labels = {
               role = "khaos";
               kind = "postgres";
