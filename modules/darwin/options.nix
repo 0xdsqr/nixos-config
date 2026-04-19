@@ -22,7 +22,7 @@ in
 
         writeUrl = mkOption {
           type = types.str;
-          default = "http://192.168.50.70:3100/loki/api/v1/push";
+          default = "http://10.10.30.102:3100/loki/api/v1/push";
           description = "Loki push endpoint on beacon";
         };
       };

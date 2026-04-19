@@ -21,10 +21,10 @@ in
 
     alloy = {
       enable = true;
-      remoteWriteUrl = "http://192.168.50.70:9090/api/v1/write";
+      remoteWriteUrl = "http://10.10.30.102:9090/api/v1/write";
       loki = {
         enable = true;
-        writeUrl = "http://192.168.50.70:3100/loki/api/v1/push";
+        writeUrl = "http://10.10.30.102:3100/loki/api/v1/push";
       };
     };
   };

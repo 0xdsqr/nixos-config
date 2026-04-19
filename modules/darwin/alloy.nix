@@ -61,11 +61,48 @@ let
         }
       }
 
+      // Simple macOS host logging baseline:
+      // - /var/log/system.log for host-level system events
+      // - the Alloy daemon log for agent troubleshooting
+      loki.process "system_log" {
+        forward_to = [loki.write.beacon.receiver]
+
+        stage.regex {
+          expression = "^[A-Z][a-z]{2} +\\d{1,2} \\d{2}:\\d{2}:\\d{2} \\S+ (?P<unit>[^\\[]+?)(?:\\[(?P<pid>\\d+)\\])?: (?P<message>.*)$"
+        }
+
+        stage.labels {
+          values = {
+            unit = ""
+          }
+        }
+      }
+
+      loki.source.file "system_log" {
+        targets = [
+          {
+            __path__   = "/var/log/system.log",
+            "job"      = "system-log",
+            "instance" = "${cfg.instance}",
+            "host"     = "${cfg.instance}",
+            "role"     = "mac-mini",
+            "env"      = "homelab",
+            "os"       = "macos",
+          },
+        ]
+        forward_to = [loki.process.system_log.receiver]
+
+        file_match {
+          enabled = true
+        }
+      }
+
       loki.source.file "alloy_log" {
         targets = [
           {
             __path__   = "/var/log/grafana-alloy/alloy.log",
             "job"      = "grafana-alloy",
+            "unit"     = "grafana-alloy",
             "instance" = "${cfg.instance}",
             "host"     = "${cfg.instance}",
             "role"     = "mac-mini",

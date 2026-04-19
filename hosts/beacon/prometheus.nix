@@ -49,6 +49,36 @@ _: {
           }
         ];
       }
+      {
+        job_name = "opnsense-node-exporter";
+        static_configs = [
+          {
+            targets = [ "10.10.10.1:9100" ];
+            labels = {
+              host = "opnsense";
+              role = "firewall";
+              vlan = "mgmt";
+              kind = "node-exporter";
+              env = "homelab";
+            };
+          }
+        ];
+      }
+      {
+        job_name = "opnsense-telegraf";
+        static_configs = [
+          {
+            targets = [ "10.10.10.1:9273" ];
+            labels = {
+              host = "opnsense";
+              role = "firewall";
+              vlan = "mgmt";
+              kind = "telegraf";
+              env = "homelab";
+            };
+          }
+        ];
+      }
     ];
   };
 }
