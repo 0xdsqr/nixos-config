@@ -79,6 +79,41 @@ _: {
           }
         ];
       }
+      {
+        job_name = "proxmox-api";
+        static_configs = [
+          {
+            targets = [ "10.10.10.109" ];
+            labels = {
+              host = "pve";
+              role = "hypervisor";
+              vlan = "mgmt";
+              kind = "proxmox-api";
+              env = "homelab";
+            };
+          }
+        ];
+        metrics_path = "/pve";
+        params = {
+          module = [ "default" ];
+          cluster = [ "1" ];
+          node = [ "1" ];
+        };
+        relabel_configs = [
+          {
+            source_labels = [ "__address__" ];
+            target_label = "__param_target";
+          }
+          {
+            source_labels = [ "__param_target" ];
+            target_label = "instance";
+          }
+          {
+            target_label = "__address__";
+            replacement = "10.10.10.109:9221";
+          }
+        ];
+      }
     ];
   };
 }
