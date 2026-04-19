@@ -48,7 +48,7 @@ in
 
       database = {
         type = "postgres";
-        host = "192.168.50.71:5432";
+        host = "10.10.30.40:5432";
         name = "grafana";
         user = "grafana";
         password = "$__file{${config.age.secrets.grafanaDbPassword.path}}";

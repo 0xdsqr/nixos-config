@@ -64,10 +64,10 @@ in
             syslog_format          = "rfc5424"
             use_incoming_timestamp = true
             labels = {
-              job    = "opnsense-syslog"
-              env    = "homelab"
-              source = "opnsense"
-              role   = "firewall"
+              job    = "opnsense-syslog",
+              env    = "homelab",
+              source = "opnsense",
+              role   = "firewall",
             }
           }
 
