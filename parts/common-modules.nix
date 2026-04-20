@@ -9,6 +9,7 @@ let
     "agenix"
     "darwin"
     "neovim-nightly-overlay"
+    "nix-openclaw"
     "sops-nix"
   ];
 

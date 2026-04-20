@@ -14,7 +14,7 @@ func Version() click.Command[Root] {
 		Description: "print the CLI version",
 		Usage:       "moonshot version",
 		Run: func(ctx context.Context, env click.Env[Root], args []string, pass []string) error {
-			_, err := fmt.Fprintln(env.Stdout, version.Get())
+			_, err := fmt.Fprintln(env.Stdout, version.Value)
 			return err
 		},
 	}

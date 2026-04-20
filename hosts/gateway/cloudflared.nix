@@ -40,7 +40,7 @@
           };
 
           "vault.dsqr.dev" = {
-            service = "http://192.168.50.71:8200";
+            service = "http://10.10.30.107:8200";
           };
 
           "grafana.dsqr.dev" = {
@@ -51,13 +51,13 @@
           };
 
           "rustfs.dsqr.dev" = {
-            service = "http://192.168.50.71:9001";
+            service = "http://10.10.30.107:9001";
           };
           "s3.dsqr.dev" = {
-            service = "http://192.168.50.71:9000";
+            service = "http://10.10.30.107:9000";
           };
           "cdn.dsqr.dev" = {
-            service = "http://192.168.50.71:9000";
+            service = "http://10.10.30.107:9000";
           };
 
           "tastingswithtay.com" = {
