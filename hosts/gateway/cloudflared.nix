@@ -44,10 +44,10 @@
           };
 
           "grafana.dsqr.dev" = {
-            service = "http://192.168.50.70:8000";
+            service = "http://10.10.30.102:8000";
           };
           "prometheus.dsqr.dev" = {
-            service = "http://192.168.50.70:9090";
+            service = "http://10.10.30.102:9090";
           };
 
           "rustfs.dsqr.dev" = {

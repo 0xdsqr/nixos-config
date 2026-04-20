@@ -26,19 +26,21 @@ in
   services.grafana = {
     enable = true;
     openFirewall = false;
-    provision.dashboards.settings = {
-      apiVersion = 1;
-      providers = [
-        {
-          name = "homelab";
-          type = "file";
-          disableDeletion = false;
-          allowUiUpdates = false;
-          updateIntervalSeconds = 30;
-          options.path = ./grafana-dashboards;
-          options.foldersFromFilesStructure = true;
-        }
-      ];
+    provision = {
+      dashboards.settings = {
+        apiVersion = 1;
+        providers = [
+          {
+            name = "beacon";
+            type = "file";
+            disableDeletion = false;
+            allowUiUpdates = false;
+            updateIntervalSeconds = 30;
+            options.path = ./grafana-dashboards;
+            options.foldersFromFilesStructure = true;
+          }
+        ];
+      };
     };
 
     settings = {
@@ -46,7 +48,7 @@ in
 
       database = {
         type = "postgres";
-        host = "192.168.50.71:5432";
+        host = "10.10.30.107:5432";
         name = "grafana";
         user = "grafana";
         password = "$__file{${config.age.secrets.grafanaDbPassword.path}}";

@@ -6,7 +6,6 @@ _: {
       type = "loki";
       access = "proxy";
       url = "http://127.0.0.1:3100";
-      editable = false;
     }
   ];
 

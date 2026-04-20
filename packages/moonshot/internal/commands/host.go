@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
 
 	click "github.com/0xdsqr/go-click"
 	"github.com/0xdsqr/moonshot/internal/hostinfo"
@@ -55,20 +58,24 @@ func hostInfo() click.Command[Root] {
 func hostRebuild() click.Command[Root] {
 	return click.Command[Root]{
 		Name:        "rebuild",
-		Description: "print the rebuild command for this host",
+		Description: "run the rebuild for this host (Linux only for now)",
 		Usage:       "moonshot host rebuild",
 		Run: func(ctx context.Context, env click.Env[Root], args []string, pass []string) error {
 			if len(args) > 0 {
 				return fmt.Errorf("host rebuild does not accept arguments")
 			}
 
-			command, err := rebuildCommand(env.Root.HostInfo)
-			if err != nil {
-				return err
-			}
+			info := env.Root.HostInfo
 
-			_, err = fmt.Fprintln(env.Stdout, command)
-			return err
+			switch {
+			case info.Platform.IsDarwin:
+				_, err := fmt.Fprintln(env.Stdout, "darwin rebuild coming soon")
+				return err
+			case info.Platform.IsLinux:
+				return runLinuxRebuild(ctx, env, info)
+			default:
+				return fmt.Errorf("host rebuild is only supported on Darwin and Linux hosts")
+			}
 		},
 	}
 }
@@ -87,18 +94,54 @@ func printHostHelp(env click.Env[Root], commands []click.Command[Root]) error {
 	return nil
 }
 
-func rebuildCommand(info hostinfo.HostInfo) (string, error) {
-	hostname := info.Hostname
-	if hostname == "" {
-		return "", fmt.Errorf("host rebuild requires a hostname")
+func runLinuxRebuild(ctx context.Context, env click.Env[Root], info hostinfo.HostInfo) error {
+	flakeRef, flakeDir, err := linuxRebuildTarget(info)
+	if err != nil {
+		return err
 	}
 
-	switch {
-	case info.Platform.IsDarwin:
-		return fmt.Sprintf("darwin-rebuild switch --flake .#%s", hostname), nil
-	case info.Platform.IsLinux:
-		return fmt.Sprintf("sudo nixos-rebuild switch --flake .#%s", hostname), nil
-	default:
-		return "", fmt.Errorf("host rebuild is only supported on Darwin and Linux hosts")
+	cmd := exec.CommandContext(ctx, "sudo", "nixos-rebuild", "switch", "--flake", flakeRef)
+	cmd.Dir = flakeDir
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = env.Stdout
+	cmd.Stderr = env.Stderr
+
+	return cmd.Run()
+}
+
+func linuxRebuildTarget(info hostinfo.HostInfo) (string, string, error) {
+	hostname := info.Hostname
+	if hostname == "" {
+		return "", "", fmt.Errorf("host rebuild requires a hostname")
+	}
+
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", "", fmt.Errorf("get working directory: %w", err)
+	}
+
+	flakeDir, err := findFlakeDir(wd)
+	if err != nil {
+		return "", "", err
+	}
+
+	return fmt.Sprintf("%s#%s", flakeDir, hostname), flakeDir, nil
+}
+
+func findFlakeDir(start string) (string, error) {
+	dir := filepath.Clean(start)
+
+	for {
+		flakePath := filepath.Join(dir, "flake.nix")
+		if _, err := os.Stat(flakePath); err == nil {
+			return dir, nil
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return "", fmt.Errorf("could not find flake.nix from %s", start)
+		}
+
+		dir = parent
 	}
 }
