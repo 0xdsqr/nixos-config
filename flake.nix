@@ -76,6 +76,12 @@
       inputs.darwin.follows = "darwin";
       inputs.home-manager.follows = "home-manager";
     };
+
+    nix-openclaw = {
+      url = "github:openclaw/nix-openclaw";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
   };
 
   outputs =
