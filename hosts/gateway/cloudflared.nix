@@ -26,14 +26,14 @@
         default = "http_status:404";
         ingress = {
           "dsqr.dev" = {
-            service = "http://192.168.50.240";
+            service = "http://10.10.30.200";
             originRequest = {
               httpHostHeader = "dsqr.dev";
             };
           };
 
           "studio.dsqr.dev" = {
-            service = "http://192.168.50.240";
+            service = "http://10.10.30.200";
             originRequest = {
               httpHostHeader = "studio.dsqr.dev";
             };
@@ -61,29 +61,43 @@
           };
 
           "tastingswithtay.com" = {
-            service = "http://192.168.50.240";
+            service = "http://10.10.30.200";
             originRequest = {
               httpHostHeader = "tastingswithtay.com";
             };
           };
           "admin.tastingswithtay.com" = {
-            service = "http://192.168.50.240";
+            service = "http://10.10.30.200";
             originRequest = {
               httpHostHeader = "admin.tastingswithtay.com";
             };
           };
 
           "proxmox.dsqr.dev" = {
-            service = "https://100.125.141.48:8006";
+            service = "https://10.10.10.109:8006";
             originRequest = {
-              originServerName = "proxmox.dsqr.dev";
+              noTLSVerify = true;
             };
           };
 
           "opnsense.dsqr.dev" = {
-            service = "https://192.168.50.2";
+            service = "https://10.10.10.1";
             originRequest = {
-              originServerName = "opnsense.dsqr.dev";
+              noTLSVerify = true;
+            };
+          };
+
+          "tplink.dsqr.dev" = {
+            service = "https://10.10.10.2";
+            originRequest = {
+              noTLSVerify = true;
+            };
+          };
+
+          "r720xd-idrac.dsqr.dev" = {
+            service = "https://10.10.10.105";
+            originRequest = {
+              noTLSVerify = true;
             };
           };
         };
