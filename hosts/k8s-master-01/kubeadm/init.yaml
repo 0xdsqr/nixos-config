@@ -5,21 +5,21 @@ nodeRegistration:
   criSocket: unix:///run/containerd/containerd.sock
   kubeletExtraArgs:
     - name: node-ip
-      value: 192.168.50.75
+      value: 10.10.30.104
 localAPIEndpoint:
-  advertiseAddress: 192.168.50.75
+  advertiseAddress: 10.10.30.104
   bindPort: 6443
 ---
 apiVersion: kubeadm.k8s.io/v1beta4
 kind: ClusterConfiguration
 clusterName: homelab
 kubernetesVersion: stable
-controlPlaneEndpoint: "192.168.50.75:6443"
+controlPlaneEndpoint: "10.10.30.104:6443"
 networking:
   serviceSubnet: "10.96.0.0/12"
 apiServer:
   certSANs:
-    - "192.168.50.75"
+    - "10.10.30.104"
     - "k8s-master-01"
     - "k8s-master-01.dsqr.dev"
 controllerManager: {}
