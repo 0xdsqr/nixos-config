@@ -29,7 +29,7 @@
             service = "https://10.10.30.200";
             originRequest = {
               httpHostHeader = "dsqr.dev";
-              noTLSVerify = true;
+              originServerName = "dsqr.dev";
             };
           };
 
@@ -37,7 +37,7 @@
             service = "https://10.10.30.200";
             originRequest = {
               httpHostHeader = "studio.dsqr.dev";
-              noTLSVerify = true;
+              originServerName = "studio.dsqr.dev";
             };
           };
 
@@ -66,14 +66,14 @@
             service = "https://10.10.30.200";
             originRequest = {
               httpHostHeader = "tastingswithtay.com";
-              noTLSVerify = true;
+              originServerName = "tastingswithtay.com";
             };
           };
           "admin.tastingswithtay.com" = {
             service = "https://10.10.30.200";
             originRequest = {
               httpHostHeader = "admin.tastingswithtay.com";
-              noTLSVerify = true;
+              originServerName = "admin.tastingswithtay.com";
             };
           };
 
