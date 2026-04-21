@@ -8,7 +8,6 @@ let
     k8s-node-01
     k8s-node-02
     khaos
-    mimizuku
     ;
 in
 {
@@ -23,8 +22,6 @@ in
   "hosts/k8s-master-01/host.password.age".publicKeys = [ k8s-master-01 ] ++ admins;
   "hosts/k8s-node-01/host.password.age".publicKeys = [ k8s-node-01 ] ++ admins;
   "hosts/k8s-node-02/host.password.age".publicKeys = [ k8s-node-02 ] ++ admins;
-  "hosts/mimizuku/host.password.age".publicKeys = [ mimizuku ] ++ admins;
-  "hosts/mimizuku/openclaw/openclaw.env.age".publicKeys = [ mimizuku ] ++ admins;
 
   "hosts/khaos/host.password.age".publicKeys = [ khaos ] ++ admins;
   "hosts/khaos/redis.password.age".publicKeys = [ khaos ] ++ admins;

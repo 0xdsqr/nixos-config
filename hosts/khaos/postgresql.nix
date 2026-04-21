@@ -1,6 +1,7 @@
 _: {
   dsqr.nixos.postgresql.enable = true;
-  boot.kernel.sysctl."vm.nr_hugepages" = 1024;
+  # reserve 4 GiB of huge pages (2048 * 2 MiB) for postgres shared memory
+  boot.kernel.sysctl."vm.nr_hugepages" = 2048;
 
   dsqr.nixos.postgresql.ensure = [
     "grafana"
