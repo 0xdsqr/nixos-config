@@ -2,6 +2,4 @@
 let
   inherit (config.dsqr.darwin) devbox;
 in
-lib.mkIf devbox.enable {
-  homebrew.casks = [ "zed" ];
-}
+lib.mkIf devbox.enable { homebrew.casks = [ "zed" ]; }

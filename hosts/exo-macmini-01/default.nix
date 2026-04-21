@@ -2,7 +2,7 @@
 {
   imports = dtil.modules.collectNix {
     dir = ./.;
-    ignoredNames = [ "meta.nix" ];
+    ignoredFiles = [ ./meta.nix ];
   };
 
   system.stateVersion = 5;

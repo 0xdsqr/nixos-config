@@ -9,15 +9,16 @@ in
     {
       dir,
       ignoredNames ? [ ],
+      ignoredFiles ? [ ],
     }:
     let
-      defaultIgnoredNames = [ "default.nix" ];
+      defaultIgnoredFiles = [ (dir + "/default.nix") ];
     in
     filter (
       path:
       let
         name = builtins.baseNameOf path;
       in
-      hasSuffix ".nix" path && !(elem name (defaultIgnoredNames ++ ignoredNames))
+      hasSuffix ".nix" path && !(elem name ignoredNames) && !(elem path (defaultIgnoredFiles ++ ignoredFiles))
     ) (listFilesRecursive dir);
 }

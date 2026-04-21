@@ -58,7 +58,10 @@ let
       modules = [
         module
         (mkRemoteBuilderModule name)
-      ] ++ modulesCommon ++ modulesNixos ++ inputModulesNixos;
+      ]
+      ++ modulesCommon
+      ++ modulesNixos
+      ++ inputModulesNixos;
     };
 
   mkDarwinConfiguration =
@@ -73,7 +76,10 @@ let
       modules = [
         module
         (mkRemoteBuilderModule name)
-      ] ++ modulesCommon ++ modulesDarwin ++ inputModulesDarwin;
+      ]
+      ++ modulesCommon
+      ++ modulesDarwin
+      ++ inputModulesDarwin;
     };
 
   hostNames = builtins.attrNames (builtins.readDir ./../hosts);

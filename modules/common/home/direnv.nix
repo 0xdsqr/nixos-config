@@ -1,4 +1,5 @@
-{ pkgs, ... }: {
+{ pkgs, ... }:
+{
   programs.direnv = {
     enable = true;
     enableNushellIntegration = pkgs.stdenv.isLinux;
