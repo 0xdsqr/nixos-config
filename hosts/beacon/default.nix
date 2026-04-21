@@ -28,8 +28,40 @@ in
         writeUrl = "http://127.0.0.1:3100/loki/api/v1/push";
       };
       extraConfig = ''
-        loki.relabel "opnsense_syslog" {
+        loki.process "opnsense_syslog" {
           forward_to = [loki.write.beacon.receiver]
+
+          stage.static_labels {
+            values = {
+              service_name = "opnsense"
+            }
+          }
+
+          stage.match {
+            selector = "{job=\"opnsense-syslog\", app=\"filterlog\"}"
+
+            stage.regex {
+              expression = "^[0-9]+,(?:[^,]*,){4}(?P<interface>[^,]+),(?P<match_reason>[^,]+),(?P<action>pass|block),(?P<direction>in|out),.*$"
+            }
+
+            stage.labels {
+              values = {
+                action    = ""
+                direction = ""
+              }
+            }
+
+            stage.structured_metadata {
+              values = {
+                interface    = ""
+                match_reason = ""
+              }
+            }
+          }
+        }
+
+        loki.relabel "opnsense_syslog" {
+          forward_to = [loki.process.opnsense_syslog.receiver]
 
           rule {
             source_labels = ["__syslog_connection_ip_address"]

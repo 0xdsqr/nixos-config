@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ config, pkgs, ... }:
 let
   tunnelId = "9c851b2c-8644-40a5-8cf4-ae7f63f4a20c";
 in
@@ -23,8 +23,14 @@ in
 
   systemd.services.cloudflared-managed-tunnel = {
     description = "Cloudflare managed tunnel (${tunnelId})";
-    after = [ "network.target" "network-online.target" ];
-    wants = [ "network.target" "network-online.target" ];
+    after = [
+      "network.target"
+      "network-online.target"
+    ];
+    wants = [
+      "network.target"
+      "network-online.target"
+    ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       User = "cloudflared";
