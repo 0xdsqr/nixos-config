@@ -96,7 +96,7 @@ in
 
           stage.labels {
             values = {
-              dest_host = ""
+              dest_host = "",
             }
           }
         }
@@ -115,7 +115,7 @@ in
 
           stage.labels {
             values = {
-              origin_host = ""
+              origin_host = "",
             }
           }
         }
