@@ -2,6 +2,7 @@
   config,
   inputs,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -32,19 +33,6 @@ in
       ".openclaw/workspace-vanalia/SOUL.md".source = ./documents/vanalia/SOUL.md;
       ".openclaw/workspace-vanalia/TOOLS.md".source = ./documents/vanalia/TOOLS.md;
     };
-
-    home.activation.openclawSharedAuth = lib.hm.dag.entryAfter [ "openclawDirs" ] ''
-      set -euo pipefail
-
-      src="$HOME/.openclaw/agents/noctua/agent/auth-profiles.json"
-      dstDir="$HOME/.openclaw/agents/vanalia/agent"
-      dst="$dstDir/auth-profiles.json"
-
-      run --quiet mkdir -p "$dstDir"
-      if [ -f "$src" ]; then
-        run --quiet ln -sfn "$src" "$dst"
-      fi
-    '';
 
     programs.openclaw = {
       enable = true;
@@ -177,7 +165,23 @@ in
       };
     };
 
-    systemd.user.services.openclaw-gateway.Service.EnvironmentFile = [ config.age.secrets.openclawEnv.path ];
+    systemd.user.services.openclaw-gateway.Service = {
+      EnvironmentFile = [ config.age.secrets.openclawEnv.path ];
+      ExecStartPre = [
+        "${pkgs.writeShellScript "openclaw-shared-auth-prestart" ''
+          set -euo pipefail
+
+          src="$HOME/.openclaw/agents/noctua/agent/auth-profiles.json"
+          dstDir="$HOME/.openclaw/agents/vanalia/agent"
+          dst="$dstDir/auth-profiles.json"
+
+          mkdir -p "$dstDir"
+          if [ -f "$src" ]; then
+            ln -sfn "$src" "$dst"
+          fi
+        ''}"
+      ];
+    };
   };
 
   warnings = lib.optionals (!secretsReady) [
