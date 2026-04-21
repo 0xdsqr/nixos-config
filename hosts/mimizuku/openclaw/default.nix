@@ -174,9 +174,9 @@ in
           dst_dir="/home/dsqr/.openclaw/agents/vanalia/agent"
           dst="$dst_dir/auth-profiles.json"
 
-          mkdir -p "$dst_dir"
+          ${pkgs.coreutils}/bin/mkdir -p "$dst_dir"
           if [ -f "$src" ]; then
-            ln -sfn "$src" "$dst"
+            ${pkgs.coreutils}/bin/ln -sfn "$src" "$dst"
           fi
         ''}"
       ];
