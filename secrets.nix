@@ -24,8 +24,7 @@ in
   "hosts/k8s-node-01/host.password.age".publicKeys = [ k8s-node-01 ] ++ admins;
   "hosts/k8s-node-02/host.password.age".publicKeys = [ k8s-node-02 ] ++ admins;
   "hosts/mimizuku/host.password.age".publicKeys = [ mimizuku ] ++ admins;
-  "hosts/mimizuku/openclaw/gateway.auth-token.age".publicKeys = [ mimizuku ] ++ admins;
-  "hosts/mimizuku/openclaw/openai.api-key.age".publicKeys = [ mimizuku ] ++ admins;
+  "hosts/mimizuku/openclaw/openclaw.env.age".publicKeys = [ mimizuku ] ++ admins;
 
   "hosts/khaos/host.password.age".publicKeys = [ khaos ] ++ admins;
   "hosts/khaos/redis.password.age".publicKeys = [ khaos ] ++ admins;

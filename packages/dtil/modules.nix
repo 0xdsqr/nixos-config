@@ -11,14 +11,11 @@ in
       ignoredNames ? [ ],
       ignoredFiles ? [ ],
     }:
-    let
-      defaultIgnoredFiles = [ (dir + "/default.nix") ];
-    in
     filter (
       path:
       let
         name = builtins.baseNameOf path;
       in
-      hasSuffix ".nix" path && !(elem name ignoredNames) && !(elem path (defaultIgnoredFiles ++ ignoredFiles))
+      hasSuffix ".nix" path && !(elem name ignoredNames) && !(elem path ignoredFiles)
     ) (listFilesRecursive dir);
 }

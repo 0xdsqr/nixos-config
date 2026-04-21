@@ -1,15 +1,8 @@
 { config, nix-openclaw, ... }:
 {
-  age.secrets.openclawGatewayAuthToken = {
-    file = ./gateway.auth-token.age;
-    path = "/run/agenix/openclaw-gateway-auth-token";
-    owner = "dsqr";
-    mode = "0400";
-  };
-
-  age.secrets.openclawOpenAIApiKey = {
-    file = ./openai.api-key.age;
-    path = "/run/agenix/openclaw-openai-api-key";
+  age.secrets.openclawEnv = {
+    file = ./openclaw.env.age;
+    path = "/run/agenix/openclaw-env";
     owner = "dsqr";
     mode = "0400";
   };
@@ -17,48 +10,26 @@
   home-manager.users.dsqr = {
     imports = [ nix-openclaw.homeManagerModules.openclaw ];
 
+    systemd.user.services.openclaw-gateway.Service.EnvironmentFile = [
+      config.age.secrets.openclawEnv.path
+    ];
+
     programs.openclaw = {
-      enable = true;
+      instances.default = {
+        enable = true;
+        stateDir = "~/.openclaw";
+        workspaceDir = "~/.openclaw/workspace";
 
-      config = {
-        secrets = {
-          providers = {
-            default = {
-              source = "env";
-            };
-            gatewayauth = {
-              source = "file";
-              inherit (config.age.secrets.openclawGatewayAuthToken) path;
-              mode = "singleValue";
-            };
-            openaiapikey = {
-              source = "file";
-              inherit (config.age.secrets.openclawOpenAIApiKey) path;
-              mode = "singleValue";
-            };
-          };
-          defaults = {
-            env = "default";
-            file = "gatewayauth";
-          };
-        };
+        config = {
+          agents.defaults.model.primary = "openai-codex/gpt-5.4";
 
-        agents.defaults.model.primary = "openai-codex/gpt-5.4";
+          models.providers.openai.apiKey = "\${OPENAI_API_KEY}";
 
-        models.providers.openai.apiKey = {
-          source = "file";
-          provider = "openaiapikey";
-          id = "value";
-        };
-
-        gateway = {
-          mode = "local";
-          auth = {
-            mode = "token";
-            token = {
-              source = "file";
-              provider = "gatewayauth";
-              id = "value";
+          gateway = {
+            mode = "local";
+            auth = {
+              mode = "token";
+              token = "\${OPENCLAW_GATEWAY_TOKEN}";
             };
           };
         };
