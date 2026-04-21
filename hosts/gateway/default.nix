@@ -38,13 +38,5 @@ in
     };
   };
 
-  networking = {
-    hostName = "gateway";
-    firewall = {
-      allowedTCPPorts = [ ];
-      allowedUDPPorts = [ ];
-    };
-  };
-
   system.stateVersion = "25.05";
 }

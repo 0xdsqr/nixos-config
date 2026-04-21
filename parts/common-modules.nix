@@ -2,6 +2,7 @@
 let
   nixLib = inputs.nixpkgs.lib // inputs.darwin.lib;
   keys = import ./../keys.nix;
+  inherit (self.lib) dtil;
 
   homeModuleInputNames = [ "sops-nix" ];
 
@@ -17,7 +18,7 @@ let
   inputOverlays = builtins.map (name: inputs.${name}.overlays.default) overlayInputNames;
 
   specialArgs = inputs // {
-    inherit inputs keys;
+    inherit dtil inputs keys;
   };
 in
 {

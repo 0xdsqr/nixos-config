@@ -2,6 +2,7 @@
 let
   nixLib = inputs.nixpkgs.lib // inputs.darwin.lib;
   keys = import ./../keys.nix;
+  inherit (self.lib) dtil;
 
   modulesNixos = nixLib.attrValues self.nixosModules;
   modulesDarwin = nixLib.attrValues self.darwinModules;
@@ -19,7 +20,7 @@ let
   ];
 
   specialArgs = inputs // {
-    inherit inputs keys;
+    inherit dtil inputs keys;
   };
 
   inputModulesNixos = builtins.map (name: inputs.${name}.nixosModules.default) nixosModuleInputNames;

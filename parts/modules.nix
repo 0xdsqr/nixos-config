@@ -20,7 +20,9 @@ let
 in
 {
   flake = {
-    lib = nixLib;
+    lib = nixLib // {
+      dtil = import ./../packages/util { lib = nixLib; };
+    };
     inherit homeModules nixosModules darwinModules;
   };
 }
