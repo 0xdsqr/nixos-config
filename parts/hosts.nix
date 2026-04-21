@@ -113,6 +113,7 @@ let
           self.hostDefinitions.${name}
           // self.nixosConfigurations.${name}.config.dsqr.nixos.builder
           // {
+            inherit name;
             enable = self.nixosConfigurations.${name}.config.dsqr.nixos.builder.enable;
           };
       };
@@ -123,6 +124,7 @@ let
           self.hostDefinitions.${name}
           // self.darwinConfigurations.${name}.config.dsqr.darwin.builder
           // {
+            inherit name;
             enable = self.darwinConfigurations.${name}.config.dsqr.darwin.builder.enable;
           };
       };
@@ -141,7 +143,7 @@ let
         |> builtins.attrValues
         |> builtins.filter (builder: builder.enable && builder.sshHost != null)
         |> builtins.map (builder: {
-          hostName = builder.sshHost;
+          hostName = builder.name;
           sshUser = builder.sshUser;
           protocol = "ssh-ng";
           maxJobs = builder.maxJobs;

@@ -13,8 +13,8 @@ in
 
     age.secrets.redisPassword = {
       file = cfg.passwordAgeFile;
-      owner = "redis";
-      group = "redis";
+      owner = "redis-main";
+      group = "redis-main";
       mode = "0400";
     };
 
