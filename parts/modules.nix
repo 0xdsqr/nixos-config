@@ -21,7 +21,7 @@ in
 {
   flake = {
     lib = nixLib // {
-      dtil = import ./../packages/util { lib = nixLib; };
+      dtil = import ./../packages/dtil { lib = nixLib; };
     };
     inherit homeModules nixosModules darwinModules;
   };
