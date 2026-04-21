@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/0xdsqr/moonshot/internal/app"
+	"github.com/0xdsqr/dick/internal/app"
 )
 
 func main() {

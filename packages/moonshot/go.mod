@@ -1,5 +1,0 @@
-module github.com/0xdsqr/moonshot
-
-go 1.26.1
-
-require github.com/0xdsqr/go-click v0.0.0-20260417220548-c73a38101987

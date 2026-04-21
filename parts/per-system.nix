@@ -9,7 +9,7 @@
   perSystem =
     { config, pkgs, ... }:
     let
-      moonshot = pkgs.callPackage ../packages/moonshot { };
+      dick = pkgs.callPackage ../packages/dick { };
       treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs {
         projectRootFile = "flake.nix";
 
@@ -30,23 +30,23 @@
       formatter = treefmtEval.config.build.wrapper;
 
       packages = {
-        inherit moonshot;
-        default = moonshot;
+        inherit dick;
+        default = dick;
       };
 
       apps = {
-        moonshot = {
+        dick = {
           type = "app";
-          program = "${moonshot}/bin/moonshot";
+          program = "${dick}/bin/dick";
         };
 
-        default = config.apps.moonshot;
+        default = config.apps.dick;
       };
 
       devShells.default = pkgs.mkShellNoCC {
         packages = with pkgs; [
           deadnix
-          moonshot
+          dick
           nil
           nixd
           statix
@@ -54,10 +54,10 @@
         ];
       };
 
-      devShells.moonshot = pkgs.mkShellNoCC {
+      devShells.dick = pkgs.mkShellNoCC {
         packages = with pkgs; [
           go
-          moonshot
+          dick
         ];
       };
 

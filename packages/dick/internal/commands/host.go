@@ -10,26 +10,17 @@ import (
 	"path/filepath"
 
 	click "github.com/0xdsqr/go-click"
-	"github.com/0xdsqr/moonshot/internal/hostinfo"
+	"github.com/0xdsqr/dick/internal/hostinfo"
 )
 
 func Host() click.Command[Root] {
-	subcommands := []click.Command[Root]{
-		hostInfo(),
-		hostRebuild(),
-	}
-
 	return click.Command[Root]{
 		Name:        "host",
 		Description: "inspect host information",
-		Usage:       "moonshot host",
-		Commands:    subcommands,
-		Run: func(ctx context.Context, env click.Env[Root], args []string, pass []string) error {
-			if len(args) > 0 {
-				return fmt.Errorf("host does not accept arguments")
-			}
-
-			return printHostHelp(env, subcommands)
+		Usage:       "dick host",
+		Commands: []click.Command[Root]{
+			hostInfo(),
+			hostRebuild(),
 		},
 	}
 }
@@ -38,7 +29,7 @@ func hostInfo() click.Command[Root] {
 	return click.Command[Root]{
 		Name:        "info",
 		Description: "print host information as JSON",
-		Usage:       "moonshot host info",
+		Usage:       "dick host info",
 		Run: func(ctx context.Context, env click.Env[Root], args []string, pass []string) error {
 			if len(args) > 0 {
 				return fmt.Errorf("host info does not accept arguments")
@@ -57,18 +48,23 @@ func hostInfo() click.Command[Root] {
 }
 
 func hostRebuild() click.Command[Root] {
+	var name string
+
 	return click.Command[Root]{
 		Name:        "rebuild",
 		Description: "run the rebuild for this host (Linux only for now)",
-		Usage:       "moonshot host rebuild [--name HOST]",
+		Usage:       "dick host rebuild [--name HOST]",
+		ConfigureFlags: func(fs *flag.FlagSet) {
+			fs.StringVar(&name, "name", "", "override the flake host name to rebuild")
+			fs.StringVar(&name, "n", "", "override the flake host name to rebuild")
+		},
 		Run: func(ctx context.Context, env click.Env[Root], args []string, pass []string) error {
-			opts, err := parseHostRebuildArgs(env, args)
-			if err != nil {
-				return err
+			if len(args) > 0 {
+				return fmt.Errorf("host rebuild does not accept positional arguments")
 			}
 
 			info := env.Root.HostInfo
-			hostname, err := resolveRebuildHostName(info, opts.Name)
+			hostname, err := resolveRebuildHostName(info, name)
 			if err != nil {
 				return err
 			}
@@ -84,42 +80,6 @@ func hostRebuild() click.Command[Root] {
 			}
 		},
 	}
-}
-
-type hostRebuildOptions struct {
-	Name string
-}
-
-func parseHostRebuildArgs(env click.Env[Root], args []string) (hostRebuildOptions, error) {
-	var opts hostRebuildOptions
-
-	fs := flag.NewFlagSet("rebuild", flag.ContinueOnError)
-	fs.SetOutput(env.Stderr)
-	fs.StringVar(&opts.Name, "name", "", "override the flake host name to rebuild")
-	fs.StringVar(&opts.Name, "n", "", "override the flake host name to rebuild")
-
-	if err := fs.Parse(args); err != nil {
-		return hostRebuildOptions{}, err
-	}
-	if len(fs.Args()) > 0 {
-		return hostRebuildOptions{}, fmt.Errorf("host rebuild does not accept positional arguments")
-	}
-
-	return opts, nil
-}
-
-func printHostHelp(env click.Env[Root], commands []click.Command[Root]) error {
-	if _, err := fmt.Fprintln(env.Stdout, "Available commands:"); err != nil {
-		return err
-	}
-
-	for _, cmd := range commands {
-		if _, err := fmt.Fprintf(env.Stdout, "  %s\t%s\n", cmd.Name, cmd.Description); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func runLinuxRebuild(ctx context.Context, env click.Env[Root], hostname string) error {
