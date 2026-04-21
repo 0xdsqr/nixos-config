@@ -1,8 +1,6 @@
 { dtil, ... }:
 {
-  imports = dtil.modules.collectLocalNixModules {
-    dir = ./.;
-  };
+  imports = dtil.modules.collectLocalNixModules { dir = ./.; };
 
   system.stateVersion = 5;
   ids.gids.nixbld = 350;

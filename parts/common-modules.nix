@@ -6,13 +6,11 @@ let
   inherit (nixLib.strings) hasSuffix removeSuffix;
 
   commonFiles =
-    builtins.readDir ./../modules/common
-    |> filterAttrs (name: kind: kind == "regular" && hasSuffix ".nix" name);
+    builtins.readDir ./../modules/common |> filterAttrs (name: kind: kind == "regular" && hasSuffix ".nix" name);
 
   importedCommonModules = builtins.listToAttrs (
     builtins.map (
-      name:
-      nameValuePair (removeSuffix ".nix" name) (import (./../modules/common + "/${name}") { inherit self inputs; })
+      name: nameValuePair (removeSuffix ".nix" name) (import (./../modules/common + "/${name}") { inherit self inputs; })
     ) (builtins.attrNames commonFiles)
   );
 in

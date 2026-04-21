@@ -39,18 +39,14 @@ let
         ];
       };
 
-      description = mkOption {
-        type = str;
-      };
+      description = mkOption { type = str; };
 
       sshHost = mkOption {
         type = nullOr str;
         default = null;
       };
 
-      system = mkOption {
-        type = str;
-      };
+      system = mkOption { type = str; };
     };
   };
 
@@ -82,12 +78,13 @@ let
     in
     {
       inherit name path;
-      meta = (evalModules {
-        modules = [
-          hostMetaModule
-          rawMeta
-        ];
-      }).config;
+      meta =
+        (evalModules {
+          modules = [
+            hostMetaModule
+            rawMeta
+          ];
+        }).config;
     }
   ) hostNames;
 
@@ -106,7 +103,7 @@ in
       builtins.map (host: {
         inherit (host) name;
         value = host.meta // {
-          path = host.path;
+          inherit (host) path;
         };
       }) hostDefinitions
     );

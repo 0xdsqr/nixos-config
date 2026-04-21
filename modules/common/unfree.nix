@@ -1,9 +1,5 @@
-{ ... }:
-{
-  config,
-  lib,
-  ...
-}:
+_:
+{ config, lib, ... }:
 let
   inherit (lib.lists) elem;
   inherit (lib.options) mkOption;
@@ -24,6 +20,5 @@ in
     ];
   };
 
-  config.nixpkgs.config.allowUnfreePredicate =
-    package: elem (getName package) config.allowedUnfreePackageNames;
+  config.nixpkgs.config.allowUnfreePredicate = package: elem (getName package) config.allowedUnfreePackageNames;
 }

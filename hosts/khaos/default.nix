@@ -1,8 +1,6 @@
 { dtil, pkgs, ... }:
 {
-  imports = dtil.modules.collectLocalNixModules {
-    dir = ./.;
-  };
+  imports = dtil.modules.collectLocalNixModules { dir = ./.; };
 
   services.restic.passwordAgeFile = ./restic.password.age;
 

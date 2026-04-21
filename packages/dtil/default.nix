@@ -7,4 +7,6 @@ let
 
   nixFiles = filter (file: hasSuffix ".nix" file && builtins.baseNameOf file != "default.nix") (listFilesRecursive ./.);
 in
-builtins.listToAttrs (map (file: nameValuePair (removeSuffix ".nix" (builtins.baseNameOf file)) (import file)) nixFiles)
+builtins.listToAttrs (
+  map (file: nameValuePair (removeSuffix ".nix" (builtins.baseNameOf file)) (import file { inherit lib; })) nixFiles
+)

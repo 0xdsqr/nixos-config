@@ -1,15 +1,12 @@
 { self, inputs, ... }:
-{
-  lib,
-  ...
-}:
+{ lib, ... }:
 let
   nixLib = inputs.nixpkgs.lib // inputs.darwin.lib;
   keys = import ./../../keys.nix;
   inputHomeModules = builtins.map (name: inputs.${name}.homeModules.default) [ "sops-nix" ];
   specialArgs = inputs // {
     inherit self inputs keys;
-    dtil = self.lib.dtil;
+    inherit (self.lib) dtil;
   };
 in
 {

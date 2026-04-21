@@ -1,11 +1,12 @@
-{ self, inputs, ... }:
-{
-  lib,
-  pkgs,
-  ...
-}:
+{ inputs, ... }:
+{ lib, pkgs, ... }:
 let
-  inherit (lib.attrsets) filterAttrs mapAttrs mapAttrsToList optionalAttrs;
+  inherit (lib.attrsets)
+    filterAttrs
+    mapAttrs
+    mapAttrsToList
+    optionalAttrs
+    ;
   inherit (lib.strings) concatStringsSep;
   inherit (lib.trivial) id;
   inherit (lib.types) isType;
@@ -20,44 +21,42 @@ in
     nix-output-monitor
   ];
 
-  nix =
-    {
-      channel.enable = false;
+  nix = {
+    channel.enable = false;
 
-      settings.experimental-features = [
-        "flakes"
-        "nix-command"
-        "pipe-operators"
-      ];
+    settings.experimental-features = [
+      "flakes"
+      "nix-command"
+      "pipe-operators"
+    ];
 
-      registry = mapAttrs (_: flake: { inherit flake; }) (registryMap // { default = inputs.nixpkgs; });
+    registry = mapAttrs (_: flake: { inherit flake; }) (registryMap // { default = inputs.nixpkgs; });
 
-      nixPath =
-        registryMap
-        |> mapAttrsToList (name: value: "${name}=${value}")
-        |> (if pkgs.stdenv.hostPlatform.isDarwin then concatStringsSep ":" else id);
+    nixPath =
+      registryMap
+      |> mapAttrsToList (name: value: "${name}=${value}")
+      |> (if pkgs.stdenv.hostPlatform.isDarwin then concatStringsSep ":" else id);
+  }
+  // optionalAttrs managesNix {
+    gc = {
+      automatic = true;
+      options = "--delete-older-than 3d";
     }
-    // optionalAttrs managesNix {
-      gc =
+    // optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+      dates = "weekly";
+      persistent = true;
+    }
+    // optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+      interval = [
         {
-          automatic = true;
-          options = "--delete-older-than 3d";
+          Hour = 3;
+          Minute = 15;
+          Weekday = 7;
         }
-        // optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
-          dates = "weekly";
-          persistent = true;
-        }
-        // optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
-          interval = [
-            {
-              Hour = 3;
-              Minute = 15;
-              Weekday = 7;
-            }
-          ];
-        };
-
-      optimise.automatic = true;
-      package = pkgs.nixVersions.latest;
+      ];
     };
+
+    optimise.automatic = true;
+    package = pkgs.nixVersions.latest;
+  };
 }
