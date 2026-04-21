@@ -20,10 +20,6 @@ in
     nix-output-monitor
   ];
 
-  system = optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
-    disableInstallerTools = true;
-  };
-
   nix =
     {
       channel.enable = false;
