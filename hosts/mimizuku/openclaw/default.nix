@@ -67,23 +67,31 @@ in
         channels.discord = {
           enabled = true;
           dmPolicy = "pairing";
+          groupPolicy = "allowlist";
+          guilds = {
+            "1465602840713101598" = {
+              requireMention = false;
+              ignoreOtherMentions = true;
+              channels = {
+                "1495956898481049672" = {
+                  enabled = true;
+                  requireMention = false;
+                  users = [ "618575437995442197" ];
+                };
+                "1465807038587076700" = {
+                  enabled = true;
+                  requireMention = false;
+                  users = [
+                    "618575437995442197"
+                    "980636531565949019"
+                  ];
+                };
+              };
+            };
+          };
 
           accounts = {
             noctua = {
-              groupPolicy = "allowlist";
-              guilds = {
-                "1465602840713101598" = {
-                  requireMention = false;
-                  ignoreOtherMentions = true;
-                  channels = {
-                    "1495956898481049672" = {
-                      enabled = true;
-                      requireMention = false;
-                      users = [ "618575437995442197" ];
-                    };
-                  };
-                };
-              };
               token = {
                 id = "TOKEN_NOCTUA";
                 provider = "default";
@@ -92,23 +100,6 @@ in
             };
 
             vanalia = {
-              groupPolicy = "allowlist";
-              guilds = {
-                "1465602840713101598" = {
-                  requireMention = false;
-                  ignoreOtherMentions = true;
-                  channels = {
-                    "1465807038587076700" = {
-                      enabled = true;
-                      requireMention = false;
-                      users = [
-                        "618575437995442197"
-                        "980636531565949019"
-                      ];
-                    };
-                  };
-                };
-              };
               token = {
                 id = "TOKEN_VANALIA";
                 provider = "default";
