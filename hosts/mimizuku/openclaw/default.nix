@@ -28,6 +28,16 @@
             apiKey = "\${OPENAI_API_KEY}";
           };
 
+          channels.discord = {
+            token = "\${DISCORD_NOCTUA_TOKEN}";
+            allowFrom = [ "618575437995442197" ];
+            groupPolicy = "allowlist";
+            guilds."1465602840713101598" = {
+              requireMention = true;
+              users = [ "618575437995442197" ];
+            };
+          };
+
           gateway = {
             mode = "local";
             auth = {
