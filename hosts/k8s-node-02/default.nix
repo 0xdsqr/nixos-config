@@ -26,10 +26,8 @@
 
     alloy = {
       enable = true;
+      loki.enable = true;
       role = "k8s-worker";
-      loki = {
-        enable = true;
-      };
     };
   };
 

@@ -28,9 +28,7 @@
 
     alloy = {
       enable = true;
-      loki = {
-        enable = true;
-      };
+      loki.enable = true;
       extraConfig = ''
         loki.process "opnsense_syslog" {
           forward_to = [loki.write.beacon.receiver]

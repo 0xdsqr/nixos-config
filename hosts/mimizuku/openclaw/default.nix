@@ -10,15 +10,13 @@
   home-manager.users.dsqr = {
     imports = [ nix-openclaw.homeManagerModules.openclaw ];
 
-    systemd.user.services.openclaw-gateway.Service.EnvironmentFile = [
-      config.age.secrets.openclawEnv.path
-    ];
+    systemd.user.services.openclaw-gateway.Service.EnvironmentFile = [ config.age.secrets.openclawEnv.path ];
 
     programs.openclaw = {
       instances.default = {
         enable = true;
-        stateDir = "~/.openclaw";
-        workspaceDir = "~/.openclaw/workspace";
+        stateDir = "/home/dsqr/.openclaw";
+        workspaceDir = "/home/dsqr/.openclaw/workspace";
 
         config = {
           agents.defaults.model.primary = "openai-codex/gpt-5.4";

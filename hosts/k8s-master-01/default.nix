@@ -26,10 +26,8 @@
 
     alloy = {
       enable = true;
+      loki.enable = true;
       role = "k8s-control-plane";
-      loki = {
-        enable = true;
-      };
       kubernetes = {
         enable = true;
 

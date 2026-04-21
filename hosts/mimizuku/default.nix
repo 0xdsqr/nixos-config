@@ -26,9 +26,7 @@
 
     alloy = {
       enable = true;
-      loki = {
-        enable = true;
-      };
+      loki.enable = true;
     };
   };
 
