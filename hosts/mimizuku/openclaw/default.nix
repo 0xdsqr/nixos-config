@@ -6,8 +6,6 @@
     mode = "0400";
   };
 
-  home-manager.backupFileExtension = "hm-backup";
-
   home-manager.users.dsqr = {
     imports = [ nix-openclaw.homeManagerModules.openclaw ];
 
