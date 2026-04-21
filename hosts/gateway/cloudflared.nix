@@ -94,7 +94,7 @@
             };
           };
 
-          "r720xd-idrac.dsqr.dev" = {
+          "r730xd-idrac.dsqr.dev" = {
             service = "https://10.10.10.105";
             originRequest = {
               noTLSVerify = true;

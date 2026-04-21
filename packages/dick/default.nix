@@ -1,13 +1,13 @@
 { buildGoModule, lib }:
 let
-  pname = "moonshot";
+  pname = "dick";
   version = "0.0.0-sandbox.0";
   src = ./.;
 
-  subPackages = [ "./cmd/moonshot" ];
+  subPackages = [ "./cmd/dick" ];
 
-  description = "Moonshot CLI";
-  mainProgram = "moonshot";
+  description = "Dick CLI";
+  mainProgram = "dick";
 in
 buildGoModule {
   inherit
@@ -17,10 +17,10 @@ buildGoModule {
     subPackages
     ;
 
-  ldflags = [ "-X github.com/0xdsqr/moonshot/internal/version.Value=${version}" ];
+  ldflags = [ "-X github.com/0xdsqr/dick/internal/version.Value=${version}" ];
 
   # Pin the Go module dependency graph so builds stay fully offline.
-  vendorHash = "sha256-VJRsp48Btr1dJzf3RRKh+yIvm8G0xjGtJGTpwxYzmwY=";
+  vendorHash = "sha256-FzPCkb9V7q6Sxr59FisavMcFOxUIpr31wIfkYW92JlU=";
 
   doCheck = true;
 

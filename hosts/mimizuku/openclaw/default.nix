@@ -18,7 +18,7 @@ in
   age.secrets = lib.mkIf secretsReady {
     openclawEnv = {
       file = openclawEnvAgeFile;
-      path = "/run/agenix/openclaw.env";
+      path = "/run/agenix/openclawEnv";
       owner = "dsqr";
       mode = "0400";
     };

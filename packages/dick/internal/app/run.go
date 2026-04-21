@@ -4,13 +4,13 @@ import (
 	"context"
 
 	click "github.com/0xdsqr/go-click"
-	"github.com/0xdsqr/moonshot/internal/commands"
-	"github.com/0xdsqr/moonshot/internal/hostinfo"
+	"github.com/0xdsqr/dick/internal/commands"
+	"github.com/0xdsqr/dick/internal/hostinfo"
 )
 
 func Run(args []string) error {
 	app := click.App[commands.Root]{
-		Name: "moonshot",
+		Name: "dick",
 		ConfigureRoot: func(root *commands.Root) {
 			root.HostInfo = hostinfo.Get()
 		},
