@@ -4,7 +4,7 @@ _: {
 
   dsqr.nixos.postgresql.ensure = [
     "grafana"
-    "fidira"
+    "fidara"
     "tastingswithtay"
     "dsqr-dotdev"
     "tcg-price-guide"

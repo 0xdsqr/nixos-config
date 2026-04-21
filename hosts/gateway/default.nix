@@ -17,7 +17,10 @@ in
 
     # this host runs as a proxmox vm; enable the shared guest baseline
     # for grub boot, qemu guest agent, cloud-init disablement, and dhcp defaults.
-    proxmox.enable = true;
+    proxmox = {
+      enable = true;
+      hostName = "gateway";
+    };
 
     # this uses our custom module because the tunnel is remotely managed
     # and token-based rather than a local credentials-file setup.

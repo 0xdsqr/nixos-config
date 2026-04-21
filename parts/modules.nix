@@ -14,7 +14,7 @@ let
       )
     );
 
-  homeModules = importModules ./../modules/home;
+  homeModules = importModules ./../modules/common/home;
   nixosModules = importModules ./../modules/nixos;
   darwinModules = importModules ./../modules/darwin;
 in

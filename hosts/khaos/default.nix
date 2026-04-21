@@ -19,7 +19,10 @@ in
 
     # this host runs as a proxmox vm; enable the shared guest baseline
     # for grub boot, qemu guest agent, cloud-init disablement, and dhcp defaults.
-    proxmox.enable = true;
+    proxmox = {
+      enable = true;
+      hostName = "khaos";
+    };
 
     alloy = {
       enable = true;
@@ -31,15 +34,12 @@ in
     };
   };
 
-  networking = {
-    hostName = "khaos";
-    firewall = {
-      allowedTCPPorts = [
-        5432
-        9187
-      ];
-      allowedUDPPorts = [ ];
-    };
+  networking.firewall = {
+    allowedTCPPorts = [
+      5432
+      9187
+    ];
+    allowedUDPPorts = [ ];
   };
 
   environment.systemPackages = [ pkgs.ghostty.terminfo ];

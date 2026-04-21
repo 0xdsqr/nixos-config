@@ -1,40 +1,21 @@
 { inputs, self, ... }:
 let
   nixLib = inputs.nixpkgs.lib // inputs.darwin.lib;
-  keys = import ./../keys.nix;
-  inherit (self.lib) dtil;
+  inherit (nixLib.attrsets) nameValuePair;
+  inherit (nixLib.attrsets) filterAttrs;
+  inherit (nixLib.strings) hasSuffix removeSuffix;
 
-  homeModuleInputNames = [ "sops-nix" ];
+  commonFiles =
+    builtins.readDir ./../modules/common
+    |> filterAttrs (name: kind: kind == "regular" && hasSuffix ".nix" name);
 
-  overlayInputNames = [
-    "agenix"
-    "darwin"
-    "neovim-nightly-overlay"
-    "nix-openclaw"
-    "sops-nix"
-  ];
-
-  inputHomeModules = builtins.map (name: inputs.${name}.homeModules.default) homeModuleInputNames;
-  inputOverlays = builtins.map (name: inputs.${name}.overlays.default) overlayInputNames;
-
-  specialArgs = inputs // {
-    inherit dtil inputs keys;
-  };
+  importedCommonModules = builtins.listToAttrs (
+    builtins.map (
+      name:
+      nameValuePair (removeSuffix ".nix" name) (import (./../modules/common + "/${name}") { inherit self inputs; })
+    ) (builtins.attrNames commonFiles)
+  );
 in
 {
-  flake.commonModules = {
-    sharedNixpkgs = {
-      nixpkgs.config.allowUnfree = true;
-      nixpkgs.overlays = inputOverlays;
-    };
-
-    sharedHomeManager = {
-      home-manager.backupFileExtension = "pre-home-manager";
-      home-manager.sharedModules = inputHomeModules ++ nixLib.attrValues self.homeModules;
-      home-manager.extraSpecialArgs = specialArgs;
-      home-manager.useGlobalPkgs = true;
-      home-manager.useUserPackages = true;
-      home-manager.users.dsqr.home.stateVersion = nixLib.mkDefault "25.11";
-    };
-  };
+  flake.commonModules = importedCommonModules;
 }

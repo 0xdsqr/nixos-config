@@ -24,6 +24,7 @@ in
         [
           { app = "${pkgs.vscode}/Applications/Visual Studio Code.app"; }
           { app = "/Applications/Ghostty.app"; }
+          { app = "/Applications/Zen.app"; }
           { app = "/Applications/Helium.app"; }
           { app = "/Applications/Tailscale.app"; }
           { app = "/Applications/Codex.app"; }

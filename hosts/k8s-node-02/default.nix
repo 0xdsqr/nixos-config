@@ -17,7 +17,10 @@ in
 
     # this host runs as a proxmox vm; enable the shared guest baseline
     # for grub boot, qemu guest agent, cloud-init disablement, and dhcp defaults.
-    proxmox.enable = true;
+    proxmox = {
+      enable = true;
+      hostName = "k8s-node-02";
+    };
 
     kubeadm.enable = true;
 
@@ -33,7 +36,6 @@ in
   };
 
   networking = {
-    hostName = "k8s-node-02";
     domain = "dsqr.dev";
   };
 

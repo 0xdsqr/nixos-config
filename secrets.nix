@@ -27,6 +27,7 @@ in
   "hosts/mimizuku/openclaw/openclaw.env.age".publicKeys = [ mimizuku ] ++ admins;
 
   "hosts/khaos/host.password.age".publicKeys = [ khaos ] ++ admins;
+  "hosts/khaos/redis.password.age".publicKeys = [ khaos ] ++ admins;
   "hosts/khaos/rustfs.access-key.age".publicKeys = [ khaos ] ++ admins;
   "hosts/khaos/rustfs.secret-key.age".publicKeys = [ khaos ] ++ admins;
 

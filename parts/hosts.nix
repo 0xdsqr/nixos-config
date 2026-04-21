@@ -3,7 +3,11 @@ let
   nixLib = inputs.nixpkgs.lib // inputs.darwin.lib;
   keys = import ./../keys.nix;
   inherit (self.lib) dtil;
+  inherit (nixLib) evalModules;
+  inherit (nixLib) mkOption;
+  inherit (nixLib.types) enum nullOr str;
 
+  modulesCommon = nixLib.attrValues self.commonModules;
   modulesNixos = nixLib.attrValues self.nixosModules;
   modulesDarwin = nixLib.attrValues self.darwinModules;
   nixosModuleInputNames = [
@@ -26,19 +30,37 @@ let
   inputModulesNixos = builtins.map (name: inputs.${name}.nixosModules.default) nixosModuleInputNames;
   inputModulesDarwin = builtins.map (name: inputs.${name}.darwinModules.default) darwinModuleInputNames;
 
+  hostMetaModule = {
+    options = {
+      class = mkOption {
+        type = enum [
+          "darwin"
+          "nixos"
+        ];
+      };
+
+      description = mkOption {
+        type = str;
+      };
+
+      sshHost = mkOption {
+        type = nullOr str;
+        default = null;
+      };
+
+      system = mkOption {
+        type = str;
+      };
+    };
+  };
+
   mkNixosConfiguration =
     system: module:
     inputs.nixpkgs.lib.nixosSystem {
       inherit system;
       inherit specialArgs;
 
-      modules = [
-        module
-        self.commonModules.sharedNixpkgs
-        self.commonModules.sharedHomeManager
-      ]
-      ++ modulesNixos
-      ++ inputModulesNixos;
+      modules = [ module ] ++ modulesCommon ++ modulesNixos ++ inputModulesNixos;
     };
 
   mkDarwinConfiguration =
@@ -47,13 +69,7 @@ let
       inherit system;
       inherit specialArgs;
 
-      modules = [
-        module
-        self.commonModules.sharedNixpkgs
-        self.commonModules.sharedHomeManager
-      ]
-      ++ modulesDarwin
-      ++ inputModulesDarwin;
+      modules = [ module ] ++ modulesCommon ++ modulesDarwin ++ inputModulesDarwin;
     };
 
   hostNames = builtins.attrNames (builtins.readDir ./../hosts);
@@ -62,10 +78,16 @@ let
     name:
     let
       path = ./../hosts + "/${name}";
+      rawMeta = import (path + "/meta.nix");
     in
     {
       inherit name path;
-      meta = import (path + "/meta.nix");
+      meta = (evalModules {
+        modules = [
+          hostMetaModule
+          rawMeta
+        ];
+      }).config;
     }
   ) hostNames;
 
@@ -80,6 +102,15 @@ let
 in
 {
   flake = {
+    hostDefinitions = builtins.listToAttrs (
+      builtins.map (host: {
+        inherit (host) name;
+        value = host.meta // {
+          path = host.path;
+        };
+      }) hostDefinitions
+    );
+
     nixosConfigurations = mkHostConfigurations "nixos" mkNixosConfiguration;
     darwinConfigurations = mkHostConfigurations "darwin" mkDarwinConfiguration;
   };

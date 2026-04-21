@@ -18,7 +18,13 @@ in
 {
   options.dsqr.nixos = {
     proxmox = {
-      enable = mkEnableOption "Enable Proxmox-based host leveraging NixOS";
+      enable = mkEnableOption "Enable the shared Proxmox guest baseline";
+
+      hostName = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Hostname to apply when this host runs as a Proxmox VM.";
+      };
     };
 
     user = {
@@ -155,6 +161,40 @@ in
       };
     };
 
+    containers = {
+      enable = mkEnableOption "Enable the shared container runtime baseline";
+
+      docker.enable = mkOption {
+        type = types.bool;
+        default = true;
+        description = "Enable Docker when the shared container runtime baseline is active.";
+      };
+
+      podman.enable = mkOption {
+        type = types.bool;
+        default = false;
+        description = "Enable Podman when the shared container runtime baseline is active.";
+      };
+
+      podman.dockerCompat = mkOption {
+        type = types.bool;
+        default = true;
+        description = "Expose the Docker-compatible Podman CLI shim when Podman is enabled.";
+      };
+
+      podman.dockerSocket.enable = mkOption {
+        type = types.bool;
+        default = true;
+        description = "Expose the Docker-compatible Podman socket when Podman is enabled.";
+      };
+
+      podman.defaultNetwork.dnsEnabled = mkOption {
+        type = types.bool;
+        default = true;
+        description = "Enable DNS in the default Podman network when Podman is enabled.";
+      };
+    };
+
     postgresql = {
       enable = mkEnableOption "Enable the shared PostgreSQL host profile";
 
@@ -164,6 +204,16 @@ in
         description = "Databases and matching users to create automatically.";
       };
 
+    };
+
+    redis = {
+      enable = mkEnableOption "Enable the shared Redis host profile";
+
+      passwordAgeFile = mkOption {
+        type = types.nullOr types.path;
+        default = null;
+        description = "Encrypted age file that stores the Redis password.";
+      };
     };
 
     kubeadm = {

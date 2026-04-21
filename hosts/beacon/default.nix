@@ -19,7 +19,10 @@ in
 
     # this host runs as a proxmox vm; enable the shared guest baseline
     # for grub boot, qemu guest agent, cloud-init disablement, and dhcp defaults.
-    proxmox.enable = true;
+    proxmox = {
+      enable = true;
+      hostName = "beacon";
+    };
 
     alloy = {
       enable = true;
@@ -107,17 +110,14 @@ in
     };
   };
 
-  networking = {
-    hostName = "beacon";
-    firewall = {
-      allowedTCPPorts = [
-        8000
-        9090
-        3100
-        1514
-      ];
-      allowedUDPPorts = [ ];
-    };
+  networking.firewall = {
+    allowedTCPPorts = [
+      8000
+      9090
+      3100
+      1514
+    ];
+    allowedUDPPorts = [ ];
   };
 
   system.stateVersion = "25.05";

@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ lib, ... }:
 let
   inherit (lib.filesystem) listFilesRecursive;
   inherit (lib.lists) filter remove;
@@ -16,10 +16,7 @@ in
 
   # The user should already exist, but we need to set this up so Nix knows
   # what our home directory is.
-  users.users.dsqr = {
-    home = "/Users/dsqr";
-    shell = pkgs.zsh;
-  };
+  users.users.dsqr.home = "/Users/dsqr";
 
   system.primaryUser = "dsqr";
 
