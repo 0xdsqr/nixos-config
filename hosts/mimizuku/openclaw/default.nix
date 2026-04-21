@@ -23,7 +23,10 @@
         config = {
           agents.defaults.model.primary = "openai-codex/gpt-5.4";
 
-          models.providers.openai.apiKey = "\${OPENAI_API_KEY}";
+          models.providers.openai = {
+            baseUrl = "https://api.openai.com/v1";
+            apiKey = "\${OPENAI_API_KEY}";
+          };
 
           gateway = {
             mode = "local";
