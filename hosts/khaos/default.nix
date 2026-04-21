@@ -1,6 +1,9 @@
 { dtil, ... }:
 {
-  imports = dtil.modules.collectNix { dir = ./.; ignoredNames = [ "meta.nix" ]; };
+  imports = dtil.modules.collectNix {
+    dir = ./.;
+    ignoredNames = [ "meta.nix" ];
+  };
 
   services.restic.passwordAgeFile = ./restic.password.age;
 

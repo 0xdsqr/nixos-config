@@ -11,9 +11,7 @@ in
       ignoredNames ? [ ],
     }:
     let
-      defaultIgnoredNames = [
-        "default.nix"
-      ];
+      defaultIgnoredNames = [ "default.nix" ];
     in
     filter (
       path:

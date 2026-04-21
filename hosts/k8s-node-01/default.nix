@@ -1,6 +1,9 @@
 { dtil, ... }:
 {
-  imports = dtil.modules.collectNix { dir = ./.; ignoredNames = [ "meta.nix" ]; };
+  imports = dtil.modules.collectNix {
+    dir = ./.;
+    ignoredNames = [ "meta.nix" ];
+  };
 
   dsqr.nixos = {
     user = {
