@@ -1,6 +1,6 @@
 { dtil, ... }:
 {
-  imports = dtil.modules.collectLocalNixModules { dir = ./.; };
+  imports = dtil.modules.collectNix { dir = ./.; ignoredNames = [ "meta.nix" ]; };
 
   services.restic.passwordAgeFile = ./restic.password.age;
 
@@ -111,7 +111,6 @@
       3100
       1514
     ];
-    allowedUDPPorts = [ ];
   };
 
   system.stateVersion = "25.05";

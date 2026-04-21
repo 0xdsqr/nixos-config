@@ -5,7 +5,7 @@ let
   inherit (lib.strings) hasSuffix;
 in
 {
-  collectLocalNixModules =
+  collectNix =
     {
       dir,
       ignoredNames ? [ ],
@@ -13,7 +13,6 @@ in
     let
       defaultIgnoredNames = [
         "default.nix"
-        "meta.nix"
       ];
     in
     filter (

@@ -1,6 +1,6 @@
 { dtil, ... }:
 {
-  imports = dtil.modules.collectLocalNixModules { dir = ./.; };
+  imports = dtil.modules.collectNix { dir = ./.; ignoredNames = [ "meta.nix" ]; };
 
   dsqr.nixos = {
     user = {

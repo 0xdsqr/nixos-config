@@ -9,6 +9,7 @@ in
     curl
     fd
     git
+    ghostty.terminfo
     jq
     ripgrep
     wget

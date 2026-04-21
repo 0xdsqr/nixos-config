@@ -1,6 +1,6 @@
 { dtil, ... }:
 {
-  imports = dtil.modules.collectLocalNixModules { dir = ./.; };
+  imports = dtil.modules.collectNix { dir = ./.; ignoredNames = [ "meta.nix" ]; };
 
   system.stateVersion = 5;
   ids.gids.nixbld = 350;

@@ -1,6 +1,6 @@
-{ dtil, pkgs, ... }:
+{ dtil, ... }:
 {
-  imports = dtil.modules.collectLocalNixModules { dir = ./.; };
+  imports = dtil.modules.collectNix { dir = ./.; ignoredNames = [ "meta.nix" ]; };
 
   services.restic.passwordAgeFile = ./restic.password.age;
 
@@ -31,10 +31,7 @@
       5432
       9187
     ];
-    allowedUDPPorts = [ ];
   };
-
-  environment.systemPackages = [ pkgs.ghostty.terminfo ];
 
   system.stateVersion = "25.05";
 }
