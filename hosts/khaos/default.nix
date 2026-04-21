@@ -1,12 +1,8 @@
-{ pkgs, lib, ... }:
-let
-  inherit (lib.filesystem) listFilesRecursive;
-  inherit (lib.lists) filter remove;
-  inherit (lib.strings) hasSuffix;
-  nixFiles = filter (hasSuffix ".nix") (listFilesRecursive ./.);
-in
+{ dtil, pkgs, ... }:
 {
-  imports = remove ./meta.nix (remove ./default.nix nixFiles);
+  imports = dtil.modules.collectLocalNixModules {
+    dir = ./.;
+  };
 
   services.restic.passwordAgeFile = ./restic.password.age;
 
@@ -26,10 +22,8 @@ in
 
     alloy = {
       enable = true;
-      remoteWriteUrl = "http://10.10.30.102:9090/api/v1/write";
       loki = {
         enable = true;
-        writeUrl = "http://10.10.30.102:3100/loki/api/v1/push";
       };
     };
   };

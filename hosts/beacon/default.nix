@@ -1,12 +1,8 @@
-{ lib, ... }:
-let
-  inherit (lib.filesystem) listFilesRecursive;
-  inherit (lib.lists) filter remove;
-  inherit (lib.strings) hasSuffix;
-  nixFiles = filter (hasSuffix ".nix") (listFilesRecursive ./.);
-in
+{ dtil, ... }:
 {
-  imports = remove ./meta.nix (remove ./default.nix nixFiles);
+  imports = dtil.modules.collectLocalNixModules {
+    dir = ./.;
+  };
 
   services.restic.passwordAgeFile = ./restic.password.age;
 

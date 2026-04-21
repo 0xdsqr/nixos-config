@@ -1,12 +1,8 @@
-{ lib, ... }:
-let
-  inherit (lib.filesystem) listFilesRecursive;
-  inherit (lib.lists) filter remove;
-  inherit (lib.strings) hasSuffix;
-  nixFiles = filter (hasSuffix ".nix") (listFilesRecursive ./.);
-in
+{ dtil, ... }:
 {
-  imports = remove ./meta.nix (remove ./default.nix nixFiles);
+  imports = dtil.modules.collectLocalNixModules {
+    dir = ./.;
+  };
 
   dsqr.nixos = {
     user = {
@@ -26,11 +22,9 @@ in
 
     alloy = {
       enable = true;
-      remoteWriteUrl = "http://10.10.30.102:9090/api/v1/write";
       role = "k8s-worker";
       loki = {
         enable = true;
-        writeUrl = "http://10.10.30.102:3100/loki/api/v1/push";
       };
     };
   };

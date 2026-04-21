@@ -1,12 +1,8 @@
-{ lib, ... }:
-let
-  inherit (lib.filesystem) listFilesRecursive;
-  inherit (lib.lists) filter remove;
-  inherit (lib.strings) hasSuffix;
-  nixFiles = filter (hasSuffix ".nix") (listFilesRecursive ./.);
-in
+{ dtil, ... }:
 {
-  imports = remove ./meta.nix (remove ./default.nix nixFiles);
+  imports = dtil.modules.collectLocalNixModules {
+    dir = ./.;
+  };
 
   system.stateVersion = 5;
   ids.gids.nixbld = 350;
@@ -24,7 +20,6 @@ in
   dsqr.darwin.alloy = {
     enable = true;
     instance = "exo-macmini-02";
-    remoteWriteUrl = "http://10.10.30.102:9090/api/v1/write";
     loki.enable = true;
   };
 }

@@ -71,6 +71,7 @@ in
 
       remoteWriteUrl = mkOption {
         type = types.str;
+        default = "http://10.10.30.102:9090/api/v1/write";
         description = "Prometheus remote_write receiver URL on beacon";
       };
 
@@ -79,6 +80,7 @@ in
 
         writeUrl = mkOption {
           type = types.str;
+          default = "http://10.10.30.102:3100/loki/api/v1/push";
           description = "Loki push endpoint on beacon";
         };
 
