@@ -20,7 +20,6 @@
   dsqr.darwin.exo.enable = true;
   dsqr.darwin.alloy = {
     enable = true;
-    instance = "exo-macmini-01";
     loki.enable = true;
   };
 }

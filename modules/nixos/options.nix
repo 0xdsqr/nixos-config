@@ -71,7 +71,11 @@ in
 
       remoteWriteUrl = mkOption {
         type = types.str;
-        default = "http://10.10.30.102:9090/api/v1/write";
+        default =
+          if config.networking.hostName == "beacon" then
+            "http://127.0.0.1:9090/api/v1/write"
+          else
+            "http://10.10.30.102:9090/api/v1/write";
         description = "Prometheus remote_write receiver URL on beacon";
       };
 
@@ -80,7 +84,11 @@ in
 
         writeUrl = mkOption {
           type = types.str;
-          default = "http://10.10.30.102:3100/loki/api/v1/push";
+          default =
+            if config.networking.hostName == "beacon" then
+              "http://127.0.0.1:3100/loki/api/v1/push"
+            else
+              "http://10.10.30.102:3100/loki/api/v1/push";
           description = "Loki push endpoint on beacon";
         };
 
@@ -139,6 +147,40 @@ in
         type = types.lines;
         default = "";
         description = "Additional Alloy configuration appended to the default host monitoring pipeline.";
+      };
+    };
+
+    builder = {
+      enable = mkEnableOption "Enable this NixOS host as a remote builder";
+
+      sshUser = mkOption {
+        type = types.str;
+        default = "build";
+        description = "SSH user clients should use for remote builds on this host.";
+      };
+
+      maxJobs = mkOption {
+        type = types.int;
+        default = 8;
+        description = "Maximum concurrent jobs this builder should advertise.";
+      };
+
+      speedFactor = mkOption {
+        type = types.int;
+        default = 1;
+        description = "Relative speed hint for this builder.";
+      };
+
+      supportedFeatures = mkOption {
+        type = types.listOf types.str;
+        default = [ "big-parallel" ];
+        description = "Optional Nix builder features exposed by this host.";
+      };
+
+      systems = mkOption {
+        type = types.listOf types.str;
+        default = [ config.nixpkgs.hostPlatform.system ];
+        description = "System types this builder can execute.";
       };
     };
 

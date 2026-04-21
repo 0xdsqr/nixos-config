@@ -19,6 +19,8 @@
       hostName = "mimizuku";
     };
 
+    builder.enable = true;
+
     alloy = {
       enable = true;
       loki = {

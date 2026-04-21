@@ -23,10 +23,6 @@ let
     "sops-nix"
   ];
 
-  specialArgs = inputs // {
-    inherit dtil inputs keys;
-  };
-
   inputModulesNixos = builtins.map (name: inputs.${name}.nixosModules.default) nixosModuleInputNames;
   inputModulesDarwin = builtins.map (name: inputs.${name}.darwinModules.default) darwinModuleInputNames;
 
@@ -51,21 +47,33 @@ let
   };
 
   mkNixosConfiguration =
-    system: module:
+    name: system: module:
     inputs.nixpkgs.lib.nixosSystem {
       inherit system;
-      inherit specialArgs;
+      specialArgs = inputs // {
+        inherit dtil inputs keys;
+        hostName = name;
+      };
 
-      modules = [ module ] ++ modulesCommon ++ modulesNixos ++ inputModulesNixos;
+      modules = [
+        module
+        (mkRemoteBuilderModule name)
+      ] ++ modulesCommon ++ modulesNixos ++ inputModulesNixos;
     };
 
   mkDarwinConfiguration =
-    system: module:
+    name: system: module:
     inputs.darwin.lib.darwinSystem {
       inherit system;
-      inherit specialArgs;
+      specialArgs = inputs // {
+        inherit dtil inputs keys;
+        hostName = name;
+      };
 
-      modules = [ module ] ++ modulesCommon ++ modulesDarwin ++ inputModulesDarwin;
+      modules = [
+        module
+        (mkRemoteBuilderModule name)
+      ] ++ modulesCommon ++ modulesDarwin ++ inputModulesDarwin;
     };
 
   hostNames = builtins.attrNames (builtins.readDir ./../hosts);
@@ -93,9 +101,61 @@ let
     builtins.listToAttrs (
       builtins.map (host: {
         inherit (host) name;
-        value = builder host.meta.system host.path;
+        value = builder host.name host.meta.system host.path;
       }) (builtins.filter (host: host.meta.class == class) hostDefinitions)
     );
+
+  builderDefinitions =
+    let
+      mkNixosBuilder = name: {
+        inherit name;
+        value =
+          self.hostDefinitions.${name}
+          // self.nixosConfigurations.${name}.config.dsqr.nixos.builder
+          // {
+            enable = self.nixosConfigurations.${name}.config.dsqr.nixos.builder.enable;
+          };
+      };
+
+      mkDarwinBuilder = name: {
+        inherit name;
+        value =
+          self.hostDefinitions.${name}
+          // self.darwinConfigurations.${name}.config.dsqr.darwin.builder
+          // {
+            enable = self.darwinConfigurations.${name}.config.dsqr.darwin.builder.enable;
+          };
+      };
+    in
+    builtins.listToAttrs (
+      builtins.map mkNixosBuilder (builtins.attrNames self.nixosConfigurations)
+      ++ builtins.map mkDarwinBuilder (builtins.attrNames self.darwinConfigurations)
+    );
+
+  mkRemoteBuilderModule =
+    currentName:
+    { lib, ... }:
+    let
+      buildMachines =
+        builtins.removeAttrs builderDefinitions [ currentName ]
+        |> builtins.attrValues
+        |> builtins.filter (builder: builder.enable && builder.sshHost != null)
+        |> builtins.map (builder: {
+          hostName = builder.sshHost;
+          sshUser = builder.sshUser;
+          protocol = "ssh-ng";
+          maxJobs = builder.maxJobs;
+          speedFactor = builder.speedFactor;
+          system = builder.system;
+          supportedFeatures = builder.supportedFeatures;
+          systems = builder.systems;
+        });
+    in
+    lib.mkIf (buildMachines != [ ]) {
+      nix.distributedBuilds = true;
+      nix.buildMachines = buildMachines;
+      nix.settings.builders-use-substitutes = true;
+    };
 in
 {
   flake = {
@@ -110,5 +170,6 @@ in
 
     nixosConfigurations = mkHostConfigurations "nixos" mkNixosConfiguration;
     darwinConfigurations = mkHostConfigurations "darwin" mkDarwinConfiguration;
+    inherit builderDefinitions;
   };
 }
