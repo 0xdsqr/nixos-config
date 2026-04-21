@@ -26,16 +26,18 @@
         default = "http_status:404";
         ingress = {
           "dsqr.dev" = {
-            service = "http://10.10.30.200";
+            service = "https://10.10.30.200";
             originRequest = {
               httpHostHeader = "dsqr.dev";
+              noTLSVerify = true;
             };
           };
 
           "studio.dsqr.dev" = {
-            service = "http://10.10.30.200";
+            service = "https://10.10.30.200";
             originRequest = {
               httpHostHeader = "studio.dsqr.dev";
+              noTLSVerify = true;
             };
           };
 
@@ -61,15 +63,17 @@
           };
 
           "tastingswithtay.com" = {
-            service = "http://10.10.30.200";
+            service = "https://10.10.30.200";
             originRequest = {
               httpHostHeader = "tastingswithtay.com";
+              noTLSVerify = true;
             };
           };
           "admin.tastingswithtay.com" = {
-            service = "http://10.10.30.200";
+            service = "https://10.10.30.200";
             originRequest = {
               httpHostHeader = "admin.tastingswithtay.com";
+              noTLSVerify = true;
             };
           };
 
