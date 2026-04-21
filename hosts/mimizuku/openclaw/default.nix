@@ -45,6 +45,16 @@
             guilds."1465602840713101598" = {
               requireMention = true;
               users = [ "618575437995442197" ];
+              channels = {
+                "*" = {
+                  allow = true;
+                  requireMention = true;
+                };
+                "1495956898481049672" = {
+                  allow = true;
+                  requireMention = false;
+                };
+              };
             };
           };
 
