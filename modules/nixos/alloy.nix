@@ -83,16 +83,6 @@ in
         forward_to = [loki.write.beacon.receiver]
 
         stage.match {
-          selector = "{unit=\"cloudflared-managed-tunnel.service\"}"
-
-          stage.static_labels {
-            values = {
-              service_name = "cloudflared"
-            }
-          }
-        }
-
-        stage.match {
           selector = "{unit=\"cloudflared-managed-tunnel.service\"} |= \"dest=\""
 
           stage.regex {
@@ -142,6 +132,13 @@ in
         rule {
           source_labels = ["__journal_priority_keyword"]
           target_label  = "level"
+        }
+
+        rule {
+          source_labels = ["__journal__systemd_unit"]
+          regex         = "cloudflared-managed-tunnel\\.service"
+          target_label  = "service_name"
+          replacement   = "cloudflared"
         }
       }
 

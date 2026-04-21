@@ -31,12 +31,6 @@ in
         loki.process "opnsense_syslog" {
           forward_to = [loki.write.beacon.receiver]
 
-          stage.static_labels {
-            values = {
-              service_name = "opnsense"
-            }
-          }
-
           stage.match {
             selector = "{job=\"opnsense-syslog\", app=\"filterlog\"}"
 
@@ -96,10 +90,11 @@ in
             syslog_format          = "rfc5424"
             use_incoming_timestamp = true
             labels = {
-              job    = "opnsense-syslog",
-              env    = "homelab",
-              source = "opnsense",
-              role   = "firewall",
+              job          = "opnsense-syslog",
+              env          = "homelab",
+              source       = "opnsense",
+              role         = "firewall",
+              service_name = "opnsense",
             }
           }
 
