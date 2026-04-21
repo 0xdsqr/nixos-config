@@ -33,6 +33,19 @@ in
       ".openclaw/workspace-vanalia/TOOLS.md".source = ./documents/vanalia/TOOLS.md;
     };
 
+    home.activation.openclawSharedAuth = lib.hm.dag.entryAfter [ "openclawDirs" ] ''
+      set -euo pipefail
+
+      src="$HOME/.openclaw/agents/noctua/agent/auth-profiles.json"
+      dstDir="$HOME/.openclaw/agents/vanalia/agent"
+      dst="$dstDir/auth-profiles.json"
+
+      run --quiet mkdir -p "$dstDir"
+      if [ -f "$src" ]; then
+        run --quiet ln -sfn "$src" "$dst"
+      fi
+    '';
+
     programs.openclaw = {
       enable = true;
       documents = ./documents/noctua;
@@ -68,30 +81,22 @@ in
           enabled = true;
           dmPolicy = "pairing";
           groupPolicy = "allowlist";
-          guilds = {
-            "1465602840713101598" = {
-              requireMention = false;
-              ignoreOtherMentions = true;
-              channels = {
-                "1495956898481049672" = {
-                  enabled = true;
-                  requireMention = false;
-                  users = [ "618575437995442197" ];
-                };
-                "1465807038587076700" = {
-                  enabled = true;
-                  requireMention = false;
-                  users = [
-                    "618575437995442197"
-                    "980636531565949019"
-                  ];
-                };
-              };
-            };
-          };
 
           accounts = {
             noctua = {
+              guilds = {
+                "1465602840713101598" = {
+                  requireMention = false;
+                  ignoreOtherMentions = true;
+                  channels = {
+                    "1495956898481049672" = {
+                      enabled = true;
+                      requireMention = false;
+                      users = [ "618575437995442197" ];
+                    };
+                  };
+                };
+              };
               token = {
                 id = "TOKEN_NOCTUA";
                 provider = "default";
@@ -100,6 +105,22 @@ in
             };
 
             vanalia = {
+              guilds = {
+                "1465602840713101598" = {
+                  requireMention = false;
+                  ignoreOtherMentions = true;
+                  channels = {
+                    "1465807038587076700" = {
+                      enabled = true;
+                      requireMention = false;
+                      users = [
+                        "618575437995442197"
+                        "980636531565949019"
+                      ];
+                    };
+                  };
+                };
+              };
               token = {
                 id = "TOKEN_VANALIA";
                 provider = "default";
