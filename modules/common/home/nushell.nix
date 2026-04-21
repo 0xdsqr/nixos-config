@@ -1,5 +1,5 @@
 { lib, pkgs, ... }:
-{
+lib.mkIf pkgs.stdenv.isLinux {
   programs.nushell = {
     enable = true;
     settings = {
@@ -23,11 +23,6 @@
       $env.EDITOR = "nvim"
       $env.VISUAL = "nvim"
       $env.config.buffer_editor = "nvim"
-    ''
-    + lib.optionalString pkgs.stdenv.isDarwin ''
-      try {
-        $env.SSH_AUTH_SOCK = (^launchctl getenv SSH_AUTH_SOCK | str trim)
-      }
     '';
   };
 }

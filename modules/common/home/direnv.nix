@@ -1,7 +1,7 @@
-_: {
+{ pkgs, ... }: {
   programs.direnv = {
     enable = true;
-    enableNushellIntegration = true;
+    enableNushellIntegration = pkgs.stdenv.isLinux;
     enableZshIntegration = true;
     nix-direnv.enable = true;
   };
