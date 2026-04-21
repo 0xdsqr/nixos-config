@@ -155,7 +155,7 @@ in
 
       sshUser = mkOption {
         type = types.str;
-        default = "build";
+        default = "dsqr";
         description = "SSH user clients should use for remote builds on this host.";
       };
 
