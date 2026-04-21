@@ -2,7 +2,6 @@
   config,
   inputs,
   lib,
-  pkgs,
   ...
 }:
 let
@@ -27,12 +26,6 @@ in
 
   home-manager.users.dsqr = lib.mkIf secretsReady {
     imports = [ inputs.nix-openclaw.homeManagerModules.openclaw ];
-
-    home.file = {
-      ".openclaw/workspace-vanalia/AGENTS.md".source = ./documents/vanalia/AGENTS.md;
-      ".openclaw/workspace-vanalia/SOUL.md".source = ./documents/vanalia/SOUL.md;
-      ".openclaw/workspace-vanalia/TOOLS.md".source = ./documents/vanalia/TOOLS.md;
-    };
 
     programs.openclaw = {
       enable = true;
@@ -91,30 +84,6 @@ in
                 source = "env";
               };
             };
-
-            vanalia = {
-              guilds = {
-                "1465602840713101598" = {
-                  requireMention = false;
-                  ignoreOtherMentions = true;
-                  channels = {
-                    "1465807038587076700" = {
-                      enabled = true;
-                      requireMention = false;
-                      users = [
-                        "618575437995442197"
-                        "980636531565949019"
-                      ];
-                    };
-                  };
-                };
-              };
-              token = {
-                id = "TOKEN_VANALIA";
-                provider = "default";
-                source = "env";
-              };
-            };
           };
         };
 
@@ -136,13 +105,6 @@ in
               agentDir = "~/.openclaw/agents/noctua/agent";
               groupChat.mentionPatterns = [ "noctua" ];
             }
-            {
-              id = "vanalia";
-              name = "Vanalia";
-              workspace = "~/.openclaw/workspace-vanalia";
-              agentDir = "~/.openclaw/agents/vanalia/agent";
-              groupChat.mentionPatterns = [ "vanalia" ];
-            }
           ];
         };
 
@@ -154,33 +116,10 @@ in
               accountId = "noctua";
             };
           }
-          {
-            agentId = "vanalia";
-            match = {
-              channel = "discord";
-              accountId = "vanalia";
-            };
-          }
         ];
       };
     };
-    systemd.user.services.openclaw-gateway.Service = {
-      EnvironmentFile = [ config.age.secrets.openclawEnv.path ];
-      ExecStartPre = [
-        "${pkgs.writeShellScript "openclaw-shared-auth-prestart" ''
-          set -eo pipefail
-
-          src="/home/dsqr/.openclaw/agents/noctua/agent/auth-profiles.json"
-          dst_dir="/home/dsqr/.openclaw/agents/vanalia/agent"
-          dst="$dst_dir/auth-profiles.json"
-
-          ${pkgs.coreutils}/bin/mkdir -p "$dst_dir"
-          if [ -f "$src" ]; then
-            ${pkgs.coreutils}/bin/ln -sfn "$src" "$dst"
-          fi
-        ''}"
-      ];
-    };
+    systemd.user.services.openclaw-gateway.Service.EnvironmentFile = [ config.age.secrets.openclawEnv.path ];
   };
 
   warnings = lib.optionals (!secretsReady) [
