@@ -15,6 +15,8 @@ in
       serverAdmin.enable = true;
     };
 
+    # this host runs as a proxmox vm; enable the shared guest baseline
+    # for grub boot, qemu guest agent, cloud-init disablement, and dhcp defaults.
     proxmox.enable = true;
 
     kubeadm.enable = true;
@@ -38,15 +40,17 @@ in
   networking = {
     hostName = "k8s-master-01";
     domain = "dsqr.dev";
-    firewall.allowedTCPPorts = [
-      22
-      6443
-      2379
-      2380
-      10250
-      10257
-      10259
-    ];
+    firewall = {
+      allowedTCPPorts = [
+        22
+        6443
+        2379
+        2380
+        10250
+        10257
+        10259
+      ];
+    };
   };
 
   system.stateVersion = "25.05";

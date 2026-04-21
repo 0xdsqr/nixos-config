@@ -15,6 +15,8 @@ in
       serverAdmin.enable = true;
     };
 
+    # this host runs as a proxmox vm; enable the shared guest baseline
+    # for grub boot, qemu guest agent, cloud-init disablement, and dhcp defaults.
     proxmox.enable = true;
 
     alloy = {
@@ -27,10 +29,15 @@ in
     };
   };
 
-  networking.hostName = "mimizuku";
-  networking.firewall.allowedTCPPorts = [ ];
-  networking.firewall.allowedUDPPorts = [ ];
+  networking = {
+    hostName = "mimizuku";
+    firewall = {
+      allowedTCPPorts = [ ];
+      allowedUDPPorts = [ ];
+    };
+  };
 
   environment.systemPackages = [ pkgs.ghostty.terminfo ];
+
   system.stateVersion = "25.05";
 }

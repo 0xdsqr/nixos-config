@@ -15,7 +15,7 @@ in
   services.cloud-init.enable = false;
   services.cloud-init.network.enable = false;
 
-  networking.useDHCP = mkDefault true;
+  networking.interfaces.ens18.useDHCP = mkDefault true;
 
   services.qemuGuest.enable = true;
 }

@@ -134,6 +134,27 @@ in
       };
     };
 
+    cloudflared = {
+      enable = mkEnableOption "Run a remotely managed Cloudflare tunnel connector";
+
+      tunnelId = mkOption {
+        type = types.str;
+        description = "Cloudflare tunnel ID managed outside Nix.";
+      };
+
+      tunnelName = mkOption {
+        type = types.str;
+        default = config.networking.hostName;
+        description = "Friendly name used for the local Cloudflared service.";
+      };
+
+      tokenAgeFile = mkOption {
+        type = types.nullOr types.path;
+        default = null;
+        description = "Encrypted age file that stores the Cloudflare tunnel token.";
+      };
+    };
+
     postgresql = {
       enable = mkEnableOption "Enable the shared PostgreSQL host profile";
 
