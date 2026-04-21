@@ -2,10 +2,11 @@
 {
   age.secrets.openclawEnv = {
     file = ./openclaw.env.age;
-    path = "/run/agenix/openclaw-env";
     owner = "dsqr";
     mode = "0400";
   };
+
+  home-manager.backupFileExtension = "hm-backup";
 
   home-manager.users.dsqr = {
     imports = [ nix-openclaw.homeManagerModules.openclaw ];
