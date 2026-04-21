@@ -90,11 +90,10 @@ in
 
         agents = {
           defaults = {
-            # OpenClaw's current OpenAI OAuth path is Codex-oriented and maps to
-            # `openai-codex/gpt-5.4`. For a documented GPT-4-class OAuth/device-login
-            # path, GitHub Copilot's built-in provider currently exposes `gpt-4o`.
+            # ChatGPT OAuth in OpenClaw uses the OpenAI Codex provider. The
+            # documented subscription/OAuth path is `openai-codex/gpt-5.4`.
             model = {
-              primary = "github-copilot/gpt-4o";
+              primary = "openai-codex/gpt-5.4";
             };
           };
 
