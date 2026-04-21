@@ -6,10 +6,23 @@
     mode = "0400";
   };
 
+  users.users.dsqr.linger = true;
+
   home-manager.users.dsqr = {
     imports = [ nix-openclaw.homeManagerModules.openclaw ];
 
-    systemd.user.services.openclaw-gateway.Service.EnvironmentFile = [ config.age.secrets.openclawEnv.path ];
+    systemd.user.services.openclaw-gateway = {
+      Unit = {
+        After = [ "network-online.target" ];
+        Wants = [ "network-online.target" ];
+      };
+
+      Install = {
+        WantedBy = [ "default.target" ];
+      };
+
+      Service.EnvironmentFile = [ config.age.secrets.openclawEnv.path ];
+    };
 
     programs.openclaw = {
       instances.default = {
