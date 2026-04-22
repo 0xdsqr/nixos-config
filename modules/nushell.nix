@@ -57,7 +57,7 @@
           if [[ -o interactive ]] && [[ -z "''${__DSQR_NU_HANDOFF:-}" ]]; then
             export __DSQR_NU_HANDOFF=1
             export SHELL="${nuExe}"
-            exec "${nuExe}" --config "$HOME/.config/nushell/config.nu"
+            exec "${nuExe}"
           fi
         '';
       })

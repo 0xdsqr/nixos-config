@@ -36,6 +36,7 @@
             agents.defaults.model.primary = "openai/gpt-5.4";
 
             channels.discord = {
+              enabled = true;
               token = "\${DISCORD_NOCTUA_TOKEN}";
               allowFrom = [ "618575437995442197" ];
               groupPolicy = "allowlist";
@@ -44,11 +45,11 @@
                 users = [ "618575437995442197" ];
                 channels = {
                   "*" = {
-                    allow = true;
+                    enabled = true;
                     requireMention = true;
                   };
                   "1495956898481049672" = {
-                    allow = true;
+                    enabled = true;
                     requireMention = false;
                   };
                 };
@@ -62,6 +63,8 @@
                 token = "\${OPENCLAW_GATEWAY_TOKEN}";
               };
             };
+
+            plugins.entries.openai.enabled = true;
           };
         };
       };
