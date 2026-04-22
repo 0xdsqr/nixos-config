@@ -1,5 +1,9 @@
 { lib, modulesPath, ... }:
 
+let
+  inherit (lib) mkDefault;
+in
+
 {
   imports = [ (modulesPath + "/profiles/qemu-guest.nix") ];
 
@@ -22,5 +26,5 @@
 
   swapDevices = [ ];
 
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+  nixpkgs.hostPlatform = mkDefault "x86_64-linux";
 }

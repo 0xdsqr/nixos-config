@@ -37,19 +37,6 @@ _: {
         ];
       }
       {
-        job_name = "postgres-khaos";
-        static_configs = [
-          {
-            targets = [ "10.10.30.107:9187" ];
-            labels = {
-              role = "khaos";
-              kind = "postgres";
-              env = "homelab";
-            };
-          }
-        ];
-      }
-      {
         job_name = "opnsense-node-exporter";
         static_configs = [
           {

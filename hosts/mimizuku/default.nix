@@ -1,6 +1,6 @@
-{ dtil, ... }:
+{ roost, ... }:
 {
-  imports = dtil.modules.collectNix {
+  imports = roost.modules.collectNix {
     dir = ./.;
     ignoredFiles = [
       ./default.nix
@@ -21,8 +21,6 @@
       enable = true;
       hostName = "mimizuku";
     };
-
-    builder.enable = true;
 
     alloy = {
       enable = true;

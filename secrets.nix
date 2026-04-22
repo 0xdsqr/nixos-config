@@ -1,36 +1,54 @@
 let
-  inherit (import ./keys.nix)
-    admins
-    beacon
-    all
-    gateway
-    k8s-master-01
-    k8s-node-01
-    k8s-node-02
-    khaos
-    mimizuku
-    ;
+  keys = import ./keys.nix;
+  inherit (keys) hosts;
+  inherit (keys.groups) admins all;
+
+  forHost = name: [ hosts.${name} ] ++ admins;
+
+  forAllHosts = all;
+
+  mkSecretsForHost =
+    hostName: secretFiles:
+    builtins.listToAttrs (
+      builtins.map (path: {
+        name = path;
+        value.publicKeys = forHost hostName;
+      }) secretFiles
+    );
+
+  mkSharedSecrets =
+    secretFiles:
+    builtins.listToAttrs (
+      builtins.map (path: {
+        name = path;
+        value.publicKeys = forAllHosts;
+      }) secretFiles
+    );
 in
-{
-  "hosts/beacon/host.password.age".publicKeys = [ beacon ] ++ admins;
-  "hosts/beacon/grafana.secret-key.age".publicKeys = [ beacon ] ++ admins;
-  "hosts/beacon/grafana.admin.password.age".publicKeys = [ beacon ] ++ admins;
-  "hosts/beacon/grafana.database.password.age".publicKeys = [ beacon ] ++ admins;
-
-  "hosts/gateway/cloudflared.token.age".publicKeys = [ gateway ] ++ admins;
-  "hosts/gateway/host.password.age".publicKeys = [ gateway ] ++ admins;
-
-  "hosts/k8s-master-01/host.password.age".publicKeys = [ k8s-master-01 ] ++ admins;
-  "hosts/k8s-node-01/host.password.age".publicKeys = [ k8s-node-01 ] ++ admins;
-  "hosts/k8s-node-02/host.password.age".publicKeys = [ k8s-node-02 ] ++ admins;
-  "hosts/mimizuku/host.password.age".publicKeys = [ mimizuku ] ++ admins;
-  "hosts/mimizuku/openclaw/openclaw.env.age".publicKeys = [ mimizuku ] ++ admins;
-
-  "hosts/khaos/host.password.age".publicKeys = [ khaos ] ++ admins;
-  "hosts/khaos/redis.password.age".publicKeys = [ khaos ] ++ admins;
-  "hosts/khaos/rustfs.access-key.age".publicKeys = [ khaos ] ++ admins;
-  "hosts/khaos/rustfs.secret-key.age".publicKeys = [ khaos ] ++ admins;
-
-  "hosts/beacon/restic.password.age".publicKeys = all;
-  "hosts/khaos/restic.password.age".publicKeys = all;
-}
+mkSecretsForHost "beacon" [
+  "hosts/beacon/host.password.age"
+  "hosts/beacon/grafana.secret-key.age"
+  "hosts/beacon/grafana.admin.password.age"
+  "hosts/beacon/grafana.database.password.age"
+]
+// mkSecretsForHost "gateway" [
+  "hosts/gateway/cloudflared.token.age"
+  "hosts/gateway/host.password.age"
+]
+// mkSecretsForHost "k8s-master-01" [ "hosts/k8s-master-01/host.password.age" ]
+// mkSecretsForHost "k8s-node-01" [ "hosts/k8s-node-01/host.password.age" ]
+// mkSecretsForHost "k8s-node-02" [ "hosts/k8s-node-02/host.password.age" ]
+// mkSecretsForHost "mimizuku" [
+  "hosts/mimizuku/host.password.age"
+  "hosts/mimizuku/openclaw/openclaw.env.age"
+]
+// mkSecretsForHost "khaos" [
+  "hosts/khaos/host.password.age"
+  "hosts/khaos/redis.password.age"
+  "hosts/khaos/rustfs.access-key.age"
+  "hosts/khaos/rustfs.secret-key.age"
+]
+// mkSharedSecrets [
+  "hosts/beacon/restic.password.age"
+  "hosts/khaos/restic.password.age"
+]

@@ -7,9 +7,8 @@
   ];
 
   perSystem =
-    { config, pkgs, ... }:
+    { pkgs, ... }:
     let
-      dick = pkgs.callPackage ../packages/dick { };
       treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs {
         projectRootFile = "flake.nix";
 
@@ -29,35 +28,13 @@
     {
       formatter = treefmtEval.config.build.wrapper;
 
-      packages = {
-        inherit dick;
-        default = dick;
-      };
-
-      apps = {
-        dick = {
-          type = "app";
-          program = "${dick}/bin/dick";
-        };
-
-        default = config.apps.dick;
-      };
-
       devShells.default = pkgs.mkShellNoCC {
         packages = with pkgs; [
           deadnix
-          dick
           nil
           nixd
           statix
           treefmtEval.config.build.wrapper
-        ];
-      };
-
-      devShells.dick = pkgs.mkShellNoCC {
-        packages = with pkgs; [
-          go
-          dick
         ];
       };
 

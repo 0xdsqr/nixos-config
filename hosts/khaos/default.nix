@@ -1,6 +1,6 @@
-{ dtil, ... }:
+{ roost, ... }:
 {
-  imports = dtil.modules.collectNix {
+  imports = roost.modules.collectNix {
     dir = ./.;
     ignoredFiles = [
       ./default.nix
@@ -31,10 +31,7 @@
   };
 
   networking.firewall = {
-    allowedTCPPorts = [
-      5432
-      9187
-    ];
+    allowedTCPPorts = [ 5432 ];
   };
 
   system.stateVersion = "25.05";

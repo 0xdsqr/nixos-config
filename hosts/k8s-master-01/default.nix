@@ -1,6 +1,6 @@
-{ dtil, ... }:
+{ roost, ... }:
 {
-  imports = dtil.modules.collectNix {
+  imports = roost.modules.collectNix {
     dir = ./.;
     ignoredFiles = [
       ./default.nix

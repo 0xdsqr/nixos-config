@@ -8,7 +8,6 @@
     experimental-features = [
       "flakes"
       "nix-command"
-      "pipe-operators"
     ];
 
     flake-registry = "";
@@ -86,13 +85,18 @@
 
   outputs =
     inputs@{ flake-parts, ... }:
+    let
+      nixLib = inputs.nixpkgs.lib // inputs.darwin.lib;
+      roostModules = import ./packages/roost/modules.nix { lib = nixLib; };
+    in
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         inputs.home-manager.flakeModules.home-manager
+        ./parts/flake-outputs.nix
         ./parts/per-system.nix
         ./parts/modules.nix
-        ./parts/common-modules.nix
         ./parts/hosts.nix
-      ];
+      ]
+      ++ roostModules.collectNix { dir = ./modules; };
     };
 }

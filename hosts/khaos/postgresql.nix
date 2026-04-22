@@ -1,5 +1,15 @@
 _: {
   dsqr.nixos.postgresql.enable = true;
+  dsqr.nixos.postgresql.listenAddresses = [
+    "127.0.0.1"
+    "::1"
+    "10.10.30.107"
+  ];
+  dsqr.nixos.postgresql.allowedCIDRs = [
+    "127.0.0.1/32"
+    "::1/128"
+    "10.10.30.102/32"
+  ];
   # reserve 4 GiB of huge pages (2048 * 2 MiB) for postgres shared memory
   boot.kernel.sysctl."vm.nr_hugepages" = 2048;
 

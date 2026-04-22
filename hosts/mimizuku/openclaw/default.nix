@@ -8,65 +8,63 @@
 
   users.users.dsqr.linger = true;
 
-  home-manager.users.dsqr = {
-    imports = [ nix-openclaw.homeManagerModules.openclaw ];
+  dsqr.home.imports = [
+    nix-openclaw.homeManagerModules.openclaw
+    {
+      systemd.user.services.openclaw-gateway = {
+        Unit = {
+          After = [ "network-online.target" ];
+          Wants = [ "network-online.target" ];
+        };
 
-    systemd.user.services.openclaw-gateway = {
-      Unit = {
-        After = [ "network-online.target" ];
-        Wants = [ "network-online.target" ];
+        Install = {
+          WantedBy = [ "default.target" ];
+        };
+
+        Service.EnvironmentFile = [ config.age.secrets.openclawEnv.path ];
       };
 
-      Install = {
-        WantedBy = [ "default.target" ];
-      };
+      programs.openclaw = {
+        documents = ./documents/noctua;
 
-      Service.EnvironmentFile = [ config.age.secrets.openclawEnv.path ];
-    };
+        instances.default = {
+          enable = true;
+          stateDir = "/home/dsqr/.openclaw";
+          workspaceDir = "/home/dsqr/.openclaw/workspace";
 
-    programs.openclaw = {
-      instances.default = {
-        enable = true;
-        stateDir = "/home/dsqr/.openclaw";
-        workspaceDir = "/home/dsqr/.openclaw/workspace";
+          config = {
+            agents.defaults.model.primary = "openai/gpt-5.4";
 
-        config = {
-          agents.defaults.model.primary = "openai-codex/gpt-5.4";
-
-          models.providers.openai = {
-            baseUrl = "https://api.openai.com/v1";
-            apiKey = "\${OPENAI_API_KEY}";
-          };
-
-          channels.discord = {
-            token = "\${DISCORD_NOCTUA_TOKEN}";
-            allowFrom = [ "618575437995442197" ];
-            groupPolicy = "allowlist";
-            guilds."1465602840713101598" = {
-              requireMention = true;
-              users = [ "618575437995442197" ];
-              channels = {
-                "*" = {
-                  allow = true;
-                  requireMention = true;
-                };
-                "1495956898481049672" = {
-                  allow = true;
-                  requireMention = false;
+            channels.discord = {
+              token = "\${DISCORD_NOCTUA_TOKEN}";
+              allowFrom = [ "618575437995442197" ];
+              groupPolicy = "allowlist";
+              guilds."1465602840713101598" = {
+                requireMention = true;
+                users = [ "618575437995442197" ];
+                channels = {
+                  "*" = {
+                    allow = true;
+                    requireMention = true;
+                  };
+                  "1495956898481049672" = {
+                    allow = true;
+                    requireMention = false;
+                  };
                 };
               };
             };
-          };
 
-          gateway = {
-            mode = "local";
-            auth = {
-              mode = "token";
-              token = "\${OPENCLAW_GATEWAY_TOKEN}";
+            gateway = {
+              mode = "local";
+              auth = {
+                mode = "token";
+                token = "\${OPENCLAW_GATEWAY_TOKEN}";
+              };
             };
           };
         };
       };
-    };
-  };
+    }
+  ];
 }
