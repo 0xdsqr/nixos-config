@@ -3,7 +3,8 @@
     { pkgs, ... }:
     {
       programs.ghostty = {
-        enable = pkgs.stdenv.hostPlatform.isLinux;
+        enable = true;
+        package = if pkgs.stdenv.hostPlatform.isDarwin then pkgs.ghostty-bin else pkgs.ghostty;
         settings = {
           # Window settings
           window-padding-x = 10;
@@ -17,7 +18,7 @@
 
           # Font
           font-family = "JetBrains Mono";
-          font-size = 12;
+          font-size = 18;
           cursor-style = "block";
           cursor-style-blink = false;
           shell-integration-features = "no-cursor,ssh-env";
