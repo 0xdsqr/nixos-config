@@ -24,6 +24,9 @@ let
         value.publicKeys = forAllHosts;
       }) secretFiles
     );
+
+  mkOptionalSecret =
+    path: publicKeys: if builtins.pathExists (./. + "/${path}") then { ${path}.publicKeys = publicKeys; } else { };
 in
 mkSecretsForHost "beacon" [
   "hosts/beacon/host.password.age"
@@ -52,3 +55,5 @@ mkSecretsForHost "beacon" [
   "hosts/beacon/restic.password.age"
   "hosts/khaos/restic.password.age"
 ]
+// mkOptionalSecret "modules/tailscale-linux.auth-key.age" all
+// mkOptionalSecret "modules/tailscale-darwin.auth-key.age" admins

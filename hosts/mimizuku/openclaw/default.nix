@@ -33,7 +33,10 @@
           workspaceDir = "/home/dsqr/.openclaw/workspace";
 
           config = {
-            agents.defaults.model.primary = "openai-codex/gpt-5.4";
+            agents.defaults = {
+              model.primary = "openai-codex/gpt-5.4";
+              models."openai-codex/gpt-5.4".params.transport = "sse";
+            };
 
             channels.discord = {
               enabled = true;
