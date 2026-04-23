@@ -32,6 +32,7 @@ let
           target="$HOME/${workspaceDir}/${docName}"
           if [ ! -e "$target" ] || [ -L "$target" ]; then
             rm -f "$target"
+            mkdir -p "$(dirname "$target")"
             cp ${docDir + "/${docName}"} "$target"
             chmod u+rw "$target"
           fi
