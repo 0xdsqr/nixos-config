@@ -8,6 +8,7 @@
 }:
 let
   workspaceDir = ".openclaw-vanilla/workspace";
+  legacyReferenceDir = "/home/dsqr/vanilla-legacy";
 in
 {
   programs.openclaw.instances.vanilla = {
@@ -60,6 +61,10 @@ in
 
   home.file = {
     ".openclaw-vanilla/openclaw.json".force = true;
+    ".openclaw-vanilla/workspace/reference/legacy" = {
+      source = config.lib.file.mkOutOfStoreSymlink legacyReferenceDir;
+      force = true;
+    };
   }
   // (mkWorkspaceDocs {
     inherit workspaceDir;

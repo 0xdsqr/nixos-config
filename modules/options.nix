@@ -126,6 +126,43 @@
     in
     {
       options.dsqr.nixos = {
+        tailscale = {
+          enable = mkOption {
+            type = types.bool;
+            default = true;
+            description = "Whether to enable the shared Tailscale baseline on this NixOS host.";
+          };
+
+          authKeyAgeFile = mkOption {
+            type = types.nullOr types.path;
+            default = null;
+            description = "Encrypted age file containing a Tailscale auth key for unattended Linux enrollment.";
+          };
+
+          interfaceName = mkOption {
+            type = types.str;
+            default = "ts0";
+            description = "Stable interface name to assign to the Tailscale network device.";
+          };
+
+          useRoutingFeatures = mkOption {
+            type = types.enum [
+              "none"
+              "client"
+              "server"
+              "both"
+            ];
+            default = "client";
+            description = "Routing mode to pass through to services.tailscale.useRoutingFeatures.";
+          };
+
+          extraUpFlags = mkOption {
+            type = types.listOf types.str;
+            default = [ ];
+            description = "Additional tailscale up flags to append for this host.";
+          };
+        };
+
         proxmox = {
           enable = mkEnableOption "Enable the shared Proxmox guest baseline";
 

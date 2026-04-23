@@ -13,6 +13,12 @@
   };
 
   dsqr.nixos = {
+    tailscale = {
+      enable = true;
+      authKeyAgeFile = ./tailscale.auth-key.age;
+      useRoutingFeatures = "both";
+    };
+
     user = {
       enable = true;
       passwordAgeFile = ./host.password.age;
