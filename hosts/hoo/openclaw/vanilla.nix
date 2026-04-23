@@ -3,7 +3,6 @@
   config,
   lib,
   openclawEnvFile,
-  pluginDefs,
   ...
 }:
 let
@@ -13,7 +12,6 @@ in
   programs.openclaw.instances.vanilla = {
     enable = true;
     gatewayPort = 18790;
-    plugins = pluginDefs.pluginsByInstance.vanilla;
 
     config = lib.recursiveUpdate commonInstanceConfig {
       channels.discord = {
