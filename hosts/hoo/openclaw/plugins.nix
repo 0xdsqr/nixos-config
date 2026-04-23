@@ -16,6 +16,15 @@ let
         };
       };
     }
+    {
+      source = "github:openclaw/nix-steipete-tools?dir=tools/sag";
+      config = {
+        env = {
+          ELEVENLABS_API_KEY = "/run/agenix/openclawEnv";
+          SAG_API_KEY = "/run/agenix/openclawEnv";
+        };
+      };
+    }
   ];
   hooPlugins = [ ];
   vanillaPlugins = [ ];
