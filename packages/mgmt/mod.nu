@@ -2,8 +2,10 @@
 
 export use cli.nu [
   help
-  version
   main
+  "mgmt main"
+  run
+  version
 ]
 
 export module logger.nu

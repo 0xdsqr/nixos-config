@@ -19,6 +19,7 @@
         ripgrep
         eza
         fd
+        rsync
         curl
         unzip
         wget

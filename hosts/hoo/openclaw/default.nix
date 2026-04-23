@@ -3,22 +3,39 @@ let
   openclawEnvFile = config.age.secrets.openclawEnv.path;
   pluginDefs = import ./plugins.nix;
   commonInstanceConfig = import ./models.nix;
+  baseWorkspaceDocNames = [
+    "AGENTS.md"
+    "SOUL.md"
+    "TOOLS.md"
+  ];
+  optionalWorkspaceDocNames = [
+    "IDENTITY.md"
+    "USER.md"
+    "LORE.md"
+    "HEARTBEAT.md"
+    "PROMPTING-EXAMPLES.md"
+    "MEMORY.md"
+    "BOOTSTRAP.md"
+  ];
   mkWorkspaceDocs =
-    workspaceDir: docDir:
+    {
+      workspaceDir,
+      docDir,
+      extraDocNames ? [ ],
+    }:
+    let
+      docNames = builtins.filter (name: builtins.pathExists (docDir + "/${name}")) (
+        baseWorkspaceDocNames ++ optionalWorkspaceDocNames ++ extraDocNames
+      );
+    in
     builtins.listToAttrs (
-      map
-        (name: {
-          name = "${workspaceDir}/${name}";
-          value = {
-            source = docDir + "/${name}";
-            force = true;
-          };
-        })
-        [
-          "AGENTS.md"
-          "SOUL.md"
-          "TOOLS.md"
-        ]
+      map (name: {
+        name = "${workspaceDir}/${name}";
+        value = {
+          source = docDir + "/${name}";
+          force = true;
+        };
+      }) docNames
     );
 in
 {

@@ -1,13 +1,15 @@
-use cli.nu [help, version]
+use cli.nu [run]
 
-def main [] {
-  help
-}
+def main [
+  --verbose (-v)
+  --dry-run (-n)
+  command?: string
+  ...args: string
+] {
+  let context = {
+    verbose: $verbose
+    dry_run: $dry_run
+  }
 
-def "main help" [] {
-  help
-}
-
-def "main version" [] {
-  version
+  run $context $command ...$args
 }

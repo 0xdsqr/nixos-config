@@ -15,6 +15,7 @@
         ghostty.terminfo
         jq
         ripgrep
+        rsync
         wget
       ];
     };

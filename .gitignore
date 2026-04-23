@@ -64,5 +64,6 @@ pnpm-debug.log*
 notes.md
 TODO.md
 todo.md
+.migration/
 
 infra/
