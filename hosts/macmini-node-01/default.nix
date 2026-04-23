@@ -19,6 +19,11 @@
   users.users.dsqr.home = "/Users/dsqr";
 
   system.primaryUser = "dsqr";
+  networking = {
+    hostName = "macmini-node-01";
+    computerName = "macmini-node-01";
+    localHostName = "macmini-node-01";
+  };
 
   dsqr.darwin.exo.enable = true;
   dsqr.darwin.alloy = {
