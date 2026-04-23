@@ -51,11 +51,7 @@ in
               providers.cloudflare-workers-ai = {
                 api = "openai-completions";
                 baseUrl = "https://gateway.ai.cloudflare.com/v1/${cloudflareAccountId}/${cloudflareGatewayId}/workers-ai/v1";
-                apiKey = {
-                  source = "env";
-                  provider = "cloudflare-workers-ai";
-                  id = "CLOUDFLARE_API_TOKEN";
-                };
+                apiKey = "\${CLOUDFLARE_API_TOKEN}";
                 models = [
                   {
                     id = "@cf/moonshotai/kimi-k2.6";
