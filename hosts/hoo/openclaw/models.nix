@@ -7,10 +7,7 @@ in
 {
   agents.defaults.model = {
     primary = "openai-codex/gpt-5.4";
-    fallbacks = [
-      "openai/gpt-5.4"
-      "cloudflare-workers-ai/@cf/moonshotai/kimi-k2.6"
-    ];
+    fallbacks = [ "openai/gpt-5.4" ];
   };
 
   agents.defaults.imageGenerationModel = {
