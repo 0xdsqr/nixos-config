@@ -60,7 +60,7 @@ let
     };
 
     agents.defaults.imageGenerationModel = {
-      primary = "google/nano-banana";
+      primary = "google/gemini-3.1-flash-image-preview";
       fallbacks = [ "openai/gpt-image-1" ];
     };
 
@@ -143,9 +143,6 @@ in
         bundledPlugins = {
           summarize.enable = true;
           sag.enable = false;
-          # goplaces reads GOOGLE_PLACES_API_KEY from the gateway environment.
-          # We already inject /run/agenix/openclawEnv via systemd EnvironmentFile,
-          # so we do not need a separate config.env secret file here.
           goplaces.enable = true;
         };
 

@@ -50,8 +50,13 @@
 
   dsqr.nixos = {
     tailscale = {
-      enable = false;
+      enable = true;
       authKeyAgeFile = ./tailscale.auth-key.age;
+      useRoutingFeatures = "client";
+      extraUpFlags = [
+        "--ssh"
+        "--advertise-tags=tag:cloud,tag:hetzner,tag:mail"
+      ];
     };
     alloy.enable = false;
 
