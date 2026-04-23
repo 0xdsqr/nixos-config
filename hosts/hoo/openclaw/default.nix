@@ -142,7 +142,7 @@ in
         documents = null;
         bundledPlugins = {
           summarize.enable = true;
-          sag.enable = false;
+          sag.enable = true;
           goplaces.enable = true;
         };
 
