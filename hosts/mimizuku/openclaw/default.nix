@@ -33,8 +33,39 @@ in
       programs.openclaw = {
         documents = ./documents/noctua;
 
-        instances.default = {
+        bundledPlugins = {
+          # Summarize URLs, PDFs, local files, and YouTube links.
+          # Usually useful immediately, but the CLI still needs its own model API key
+          # if you want summaries generated outside the main OpenClaw agent flow.
+          summarize.enable = true;
+
+          # ElevenLabs-backed text-to-speech. Installs cleanly, but needs
+          # ELEVENLABS_API_KEY (or SAG_API_KEY) before speech generation works.
+          sag.enable = true;
+
+          # Camera snapshot / clip capture for RTSP or ONVIF devices.
+          # No secret is required up front, but you still need to configure cameras.
+          camsnap.enable = true;
+
+          # Google account CLI for Calendar / Gmail / Drive / Docs / Sheets workflows.
+          # Typically needs an OAuth client + account auth flow after install.
+          gogcli.enable = true;
+
+          # Google Places search / details / reviews CLI.
+          # Most useful once GOOGLE_PLACES_API_KEY is available.
+          goplaces.enable = true;
+
+          # Sonos control on the local network. Works best when this host can
+          # see your speakers; some music provider features need extra auth.
+          sonoscli.enable = true;
+
+          # macOS-only bundled plugins intentionally left off on mimizuku:
+          # peekaboo, poltergeist, bird, imsg
+        };
+
+        instances.hoo = {
           enable = true;
+          systemd.unitName = "openclaw-gateway";
           stateDir = "/home/dsqr/.openclaw";
           workspaceDir = "/home/dsqr/.openclaw/workspace";
 
@@ -77,7 +108,7 @@ in
 
             channels.discord = {
               enabled = true;
-              token = "\${DISCORD_NOCTUA_TOKEN}";
+              token = "\${DISCORD_HOO_TOKEN}";
               allowFrom = [ "618575437995442197" ];
               groupPolicy = "allowlist";
               guilds."1465602840713101598" = {
@@ -85,10 +116,10 @@ in
                 users = [ "618575437995442197" ];
                 channels = {
                   "*" = {
-                    enabled = true;
+                    enabled = false;
                     requireMention = true;
                   };
-                  "1495956898481049672" = {
+                  "1496697794285539348" = {
                     enabled = true;
                     requireMention = false;
                   };
