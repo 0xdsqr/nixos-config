@@ -14,7 +14,8 @@ in
   };
 
   agents.defaults.imageGenerationModel = {
-    primary = "openai/gpt-image-1";
+    primary = "google/gemini-3.1-flash-image-preview";
+    fallbacks = [ "openai/gpt-image-1" ];
   };
 
   models = {
