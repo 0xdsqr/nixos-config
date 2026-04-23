@@ -25,6 +25,12 @@ in
     content = {
       type = "gpt";
       partitions = {
+        boot = {
+          size = "1M";
+          type = "EF02";
+          priority = 1;
+        };
+
         ESP = {
           end = "512M";
           type = "EF00";
@@ -76,8 +82,10 @@ in
   services.qemuGuest.enable = true;
 
   boot.kernelParams = [ "console=ttyS0,115200" ];
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.grub = {
+    enable = true;
+    device = "/dev/sda";
+  };
 
   system.stateVersion = "25.11";
 }

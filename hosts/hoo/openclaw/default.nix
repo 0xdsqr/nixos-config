@@ -140,7 +140,12 @@ in
         # We want different persona docs per instance, so we do not use the
         # current global `programs.openclaw.documents` option here.
         documents = null;
-        bundledPlugins = { };
+        bundledPlugins = {
+          # goplaces reads GOOGLE_PLACES_API_KEY from the gateway environment.
+          # We already inject /run/agenix/openclawEnv via systemd EnvironmentFile,
+          # so we do not need a separate config.env secret file here.
+          goplaces.enable = true;
+        };
 
         instances.hoo = {
           enable = true;
