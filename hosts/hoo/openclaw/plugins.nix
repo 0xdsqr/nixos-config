@@ -5,18 +5,12 @@ let
 in
 {
   bundledPlugins = {
-    summarize = {
-      enable = true;
-      config.env.OPENAI_API_KEY = "/run/agenix/openclawEnv";
-    };
-    goplaces = {
-      enable = true;
-      config.env.GOOGLE_PLACES_API_KEY = "/run/agenix/openclawEnv";
-    };
-    sag = {
-      enable = true;
-      config.env.ELEVENLABS_API_KEY = "/run/agenix/openclawEnv";
-    };
+    # These plugins inherit provider keys from the gateway service
+    # EnvironmentFile. Pointing config.env.* at the shared multi-key env file
+    # makes OpenClaw treat the whole file contents as a single secret.
+    summarize.enable = true;
+    goplaces.enable = true;
+    sag.enable = true;
   };
 
   inherit commonPlugins hooPlugins vanillaPlugins;
