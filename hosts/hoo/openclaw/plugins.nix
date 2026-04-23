@@ -1,36 +1,23 @@
 let
-  commonPlugins = [
-    {
-      source = "github:openclaw/nix-steipete-tools?dir=tools/summarize";
-      config = {
-        env = {
-          OPENAI_API_KEY = "/run/agenix/openclawEnv";
-        };
-      };
-    }
-    {
-      source = "github:openclaw/nix-steipete-tools?dir=tools/goplaces";
-      config = {
-        env = {
-          GOOGLE_PLACES_API_KEY = "/run/agenix/openclawEnv";
-        };
-      };
-    }
-    {
-      source = "github:openclaw/nix-steipete-tools?dir=tools/sag";
-      config = {
-        env = {
-          ELEVENLABS_API_KEY = "/run/agenix/openclawEnv";
-          SAG_API_KEY = "/run/agenix/openclawEnv";
-        };
-      };
-    }
-  ];
+  commonPlugins = [ ];
   hooPlugins = [ ];
   vanillaPlugins = [ ];
 in
 {
-  bundledPlugins = { };
+  bundledPlugins = {
+    summarize = {
+      enable = true;
+      config.env.OPENAI_API_KEY = "/run/agenix/openclawEnv";
+    };
+    goplaces = {
+      enable = true;
+      config.env.GOOGLE_PLACES_API_KEY = "/run/agenix/openclawEnv";
+    };
+    sag = {
+      enable = true;
+      config.env.ELEVENLABS_API_KEY = "/run/agenix/openclawEnv";
+    };
+  };
 
   inherit commonPlugins hooPlugins vanillaPlugins;
 

@@ -17,26 +17,30 @@ let
     "MEMORY.md"
     "BOOTSTRAP.md"
   ];
-  mkWorkspaceDocs =
+  mkWorkspaceDocsActivation =
     {
       workspaceDir,
       docDir,
       extraDocNames ? [ ],
     }:
     let
-      docNames = builtins.filter (name: builtins.pathExists (docDir + "/${name}")) (
+      docNames = builtins.filter (docName: builtins.pathExists (docDir + "/${docName}")) (
         baseWorkspaceDocNames ++ optionalWorkspaceDocNames ++ extraDocNames
       );
+      seedCommands = builtins.concatStringsSep "\n" (
+        map (docName: ''
+          target="$HOME/${workspaceDir}/${docName}"
+          if [ ! -e "$target" ] || [ -L "$target" ]; then
+            rm -f "$target"
+            cp ${docDir + "/${docName}"} "$target"
+            chmod u+rw "$target"
+          fi
+        '') docNames
+      );
     in
-    builtins.listToAttrs (
-      map (name: {
-        name = "${workspaceDir}/${name}";
-        value = {
-          source = docDir + "/${name}";
-          force = true;
-        };
-      }) docNames
-    );
+    ''
+      ${seedCommands}
+    '';
 in
 {
   age.secrets.openclawEnv = {
@@ -50,14 +54,14 @@ in
   dsqr.home.imports = [
     nix-openclaw.homeManagerModules.openclaw
     (
-      { ... }:
+      { lib, ... }:
       {
         imports = [
           (_: {
             _module.args = {
               inherit
                 commonInstanceConfig
-                mkWorkspaceDocs
+                mkWorkspaceDocsActivation
                 openclawEnvFile
                 pluginDefs
                 ;
@@ -76,6 +80,17 @@ in
           # current global `programs.openclaw.documents` option here.
           documents = null;
           inherit (pluginDefs) bundledPlugins;
+        };
+
+        home.activation = {
+          openclaw-hoo-workspace-docs = lib.hm.dag.entryAfter [ "linkGeneration" ] (mkWorkspaceDocsActivation {
+            workspaceDir = ".openclaw-hoo/workspace";
+            docDir = ./documents/noctua;
+          });
+          openclaw-vanilla-workspace-docs = lib.hm.dag.entryAfter [ "linkGeneration" ] (mkWorkspaceDocsActivation {
+            workspaceDir = ".openclaw-vanilla/workspace";
+            docDir = ./documents/vanilla;
+          });
         };
       }
     )

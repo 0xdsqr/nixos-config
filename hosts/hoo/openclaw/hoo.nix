@@ -2,14 +2,10 @@
   commonInstanceConfig,
   config,
   lib,
-  mkWorkspaceDocs,
   openclawEnvFile,
   pluginDefs,
   ...
 }:
-let
-  workspaceDir = ".openclaw-hoo/workspace";
-in
 {
   programs.openclaw.instances.hoo = {
     enable = true;
@@ -55,9 +51,5 @@ in
 
   home.file = {
     ".openclaw-hoo/openclaw.json".force = true;
-  }
-  // (mkWorkspaceDocs {
-    inherit workspaceDir;
-    docDir = ./documents/noctua;
-  });
+  };
 }

@@ -13,6 +13,10 @@ in
     ];
   };
 
+  agents.defaults.imageGenerationModel = {
+    primary = "openai/gpt-image-1";
+  };
+
   models = {
     mode = "merge";
     providers.cloudflare-workers-ai = {
@@ -50,5 +54,22 @@ in
     };
   };
 
-  plugins.entries.openai.enabled = true;
+  plugins.entries = {
+    brave = {
+      enabled = true;
+      config.webSearch = {
+        apiKey = "\${BRAVE_API_KEY}";
+        mode = "web";
+      };
+    };
+    openai.enabled = true;
+  };
+
+  tools.web.search = {
+    enabled = true;
+    provider = "brave";
+    maxResults = 5;
+    timeoutSeconds = 30;
+  };
+
 }

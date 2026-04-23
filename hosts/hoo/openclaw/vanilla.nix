@@ -2,13 +2,11 @@
   commonInstanceConfig,
   config,
   lib,
-  mkWorkspaceDocs,
   openclawEnvFile,
   pluginDefs,
   ...
 }:
 let
-  workspaceDir = ".openclaw-vanilla/workspace";
   legacyReferenceDir = "/home/dsqr/vanilla-legacy";
 in
 {
@@ -66,9 +64,5 @@ in
       source = config.lib.file.mkOutOfStoreSymlink legacyReferenceDir;
       force = true;
     };
-  }
-  // (mkWorkspaceDocs {
-    inherit workspaceDir;
-    docDir = ./documents/vanilla;
-  });
+  };
 }
