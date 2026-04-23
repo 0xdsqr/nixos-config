@@ -1,28 +1,13 @@
 {
+  commonInstanceConfig,
   config,
   lib,
+  mkWorkspaceDocs,
   openclawEnvFile,
   ...
 }:
 let
   workspaceDir = ".openclaw-vanilla/workspace";
-  mkWorkspaceDocs =
-    docDir:
-    builtins.listToAttrs (
-      map
-        (name: {
-          name = "${workspaceDir}/${name}";
-          value = {
-            source = docDir + "/${name}";
-            force = true;
-          };
-        })
-        [
-          "AGENTS.md"
-          "SOUL.md"
-          "TOOLS.md"
-        ]
-    );
 in
 {
   programs.openclaw.instances.vanilla = {
@@ -30,17 +15,31 @@ in
     gatewayPort = 18790;
     plugins = [ ];
 
-    config.channels.discord = {
-      enabled = true;
-      token = "\${DISCORD_VANILLA_TOKEN}";
-      allowFrom = [ "618575437995442197" ];
-      groupPolicy = "allowlist";
-      guilds."1465602840713101598" = {
-        requireMention = true;
-        users = [ "618575437995442197" ];
-        channels."*" = {
-          enabled = true;
+    config = lib.recursiveUpdate commonInstanceConfig {
+      channels.discord = {
+        enabled = true;
+        token = "\${DISCORD_VANILLA_TOKEN}";
+        allowFrom = [
+          "618575437995442197"
+          "980636531565949019"
+        ];
+        groupPolicy = "allowlist";
+        guilds."1465602840713101598" = {
           requireMention = true;
+          users = [
+            "618575437995442197"
+            "980636531565949019"
+          ];
+          channels = {
+            "*" = {
+              enabled = false;
+              requireMention = true;
+            };
+            "1465807038587076700" = {
+              enabled = true;
+              requireMention = false;
+            };
+          };
         };
       };
     };
@@ -59,8 +58,5 @@ in
     Service.EnvironmentFile = [ openclawEnvFile ];
   };
 
-  home.file = {
-    ".openclaw-vanilla/openclaw.json".force = true;
-  }
-  // (mkWorkspaceDocs ./documents/vanilla);
+  home.file = mkWorkspaceDocs workspaceDir ./documents/vanilla;
 }

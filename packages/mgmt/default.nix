@@ -4,17 +4,31 @@
   stdenvNoCC,
   version ? "0.1.0-dev",
 }:
-stdenvNoCC.mkDerivation {
+let
+  source = lib.cleanSource ./.;
+in
+stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "mgmt";
   inherit version;
 
-  src = ./main.nu;
+  src = source;
+  dontBuild = true;
+  dontConfigure = true;
+  dontFixup = true;
   dontUnpack = true;
 
   installPhase = ''
-    mkdir -p $out/bin $out/libexec
-    substitute ${./main.nu} $out/libexec/mgmt.nu \
-      --subst-var-by version ${version}
+    runHook preInstall
+
+    mkdir -p $out/bin $out/libexec/mgmt $out/share/mgmt
+
+    substitute $src/cli.nu $out/libexec/mgmt/cli.nu \
+      --subst-var-by version ${finalAttrs.version}
+    install -m 0555 $src/main.nu $out/libexec/mgmt/main.nu
+    install -m 0555 $src/logger.nu $out/libexec/mgmt/logger.nu
+    install -m 0555 $src/mod.nu $out/libexec/mgmt/mod.nu
+    cp -R $src/templates $out/share/mgmt/templates
+
     cat > $out/bin/mgmt <<EOF
     #!${lib.getExe bash}
     set -euo pipefail
@@ -25,9 +39,12 @@ stdenvNoCC.mkDerivation {
       exit 1
     fi
 
-    exec nu "$out/libexec/mgmt.nu" "\$@"
+    exec nu --no-config-file "$out/libexec/mgmt/main.nu" "\$@"
     EOF
-    chmod +x $out/bin/mgmt $out/libexec/mgmt.nu
+
+    chmod +x $out/bin/mgmt
+
+    runHook postInstall
   '';
 
   meta = {
@@ -35,4 +52,4 @@ stdenvNoCC.mkDerivation {
     mainProgram = "mgmt";
     platforms = lib.platforms.unix;
   };
-}
+})

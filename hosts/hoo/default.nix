@@ -6,6 +6,7 @@
       ./default.nix
       ./meta.nix
       ./openclaw/hoo.nix
+      ./openclaw/models.nix
       ./openclaw/plugins.nix
       ./openclaw/vanilla.nix
     ];
