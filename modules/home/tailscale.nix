@@ -1,18 +1,13 @@
 {
   flake.homeModules.tailscale =
-    {
-      lib,
-      osConfig,
-      pkgs,
-      ...
-    }:
+    { lib, pkgs, ... }:
     let
       inherit (lib) getExe mkIf;
+      inherit (pkgs.stdenv) hostPlatform;
     in
     {
-      programs.nushell.shellAliases.ts =
-        if osConfig.nixpkgs.hostPlatform.isDarwin then "tailscale" else getExe pkgs.tailscale;
+      programs.nushell.shellAliases.ts = if hostPlatform.isDarwin then "tailscale" else getExe pkgs.tailscale;
 
-      home.packages = mkIf osConfig.nixpkgs.hostPlatform.isLinux [ pkgs.tailscale ];
+      home.packages = mkIf hostPlatform.isLinux [ pkgs.tailscale ];
     };
 }

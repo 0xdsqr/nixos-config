@@ -152,7 +152,7 @@
               "server"
               "both"
             ];
-            default = "client";
+            default = "both";
             description = "Routing mode to pass through to services.tailscale.useRoutingFeatures.";
           };
 

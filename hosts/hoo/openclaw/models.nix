@@ -6,8 +6,11 @@ let
 in
 {
   agents.defaults.model = {
-    primary = "cloudflare-workers-ai/@cf/moonshotai/kimi-k2.6";
-    fallbacks = [ "cloudflare-workers-ai/@cf/meta/llama-3.3-70b-instruct-fp8-fast" ];
+    primary = "openai-codex/gpt-5.4";
+    fallbacks = [
+      "openai/gpt-5.4"
+      "cloudflare-workers-ai/@cf/moonshotai/kimi-k2.6"
+    ];
   };
 
   models = {
