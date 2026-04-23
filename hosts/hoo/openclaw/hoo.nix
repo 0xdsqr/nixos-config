@@ -14,7 +14,7 @@ in
   programs.openclaw.instances.hoo = {
     enable = true;
     gatewayPort = 18789;
-    plugins = pluginDefs.hooPlugins;
+    plugins = pluginDefs.pluginsByInstance.hoo;
 
     config = lib.recursiveUpdate commonInstanceConfig {
       channels.discord = {

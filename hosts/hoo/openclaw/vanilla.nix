@@ -4,6 +4,7 @@
   lib,
   mkWorkspaceDocs,
   openclawEnvFile,
+  pluginDefs,
   ...
 }:
 let
@@ -14,7 +15,7 @@ in
   programs.openclaw.instances.vanilla = {
     enable = true;
     gatewayPort = 18790;
-    plugins = [ ];
+    plugins = pluginDefs.pluginsByInstance.vanilla;
 
     config = lib.recursiveUpdate commonInstanceConfig {
       channels.discord = {
