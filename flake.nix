@@ -87,16 +87,34 @@
     inputs@{ flake-parts, ... }:
     let
       nixLib = inputs.nixpkgs.lib // inputs.darwin.lib;
-      roostModules = import ./packages/roost/modules.nix { lib = nixLib; };
+      inherit (nixLib.filesystem) listFilesRecursive;
+      inherit (nixLib.lists) elem filter;
+      inherit (nixLib.strings) hasSuffix;
+
+      collectNix =
+        {
+          dir,
+          ignoredNames ? [ ],
+          ignoredFiles ? [ ],
+        }:
+        filter (
+          path:
+          let
+            name = builtins.baseNameOf path;
+          in
+          hasSuffix ".nix" path && !(elem name ignoredNames) && !(elem path ignoredFiles)
+        ) (listFilesRecursive dir);
     in
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         inputs.home-manager.flakeModules.home-manager
+        ./parts/home-manager.nix
         ./parts/flake-outputs.nix
+        ./parts/nix.nix
+        ./parts/nixpkgs.nix
         ./parts/per-system.nix
-        ./parts/modules.nix
         ./parts/hosts.nix
       ]
-      ++ roostModules.collectNix { dir = ./modules; };
+      ++ collectNix { dir = ./modules; };
     };
 }

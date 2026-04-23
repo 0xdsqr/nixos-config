@@ -4,7 +4,7 @@
     let
       inherit (lib) mkIf;
     in
-    mkIf osConfig.nixpkgs.hostPlatform.isDarwin {
+    mkIf (osConfig.nixpkgs.hostPlatform.isDarwin && osConfig.dsqr.home.profile == "desktop") {
       programs.zed-editor = {
         enable = true;
         package = null;

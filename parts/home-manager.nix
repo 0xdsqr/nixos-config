@@ -14,6 +14,8 @@
       inputHomeModules = builtins.map (name: inputs.${name}.homeModules.default) [ "sops-nix" ];
       specialArgs = { inherit self inputs; };
       homeCfg = attrByPath [ "dsqr" "home" ] {
+        enable = true;
+        profile = "desktop";
         userName = "dsqr";
         imports = [ ];
       } config;
@@ -21,11 +23,7 @@
       sharedContextModule = {
         _module.args = {
           inherit keys;
-          inherit (self.lib) roost;
-          ctx = {
-            inherit keys;
-            inherit (self.lib) roost;
-          };
+          ctx = { inherit keys; };
         };
       };
       sharedHomeDefaultsModule =
@@ -52,8 +50,12 @@
         home-manager.useUserPackages = true;
       }
 
-      (mkIf pkgs.stdenv.isDarwin { home-manager.users.${config.system.primaryUser}.imports = homeCfg.imports; })
+      (mkIf (pkgs.stdenv.isDarwin && homeCfg.enable) {
+        home-manager.users.${config.system.primaryUser}.imports = homeCfg.imports;
+      })
 
-      (mkIf (pkgs.stdenv.isLinux && nixosUserEnabled) { home-manager.users.${homeCfg.userName}.imports = homeCfg.imports; })
+      (mkIf (pkgs.stdenv.isLinux && nixosUserEnabled && homeCfg.enable) {
+        home-manager.users.${homeCfg.userName}.imports = homeCfg.imports;
+      })
     ];
 }

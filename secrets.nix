@@ -39,9 +39,9 @@ mkSecretsForHost "beacon" [
 // mkSecretsForHost "k8s-master-01" [ "hosts/k8s-master-01/host.password.age" ]
 // mkSecretsForHost "k8s-node-01" [ "hosts/k8s-node-01/host.password.age" ]
 // mkSecretsForHost "k8s-node-02" [ "hosts/k8s-node-02/host.password.age" ]
-// mkSecretsForHost "mimizuku" [
-  "hosts/mimizuku/host.password.age"
-  "hosts/mimizuku/openclaw/openclaw.env.age"
+// mkSecretsForHost "hoo" [
+  "hosts/hoo/host.password.age"
+  "hosts/hoo/openclaw/openclaw.env.age"
 ]
 // mkSecretsForHost "khaos" [
   "hosts/khaos/host.password.age"

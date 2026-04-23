@@ -1,10 +1,13 @@
-{ roost, ... }:
+{ collectNix, ... }:
 {
-  imports = roost.modules.collectNix {
+  imports = collectNix {
     dir = ./.;
     ignoredFiles = [
       ./default.nix
       ./meta.nix
+      ./openclaw/hoo.nix
+      ./openclaw/plugins.nix
+      ./openclaw/vanilla.nix
     ];
   };
 
@@ -19,7 +22,7 @@
     # for grub boot, qemu guest agent, cloud-init disablement, and dhcp defaults.
     proxmox = {
       enable = true;
-      hostName = "mimizuku";
+      hostName = "hoo";
     };
 
     alloy = {

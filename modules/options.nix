@@ -1,11 +1,58 @@
 {
   flake.commonModules.options =
-    { lib, ... }:
+    { hostMeta, lib, ... }:
     let
       inherit (lib) mkOption types;
+      hostProfiles = [
+        "darwin-laptop-aarch64"
+        "darwin-mini-aarch64"
+        "linux-desktop-aarch64"
+        "linux-desktop-x86_64"
+        "linux-vm-aarch64"
+        "linux-vm-x86_64"
+      ];
+      hostProfile =
+        if hostMeta.profile != null then
+          hostMeta.profile
+        else if hostMeta.class == "darwin" then
+          "darwin-laptop-aarch64"
+        else
+          "linux-vm-x86_64";
+      defaultHomeProfile =
+        if
+          builtins.elem hostProfile [
+            "darwin-mini-aarch64"
+            "linux-vm-aarch64"
+            "linux-vm-x86_64"
+          ]
+        then
+          "server"
+        else
+          "desktop";
     in
     {
+      options.dsqr.host.profile = mkOption {
+        type = types.enum hostProfiles;
+        default = hostProfile;
+        description = "High-level host shape used to derive sane defaults for this machine.";
+      };
+
       options.dsqr.home = {
+        enable = mkOption {
+          type = types.bool;
+          default = true;
+          description = "Whether to attach the shared Home Manager profile for this host.";
+        };
+
+        profile = mkOption {
+          type = types.enum [
+            "desktop"
+            "server"
+          ];
+          default = defaultHomeProfile;
+          description = "Shared Home Manager profile to apply for this host.";
+        };
+
         userName = mkOption {
           type = types.str;
           default = "dsqr";
