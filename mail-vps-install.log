@@ -1,0 +1,8 @@
+warning: unknown setting 'eval-cores'
+warning: unknown setting 'lazy-trees'
+warning: unknown setting 'eval-cores'
+warning: unknown setting 'lazy-trees'
+Warning: Identity file /tmp/tmp.iYcGrxRcrj/nixos-anywhere not accessible: No such file or directory.
+### Uploading install SSH keys ###
+/usr/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/tmp/tmp.iYcGrxRcrj/nixos-anywhere.pub"
+/usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
