@@ -32,6 +32,7 @@ in
 
       programs.openclaw = {
         documents = ./documents/noctua;
+        exposePluginPackages = false;
 
         bundledPlugins = {
           # Summarize URLs, PDFs, local files, and YouTube links.
