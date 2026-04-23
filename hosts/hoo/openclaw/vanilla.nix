@@ -58,5 +58,9 @@ in
     Service.EnvironmentFile = [ openclawEnvFile ];
   };
 
-  home.file = mkWorkspaceDocs workspaceDir ./documents/vanilla;
+  home.file =
+    {
+      ".openclaw-vanilla/openclaw.json".force = true;
+    }
+    // (mkWorkspaceDocs workspaceDir ./documents/vanilla);
 }

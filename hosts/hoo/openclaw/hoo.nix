@@ -53,5 +53,9 @@ in
     Service.EnvironmentFile = [ openclawEnvFile ];
   };
 
-  home.file = mkWorkspaceDocs workspaceDir ./documents/noctua;
+  home.file =
+    {
+      ".openclaw-hoo/openclaw.json".force = true;
+    }
+    // (mkWorkspaceDocs workspaceDir ./documents/noctua);
 }
