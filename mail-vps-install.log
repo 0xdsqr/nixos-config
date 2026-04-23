@@ -6,3 +6,16 @@ Warning: Identity file /tmp/tmp.iYcGrxRcrj/nixos-anywhere not accessible: No suc
 ### Uploading install SSH keys ###
 /usr/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/tmp/tmp.iYcGrxRcrj/nixos-anywhere.pub"
 /usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
+
+/usr/bin/ssh-copy-id: ERROR: ssh: connect to host 178.156.204.203 port 22: Operation timed out
+
+/usr/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/tmp/tmp.iYcGrxRcrj/nixos-anywhere.pub"
+/usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
+
+/usr/bin/ssh-copy-id: ERROR: ssh: connect to host 178.156.204.203 port 22: Operation timed out
+
+/usr/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/tmp/tmp.iYcGrxRcrj/nixos-anywhere.pub"
+/usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
+
+/usr/bin/ssh-copy-id: ERROR: ssh: connect to host 178.156.204.203 port 22: Operation timed out
+

@@ -131,7 +131,7 @@ in
 
   dsqr.home.imports = [
     nix-openclaw.homeManagerModules.openclaw
-    {
+    ({ config, lib, ... }: {
       programs.openclaw = {
         # Avoid user profile PATH collisions when plugin binaries overlap with
         # tools that the base OpenClaw package already exposes.
@@ -252,6 +252,6 @@ in
           docDir = ./documents/vanilla;
         });
       };
-    }
+    })
   ];
 }
