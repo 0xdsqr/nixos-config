@@ -4,14 +4,9 @@ let
   vanillaPlugins = [ ];
 in
 {
-  bundledPlugins = {
-    # These plugins inherit provider keys from the gateway service
-    # EnvironmentFile. Pointing config.env.* at the shared multi-key env file
-    # makes OpenClaw treat the whole file contents as a single secret.
-    summarize.enable = true;
-    goplaces.enable = true;
-    sag.enable = true;
-  };
+  # Temporary isolation mode: disable bundled skills while we stabilize core
+  # chat and image-generation behavior.
+  bundledPlugins = { };
 
   inherit commonPlugins hooPlugins vanillaPlugins;
 
