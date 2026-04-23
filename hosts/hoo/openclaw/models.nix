@@ -6,8 +6,8 @@ let
 in
 {
   agents.defaults.model = {
-    primary = "openai-codex/gpt-5.4";
-    fallbacks = [ "openai/gpt-5.4" ];
+    primary = "openai/gpt-5.4";
+    fallbacks = [ ];
   };
 
   agents.defaults.imageGenerationModel = {
