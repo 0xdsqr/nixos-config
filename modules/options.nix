@@ -19,6 +19,7 @@
         };
       };
     };
+
   flake.darwinModules.options =
     { hostName, lib, ... }:
     let
@@ -57,6 +58,7 @@
         exo.enable = mkEnableOption "Exo-specific Darwin settings";
       };
     };
+
   flake.nixosModules.options =
     {
       config,

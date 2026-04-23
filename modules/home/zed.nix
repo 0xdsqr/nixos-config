@@ -1,10 +1,10 @@
 {
   flake.homeModules.zed =
-    { lib, pkgs, ... }:
+    { lib, osConfig, ... }:
     let
       inherit (lib) mkIf;
     in
-    mkIf pkgs.stdenv.isDarwin {
+    mkIf osConfig.nixpkgs.hostPlatform.isDarwin {
       programs.zed-editor = {
         enable = true;
         package = null;
@@ -25,11 +25,4 @@
         extensions = [ "nix" ];
       };
     };
-  flake.darwinModules.zed =
-    { config, lib, ... }:
-    let
-      inherit (lib) mkIf;
-      inherit (config.dsqr.darwin) devbox;
-    in
-    mkIf devbox.enable { homebrew.casks = [ "zed" ]; };
 }

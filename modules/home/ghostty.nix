@@ -1,10 +1,10 @@
 {
   flake.homeModules.ghostty =
-    { pkgs, ... }:
+    { osConfig, pkgs, ... }:
     {
       programs.ghostty = {
         enable = true;
-        package = if pkgs.stdenv.hostPlatform.isDarwin then pkgs.ghostty-bin else pkgs.ghostty;
+        package = if osConfig.nixpkgs.hostPlatform.isDarwin then pkgs.ghostty-bin else pkgs.ghostty;
         settings = {
           # Window settings
           window-padding-x = 10;
@@ -36,5 +36,4 @@
         };
       };
     };
-  flake.darwinModules.ghostty = _: { homebrew.casks = [ "ghostty" ]; };
 }
