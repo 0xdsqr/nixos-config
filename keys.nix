@@ -11,6 +11,7 @@ let
     k8s-node-02 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIC7GdKgSr1RZ1QQUuSWUiDc7DjdoSGkTODEinZV7HsFU root@k8s-node-02";
     khaos = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIICiSoBRJAqEH2DGnNLSmDF6PFKZevfntV2FXaPa9EC8 root@khaos";
     hoo = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAjUr1zcIllfcXSkgx2Uh2YqLNRJUgygfR8cUdW7o1zE root@hoo";
+    mail-vps = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDrwjdEz7mbg7E7BO6FqNG4S6eAcx73ktPhniXDwTGBu root@mail-vps";
   };
 
   groups = rec {

@@ -44,6 +44,10 @@ mkSecretsForHost "beacon" [
   "hosts/hoo/openclaw/openclaw.env.age"
   "hosts/hoo/tailscale.auth-key.age"
 ]
+// mkSecretsForHost "mail-vps" [
+  "hosts/mail-vps/host.password.age"
+  "hosts/mail-vps/tailscale.auth-key.age"
+]
 // mkSecretsForHost "khaos" [
   "hosts/khaos/host.password.age"
   "hosts/khaos/redis.password.age"

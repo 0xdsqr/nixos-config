@@ -141,6 +141,8 @@ in
         # current global `programs.openclaw.documents` option here.
         documents = null;
         bundledPlugins = {
+          summarize.enable = true;
+          sag.enable = false;
           # goplaces reads GOOGLE_PLACES_API_KEY from the gateway environment.
           # We already inject /run/agenix/openclawEnv via systemd EnvironmentFile,
           # so we do not need a separate config.env secret file here.

@@ -1,13 +1,7 @@
 {
   collectNix,
-  keys,
-  lib,
   ...
 }:
-let
-  inherit (lib) mkIf;
-  hasPasswordAgeFile = builtins.pathExists ./host.password.age;
-in
 {
   imports = collectNix {
     dir = ./.;
@@ -55,37 +49,25 @@ in
   };
 
   dsqr.nixos = {
-    tailscale.enable = false;
+    tailscale = {
+      enable = false;
+      authKeyAgeFile = ./tailscale.auth-key.age;
+    };
     alloy.enable = false;
 
     user = {
-      enable = hasPasswordAgeFile;
-      passwordAgeFile = if hasPasswordAgeFile then ./host.password.age else null;
+      enable = true;
+      passwordAgeFile = ./host.password.age;
       serverAdmin.enable = true;
     };
   };
 
-  users.users.root.openssh.authorizedKeys.keys = keys.admins;
-
-  users.users.dsqr = mkIf (!hasPasswordAgeFile) {
-    isNormalUser = true;
-    home = "/home/dsqr";
-    description = "its me dave";
-    extraGroups = [ "wheel" ];
-    openssh.authorizedKeys.keys = keys.admins;
-  };
-
   services.openssh.openFirewall = true;
-  services.openssh.settings.PermitRootLogin =
-    lib.mkForce (if hasPasswordAgeFile then "no" else "prohibit-password");
 
   services.qemuGuest.enable = true;
 
   boot.kernelParams = [ "console=ttyS0,115200" ];
-  boot.loader.grub = {
-    enable = true;
-    device = "/dev/sda";
-  };
+  boot.loader.grub.enable = true;
 
   system.stateVersion = "25.11";
 }
