@@ -7,7 +7,6 @@
 let
   inherit (lib) mkIf;
   hasPasswordAgeFile = builtins.pathExists ./host.password.age;
-  hasTailscaleAuthKey = builtins.pathExists ./tailscale.auth-key.age;
 in
 {
   imports = collectNix {
@@ -50,12 +49,8 @@ in
   };
 
   dsqr.nixos = {
-    tailscale = {
-      enable = hasTailscaleAuthKey;
-      authKeyAgeFile = if hasTailscaleAuthKey then ./tailscale.auth-key.age else null;
-      useRoutingFeatures = "client";
-      extraUpFlags = [ "--advertise-tags=tag:cloud,tag:hetzner,tag:mail" ];
-    };
+    tailscale.enable = false;
+    alloy.enable = false;
 
     user = {
       enable = hasPasswordAgeFile;
@@ -74,6 +69,7 @@ in
     openssh.authorizedKeys.keys = keys.admins;
   };
 
+  services.openssh.openFirewall = true;
   services.openssh.settings.PermitRootLogin =
     lib.mkForce (if hasPasswordAgeFile then "no" else "prohibit-password");
 
