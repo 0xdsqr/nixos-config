@@ -1,18 +1,12 @@
 {
   flake.homeModules.ghostty =
     {
-      lib,
-      osConfig,
       pkgs,
       ...
-    }:
-    let
-      inherit (lib) mkIf;
-    in
-    mkIf (osConfig.dsqr.home.profile == "desktop") {
+    }: {
       programs.ghostty = {
         enable = true;
-        package = if osConfig.nixpkgs.hostPlatform.isDarwin then pkgs.ghostty-bin else pkgs.ghostty;
+        package = if pkgs.stdenv.hostPlatform.isDarwin then pkgs.ghostty-bin else pkgs.ghostty;
         settings = {
           # Window settings
           window-padding-x = 10;

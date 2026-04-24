@@ -1,28 +1,33 @@
 {
   flake.nixosModules.tailscale =
-    { config, lib, ... }:
+    {
+      config,
+      hostMeta,
+      lib,
+      ...
+    }:
     let
-      inherit (lib) mkIf;
+      inherit (lib) mkDefault mkIf;
       inherit (lib.lists) singleton;
-      cfg = config.dsqr.nixos.tailscale;
+      authKeyAgeFile = hostMeta.path + "/tailscale.auth-key.age";
+      hasAuthKey = builtins.pathExists authKeyAgeFile;
     in
     {
-      config = mkIf cfg.enable {
-        age.secrets.tailscaleAuthKey = mkIf (cfg.authKeyAgeFile != null) {
-          file = cfg.authKeyAgeFile;
+      config = {
+        age.secrets.tailscaleAuthKey = mkIf hasAuthKey {
+          file = authKeyAgeFile;
           owner = "root";
           mode = "0400";
         };
 
         services.tailscale = {
           enable = true;
-          inherit (cfg) interfaceName;
-          inherit (cfg) useRoutingFeatures;
-          authKeyFile = mkIf (cfg.authKeyAgeFile != null) config.age.secrets.tailscaleAuthKey.path;
-          inherit (cfg) extraUpFlags;
+          interfaceName = mkDefault "ts0";
+          useRoutingFeatures = mkDefault "both";
+          authKeyFile = mkIf hasAuthKey config.age.secrets.tailscaleAuthKey.path;
         };
 
-        networking.firewall.trustedInterfaces = singleton cfg.interfaceName;
+        networking.firewall.trustedInterfaces = singleton "ts0";
 
         systemd.services.tailscaled.serviceConfig.Environment = mkIf config.networking.nftables.enable [
           "TS_DEBUG_FIREWALL_MODE=nftables"

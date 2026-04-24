@@ -6,14 +6,64 @@
         mkAfter
         mkForce
         mkIf
+        mkOption
         optionalString
+        types
         ;
       cfg = config.dsqr.nixos.alloy;
       k8sCfg = cfg.kubernetes;
     in
     {
-      config = mkIf cfg.enable {
-        systemd.services.alloy.serviceConfig = mkIf k8sCfg.enable {
+      options.dsqr.nixos.alloy = {
+        prometheus.extraConfig = mkOption {
+          type = types.lines;
+          default = "";
+          description = "Additional Prometheus-related Alloy config appended to the shared metrics pipeline.";
+        };
+
+        kubernetes = {
+          kubeconfigFile = mkOption {
+            type = types.nullOr types.str;
+            default = null;
+            description = "Kubeconfig file Alloy should use for Kubernetes API discovery. Leave null on non-Kubernetes hosts.";
+          };
+
+          cluster = mkOption {
+            type = types.str;
+            default = "homelab";
+            description = "Stable cluster label applied to Kubernetes metrics scraped by Alloy.";
+          };
+
+          kubeStateMetrics = {
+            namespace = mkOption {
+              type = types.str;
+              default = "kube-system";
+              description = "Namespace where kube-state-metrics runs.";
+            };
+
+            labelSelector = mkOption {
+              type = types.str;
+              default = "app.kubernetes.io/name=kube-state-metrics";
+              description = "Kubernetes label selector used to discover kube-state-metrics pods.";
+            };
+
+            port = mkOption {
+              type = types.port;
+              default = 8080;
+              description = "Metrics port exposed by kube-state-metrics.";
+            };
+
+            scrapeInterval = mkOption {
+              type = types.str;
+              default = "30s";
+              description = "Scrape interval for kube-state-metrics.";
+            };
+          };
+        };
+      };
+
+      config = {
+        systemd.services.alloy.serviceConfig = mkIf (k8sCfg.kubeconfigFile != null) {
           # Kubernetes API discovery needs kubeconfig access on the host. Running
           # Alloy as root on cluster nodes keeps the setup simple and avoids
           # managing a second kubeconfig copy just for the agent.
@@ -25,7 +75,7 @@
         dsqr.nixos.alloy.configFragments = mkAfter [
           (
             cfg.prometheus.extraConfig
-            + optionalString (k8sCfg.enable && k8sCfg.kubeStateMetrics.enable) ''
+            + optionalString (k8sCfg.kubeconfigFile != null) ''
 
               discovery.kubernetes "kube_state_metrics" {
                 role            = "pod"

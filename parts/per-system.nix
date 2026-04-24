@@ -9,11 +9,16 @@
   perSystem =
     { pkgs, ... }:
     let
+      buildRef = self.shortRev or (if self ? lastModifiedDate then builtins.substring 0 8 self.lastModifiedDate else "dev");
       mgmtVersion =
         let
-          buildId = self.shortRev or (if self ? lastModifiedDate then builtins.substring 0 8 self.lastModifiedDate else "dev");
+          baseVersion = "0.1.0";
         in
-        "0.1.0-${buildId}";
+        "${baseVersion}+${buildRef}";
+      versionz = pkgs.callPackage ./../packages/versionz {
+        version = buildRef;
+        packageVersion = "0.1.0+${buildRef}";
+      };
       mgmt = pkgs.callPackage ./../packages/mgmt { version = mgmtVersion; };
       treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs {
         projectRootFile = "flake.nix";
@@ -33,12 +38,14 @@
     in
     {
       packages.mgmt = mgmt;
+      packages.versionz = versionz;
 
       formatter = treefmtEval.config.build.wrapper;
 
       devShells.default = pkgs.mkShellNoCC {
         packages = with pkgs; [
           mgmt
+          versionz
           deadnix
           nil
           nixd

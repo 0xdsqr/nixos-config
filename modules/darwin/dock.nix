@@ -1,6 +1,6 @@
 {
   flake.darwinModules.dock =
-    { config, pkgs, ... }:
+    { config, ... }:
     let
       inherit (config.dsqr.darwin) exo;
     in
@@ -24,8 +24,6 @@
             [ { app = "/Applications/Ghostty.app"; } ]
           else
             [
-              { app = "${pkgs.vscode}/Applications/Visual Studio Code.app"; }
-              { app = "/Applications/Zed.app"; }
               { app = "/Applications/Ghostty.app"; }
               { app = "/Applications/Helium.app"; }
               { app = "/Applications/Tailscale.app"; }

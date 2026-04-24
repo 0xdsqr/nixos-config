@@ -2,13 +2,47 @@
   flake.nixosModules."monitoring-alloy-loki" =
     { config, lib, ... }:
     let
-      inherit (lib) mkAfter mkIf optionals;
+      inherit (lib)
+        mkAfter
+        mkOption
+        types
+        ;
       cfg = config.dsqr.nixos.alloy;
       lokiCfg = cfg.loki;
     in
     {
-      config = mkIf (cfg.enable && lokiCfg.enable) {
-        systemd.services.alloy.serviceConfig.SupplementaryGroups = mkAfter (optionals lokiCfg.enable [ "systemd-journal" ]);
+      options.dsqr.nixos.alloy.loki = {
+        writeUrl = mkOption {
+          type = types.str;
+          default =
+            if config.networking.hostName == "srv-lx-beacon" then
+              "http://127.0.0.1:3100/loki/api/v1/push"
+            else
+              "http://10.10.30.102:3100/loki/api/v1/push";
+          description = "Loki push endpoint on beacon";
+        };
+
+        journalMaxAge = mkOption {
+          type = types.str;
+          default = "24h";
+          description = "How far back Alloy should read journald entries on startup.";
+        };
+
+        journalProcessStages = mkOption {
+          type = types.lines;
+          default = "";
+          description = "Additional stages appended to the shared journald processing pipeline.";
+        };
+
+        extraConfig = mkOption {
+          type = types.lines;
+          default = "";
+          description = "Additional Loki-related Alloy config appended after the shared journald pipeline.";
+        };
+      };
+
+      config = {
+        systemd.services.alloy.serviceConfig.SupplementaryGroups = mkAfter [ "systemd-journal" ];
 
         dsqr.nixos.alloy.configFragments = mkAfter [
           ''

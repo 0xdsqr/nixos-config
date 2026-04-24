@@ -8,12 +8,17 @@
       ...
     }:
     let
-      inherit (lib) mkIf;
+      inherit (lib) mkEnableOption mkIf;
       inherit (config.dsqr.darwin) exo;
 
       exoPackage = inputs.exo.packages.${pkgs.stdenv.hostPlatform.system}.default;
     in
     {
+      options.dsqr.darwin = {
+        devbox.enable = mkEnableOption "Devbox-specific Darwin settings";
+        exo.enable = mkEnableOption "Exo-specific Darwin settings";
+      };
+
       config = mkIf exo.enable {
         environment.systemPackages = [
           exoPackage

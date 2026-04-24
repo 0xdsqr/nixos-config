@@ -10,15 +10,9 @@
     {
       options.allowedUnfreePackageNames = mkOption {
         type = listOf str;
-        default = [
-          "vault-bin"
-          "vscode"
-        ];
+        default = [ "vault-bin" ];
         description = "List of unfree nix package names to allow.";
-        example = [
-          "vault-bin"
-          "vscode"
-        ];
+        example = [ "vault-bin" ];
       };
 
       config = {
@@ -27,7 +21,6 @@
           "darwin"
           "neovim-nightly-overlay"
           "nix-openclaw"
-          "sops-nix"
         ];
 
         nixpkgs.config.allowUnfreePredicate = package: elem (getName package) config.allowedUnfreePackageNames;

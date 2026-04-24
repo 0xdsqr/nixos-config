@@ -23,22 +23,24 @@ let
       hasSuffix ".nix" path && !(elem name ignoredNames) && !(elem path ignoredFiles)
     ) (listFilesRecursive dir);
 
-  modulesCommon = nixLib.attrValues self.commonModules;
-  modulesNixos = nixLib.attrValues self.nixosModules;
-  modulesDarwin = nixLib.attrValues self.darwinModules;
-  nixosModuleInputNames = [
-    "agenix"
-    "home-manager"
-    "sops-nix"
-  ];
+  collectHostNix =
+    {
+      dir,
+      ignoredNames ? [ ],
+      ignoredFiles ? [ ],
+    }:
+    collectNix {
+      inherit dir ignoredNames;
+      ignoredFiles = [
+        (dir + "/default.nix")
+        (dir + "/meta.nix")
+      ] ++ ignoredFiles;
+    };
 
+  nixosModuleInputNames = [ ];
   darwinModuleInputNames = [
-    "agenix"
-    "home-manager"
     "nix-homebrew"
-    "sops-nix"
   ];
-
   inputModulesNixos = builtins.map (name: inputs.${name}.nixosModules.default) nixosModuleInputNames;
   inputModulesDarwin = builtins.map (name: inputs.${name}.darwinModules.default) darwinModuleInputNames;
 
@@ -50,8 +52,6 @@ let
           "nixos"
         ];
       };
-
-      description = mkOption { type = str; };
 
       profile = mkOption {
         type = nullOr (enum [
@@ -76,61 +76,67 @@ let
 
   mkNixosConfiguration =
     name: system: module:
+    let
+      hostMeta = module.meta // { path = module.path; };
+    in
     inputs.nixpkgs.lib.nixosSystem {
       inherit system;
       specialArgs = {
+        inherit self inputs;
         inherit (inputs) agenix nix-openclaw;
-        inherit collectNix inputs;
+        inherit collectHostNix collectNix;
         hostName = name;
-        hostMeta = module.meta;
+        inherit hostMeta;
       };
 
       modules = [
         module.path
+        inputs.agenix.nixosModules.default
+        inputs.home-manager.nixosModules.default
         {
           _module.args = {
-            inherit collectNix keys;
-            inherit (module) meta;
-            hostMeta = module.meta;
+            inherit self inputs collectHostNix collectNix keys;
+            meta = hostMeta;
+            inherit hostMeta;
             ctx = {
-              inherit collectNix keys;
-              hostMeta = module.meta;
+              inherit self inputs collectHostNix collectNix keys hostMeta;
             };
           };
         }
       ]
-      ++ modulesCommon
-      ++ modulesNixos
       ++ inputModulesNixos;
     };
 
   mkDarwinConfiguration =
     name: system: module:
+    let
+      hostMeta = module.meta // { path = module.path; };
+    in
     inputs.darwin.lib.darwinSystem {
       inherit system;
       specialArgs = {
+        inherit self inputs;
         inherit (inputs) agenix nix-openclaw;
-        inherit collectNix inputs;
+        inherit collectHostNix collectNix;
         hostName = name;
-        hostMeta = module.meta;
+        inherit hostMeta;
       };
 
       modules = [
         module.path
+        inputs.agenix.darwinModules.default
+        inputs.home-manager.darwinModules.default
         {
           _module.args = {
-            inherit collectNix keys;
-            inherit (module) meta;
-            hostMeta = module.meta;
+            inherit self inputs collectHostNix collectNix keys;
+            meta = hostMeta;
+            inherit hostMeta;
             ctx = {
-              inherit collectNix keys;
-              hostMeta = module.meta;
+              inherit self inputs collectHostNix collectNix keys hostMeta;
             };
           };
         }
       ]
-      ++ modulesCommon
-      ++ modulesDarwin
       ++ inputModulesDarwin;
     };
 

@@ -20,10 +20,10 @@
       options.services.restic.hosts = mkOption {
         type = types.listOf types.str;
         default =
-          if config.networking.hostName == "beacon" then
-            [ "khaos" ]
-          else if config.networking.hostName == "khaos" then
-            [ "beacon" ]
+          if config.networking.hostName == "srv-lx-beacon" then
+            [ "srv-lx-khaos" ]
+          else if config.networking.hostName == "srv-lx-khaos" then
+            [ "srv-lx-beacon" ]
           else
             [ ];
         description = "Hosts that should receive this machine's restic backups.";

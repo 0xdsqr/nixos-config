@@ -7,13 +7,58 @@
         mkAfter
         mkIf
         mkMerge
+        mkOption
         optionalString
+        types
         ;
       cfg = config.dsqr.nixos.alloy;
       composedConfig = concatStringsSep "\n\n" cfg.configFragments;
     in
     {
-      config = mkIf cfg.enable (mkMerge [
+      options.dsqr.nixos.alloy = {
+        instance = mkOption {
+          type = types.str;
+          default = config.networking.hostName;
+          description = "Stable instance label for this host";
+        };
+
+        role = mkOption {
+          type = types.str;
+          default = config.networking.hostName;
+          description = "Role label for this host";
+        };
+
+        environment = mkOption {
+          type = types.str;
+          default = "homelab";
+          description = "Environment label for this host";
+        };
+
+        remoteWriteUrl = mkOption {
+          type = types.str;
+          default =
+            if config.networking.hostName == "srv-lx-beacon" then
+              "http://127.0.0.1:9090/api/v1/write"
+            else
+              "http://10.10.30.102:9090/api/v1/write";
+          description = "Prometheus remote_write receiver URL on beacon";
+        };
+
+        extraConfig = mkOption {
+          type = types.lines;
+          default = "";
+          description = "Deprecated compatibility shim for extra Alloy config. Prefer the Prometheus and Loki-specific hooks.";
+        };
+
+        configFragments = mkOption {
+          type = types.listOf types.lines;
+          default = [ ];
+          internal = true;
+          description = "Internal Alloy config fragments composed by the monitoring-* modules.";
+        };
+      };
+
+      config = mkMerge [
         {
           services.alloy = {
             enable = true;
@@ -84,6 +129,6 @@
             "dsqr.nixos.alloy.extraConfig is deprecated; prefer dsqr.nixos.alloy.prometheus.extraConfig or dsqr.nixos.alloy.loki.extraConfig."
           ];
         })
-      ]);
+      ];
     };
 }

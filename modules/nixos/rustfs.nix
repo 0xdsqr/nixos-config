@@ -7,14 +7,34 @@
       ...
     }:
     let
-      inherit (lib) genAttrs' mkIf nameValuePair;
+      inherit (lib)
+        genAttrs'
+        mkIf
+        mkOption
+        nameValuePair
+        types
+        ;
       cfg = config.dsqr.nixos.rustfs;
       resticHosts = config.services.restic.hosts;
     in
     {
       imports = [ inputs.rustfs.nixosModules.rustfs ];
 
-      config = mkIf (cfg.enable && cfg.accessKeyAgeFile != null && cfg.secretKeyAgeFile != null) {
+      options.dsqr.nixos.rustfs = {
+        accessKeyAgeFile = mkOption {
+          type = types.nullOr types.path;
+          default = null;
+          description = "Encrypted age file that stores the RustFS access key.";
+        };
+
+        secretKeyAgeFile = mkOption {
+          type = types.nullOr types.path;
+          default = null;
+          description = "Encrypted age file that stores the RustFS secret key.";
+        };
+      };
+
+      config = mkIf (cfg.accessKeyAgeFile != null && cfg.secretKeyAgeFile != null) {
         age.secrets.rustfsAccessKey = {
           file = cfg.accessKeyAgeFile;
           mode = "0400";

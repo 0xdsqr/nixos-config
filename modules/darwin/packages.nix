@@ -32,7 +32,6 @@
         fastfetch
         gh
         cachix
-        vscode
         docker-compose
         ffmpeg
       ];

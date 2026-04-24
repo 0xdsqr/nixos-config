@@ -8,12 +8,24 @@
     }:
 
     let
-      inherit (lib) mkIf optionals;
+      inherit (lib)
+        mkOption
+        optionals
+        types
+        ;
       k8s = pkgs.kubernetes;
       cfg = config.dsqr.nixos.kubeadm;
     in
     {
-      config = mkIf cfg.enable {
+      options.dsqr.nixos.kubeadm = {
+        helm.enable = mkOption {
+          type = types.bool;
+          default = true;
+          description = "Install the Helm CLI alongside the kubeadm baseline.";
+        };
+      };
+
+      config = {
         networking.firewall = {
           allowedTCPPorts = [
             10250

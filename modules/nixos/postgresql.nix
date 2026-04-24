@@ -14,9 +14,10 @@
         flip
         genAttrs
         getExe
-        mkIf
+        mkOption
         mkForce
         mkOverride
+        types
         unique
         ;
       cfg = config.dsqr.nixos.postgresql;
@@ -31,7 +32,48 @@
       hostAuthRules = concatMapStringsSep "\n" (cidr: "host  all      all  ${cidr} ${cfg.hostAuthMethod}") cfg.allowedCIDRs;
     in
     {
-      config = mkIf cfg.enable {
+      options.dsqr.nixos.postgresql = {
+        ensure = mkOption {
+          type = types.listOf types.str;
+          default = [ ];
+          description = "Databases and matching users to create automatically.";
+        };
+
+        listenAddresses = mkOption {
+          type = types.listOf types.str;
+          default = [
+            "127.0.0.1"
+            "::1"
+          ];
+          description = "PostgreSQL addresses to listen on when TCP is enabled.";
+        };
+
+        allowedCIDRs = mkOption {
+          type = types.listOf types.str;
+          default = [
+            "127.0.0.1/32"
+            "::1/128"
+          ];
+          description = "CIDRs allowed to authenticate over TCP.";
+        };
+
+        hostAuthMethod = mkOption {
+          type = types.enum [
+            "md5"
+            "scram-sha-256"
+          ];
+          default = "md5";
+          description = "Password auth method for TCP clients. Keep md5 until all role passwords are rotated to SCRAM.";
+        };
+
+        exporter.listenAddress = mkOption {
+          type = types.str;
+          default = "127.0.0.1";
+          description = "Address the postgres Prometheus exporter listens on.";
+        };
+      };
+
+      config = {
         services.prometheus.exporters.postgres = {
           enable = true;
           inherit (cfg.exporter) listenAddress;

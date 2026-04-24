@@ -43,6 +43,11 @@
       ]);
     in
     {
+      home.sessionVariables = {
+        EDITOR = "nvim";
+        VISUAL = "nvim";
+      };
+
       programs.neovim = {
         enable = true;
         # Keep Neovim on a clean nixpkgs stable package for now. The nightly
