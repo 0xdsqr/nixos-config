@@ -1,0 +1,45 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "panels": [
+    {
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "content": "# opnsense overview\n\nplaceholder dashboard.\n\nbuild out the real panels here later for:\n- firewall pass/block trends\n- interface throughput\n- cpu and memory\n- top noisy sources\n- vpn state\n",
+        "mode": "markdown"
+      },
+      "pluginVersion": "12.1.0",
+      "title": "placeholder",
+      "type": "text"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 41,
+  "tags": [
+    "opnsense",
+    "placeholder"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "opnsense overview",
+  "uid": "opnsense-overview",
+  "version": 1
+}

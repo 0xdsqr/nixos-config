@@ -1,1 +1,1 @@
-_: { homebrew.casks = [ "tailscale-app" ]; }
+{ flake.darwinModules.tailscale = _: { homebrew.casks = [ "tailscale-app" ]; }; }

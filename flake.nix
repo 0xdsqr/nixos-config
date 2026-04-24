@@ -8,7 +8,6 @@
     experimental-features = [
       "flakes"
       "nix-command"
-      "pipe-operators"
     ];
 
     flake-registry = "";
@@ -57,11 +56,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    sops-nix = {
-      url = "github:Mic92/sops-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     rustfs = {
       url = "github:rustfs/rustfs-flake";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -77,6 +71,15 @@
       inputs.home-manager.follows = "home-manager";
     };
 
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nixos-facter = {
+      url = "github:nix-community/nixos-facter-modules";
+    };
+
     nix-openclaw = {
       url = "github:openclaw/nix-openclaw";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -86,13 +89,36 @@
 
   outputs =
     inputs@{ flake-parts, ... }:
+    let
+      nixLib = inputs.nixpkgs.lib // inputs.darwin.lib;
+      inherit (nixLib.filesystem) listFilesRecursive;
+      inherit (nixLib.lists) elem filter;
+      inherit (nixLib.strings) hasSuffix;
+
+      collectNix =
+        {
+          dir,
+          ignoredNames ? [ ],
+          ignoredFiles ? [ ],
+        }:
+        filter (
+          path:
+          let
+            name = builtins.baseNameOf path;
+          in
+          hasSuffix ".nix" path && !(elem name ignoredNames) && !(elem path ignoredFiles)
+        ) (listFilesRecursive dir);
+    in
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         inputs.home-manager.flakeModules.home-manager
+        ./parts/home-manager.nix
+        ./parts/flake-outputs.nix
+        ./parts/nix.nix
+        ./parts/nixpkgs.nix
         ./parts/per-system.nix
-        ./parts/modules.nix
-        ./parts/common-modules.nix
         ./parts/hosts.nix
-      ];
+      ]
+      ++ collectNix { dir = ./modules; };
     };
 }

@@ -1,1 +1,1 @@
-_: { system.defaults.SoftwareUpdate.AutomaticallyInstallMacOSUpdates = true; }
+{ flake.darwinModules.update = _: { system.defaults.SoftwareUpdate.AutomaticallyInstallMacOSUpdates = true; }; }

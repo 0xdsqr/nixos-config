@@ -7,9 +7,19 @@
   ];
 
   perSystem =
-    { config, pkgs, ... }:
+    { pkgs, ... }:
     let
-      dick = pkgs.callPackage ../packages/dick { };
+      buildRef = self.shortRev or (if self ? lastModifiedDate then builtins.substring 0 8 self.lastModifiedDate else "dev");
+      mgmtVersion =
+        let
+          baseVersion = "0.1.0";
+        in
+        "${baseVersion}+${buildRef}";
+      versionz = pkgs.callPackage ./../packages/versionz {
+        version = buildRef;
+        packageVersion = "0.1.0+${buildRef}";
+      };
+      mgmt = pkgs.callPackage ./../packages/mgmt { version = mgmtVersion; };
       treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs {
         projectRootFile = "flake.nix";
 
@@ -27,37 +37,20 @@
       };
     in
     {
+      packages.mgmt = mgmt;
+      packages.versionz = versionz;
+
       formatter = treefmtEval.config.build.wrapper;
-
-      packages = {
-        inherit dick;
-        default = dick;
-      };
-
-      apps = {
-        dick = {
-          type = "app";
-          program = "${dick}/bin/dick";
-        };
-
-        default = config.apps.dick;
-      };
 
       devShells.default = pkgs.mkShellNoCC {
         packages = with pkgs; [
+          mgmt
+          versionz
           deadnix
-          dick
           nil
           nixd
           statix
           treefmtEval.config.build.wrapper
-        ];
-      };
-
-      devShells.dick = pkgs.mkShellNoCC {
-        packages = with pkgs; [
-          go
-          dick
         ];
       };
 

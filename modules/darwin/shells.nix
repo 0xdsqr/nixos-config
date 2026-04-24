@@ -1,12 +1,17 @@
-{ pkgs, ... }:
-let
-  inherit (pkgs) bashInteractive zsh;
-in
 {
-  programs.zsh.enable = true;
+  flake.darwinModules.shells =
+    { config, pkgs, ... }:
+    let
+      inherit (pkgs) bashInteractive zsh;
+    in
+    {
+      programs.zsh.enable = true;
 
-  environment.shells = [
-    bashInteractive
-    zsh
-  ];
+      environment.shells = [
+        bashInteractive
+        zsh
+      ];
+
+      users.users.${config.system.primaryUser}.shell = zsh;
+    };
 }

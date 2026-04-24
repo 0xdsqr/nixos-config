@@ -1,0 +1,31 @@
+apiVersion: kubeadm.k8s.io/v1beta4
+kind: InitConfiguration
+nodeRegistration:
+  name: srv-lx-k8s-master-01
+  criSocket: unix:///run/containerd/containerd.sock
+  kubeletExtraArgs:
+    - name: node-ip
+      value: 10.10.30.104
+localAPIEndpoint:
+  advertiseAddress: 10.10.30.104
+  bindPort: 6443
+---
+apiVersion: kubeadm.k8s.io/v1beta4
+kind: ClusterConfiguration
+clusterName: homelab
+kubernetesVersion: stable
+controlPlaneEndpoint: "10.10.30.104:6443"
+networking:
+  podSubnet: "10.0.0.0/16"
+  serviceSubnet: "10.96.0.0/12"
+apiServer:
+  certSANs:
+    - "10.10.30.104"
+    - "srv-lx-k8s-master-01"
+    - "srv-lx-k8s-master-01.dsqr.dev"
+controllerManager: {}
+scheduler: {}
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+cgroupDriver: systemd

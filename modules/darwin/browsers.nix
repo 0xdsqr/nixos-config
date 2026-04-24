@@ -1,6 +1,9 @@
-_: {
-  homebrew.casks = [
-    "chromium"
-    "helium-browser"
-  ];
+{
+  flake.darwinModules.browsers = _: {
+    homebrew.casks = [
+      "chromium"
+      "helium-browser"
+      "zen-browser"
+    ];
+  };
 }

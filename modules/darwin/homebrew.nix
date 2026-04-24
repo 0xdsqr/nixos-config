@@ -1,20 +1,18 @@
 {
-  homebrew-core,
-  homebrew-cask,
-  config,
-  ...
-}:
-{
-  homebrew.enable = true;
+  flake.darwinModules.homebrew =
+    { config, inputs, ... }:
+    {
+      homebrew.enable = true;
 
-  nix-homebrew = {
-    enable = true;
-    autoMigrate = true;
-    user = config.system.primaryUser;
+      nix-homebrew = {
+        enable = true;
+        autoMigrate = true;
+        user = config.system.primaryUser;
 
-    taps."homebrew/homebrew-core" = homebrew-core;
-    taps."homebrew/homebrew-cask" = homebrew-cask;
+        taps."homebrew/homebrew-core" = inputs."homebrew-core";
+        taps."homebrew/homebrew-cask" = inputs."homebrew-cask";
 
-    mutableTaps = false;
-  };
+        mutableTaps = false;
+      };
+    };
 }

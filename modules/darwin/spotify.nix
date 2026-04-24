@@ -1,5 +1,9 @@
-{ config, lib, ... }:
-let
-  inherit (config.dsqr.darwin) devbox;
-in
-lib.mkIf devbox.enable { homebrew.casks = [ "spotify" ]; }
+{
+  flake.darwinModules.spotify =
+    { config, lib, ... }:
+    let
+      inherit (lib) mkIf;
+      inherit (config.dsqr.darwin) devbox;
+    in
+    mkIf devbox.enable { homebrew.casks = [ "spotify" ]; };
+}
