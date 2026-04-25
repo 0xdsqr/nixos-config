@@ -2,9 +2,11 @@
   flake.homeModules.git =
     { pkgs, lib, ... }:
     let
-      inherit (lib) mkIf;
+      inherit (lib.modules) mkIf;
     in
     {
+      home.packages = [ pkgs.lazygit ];
+
       programs.git = {
         enable = true;
         signing = {
@@ -50,7 +52,5 @@
         pinentry.package = pkgs.pinentry-curses;
         enableSshSupport = true;
       };
-
-      home.packages = with pkgs; [ gnupg ];
     };
 }

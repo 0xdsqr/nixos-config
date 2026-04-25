@@ -58,6 +58,13 @@ mkSecretsForHost "srv-lx-beacon" [
 // mkSecretsForHost "srv-lx-mailbox" [
   "hosts/srv-lx-mailbox/host.password.age"
   "hosts/srv-lx-mailbox/tailscale.auth-key.age"
+  "hosts/srv-lx-mailbox/cloudflare-acme.env.age"
+  "hosts/srv-lx-mailbox/stalwart-admin.secret.age"
+  "hosts/srv-lx-mailbox/stalwart-me.password.age"
+  "hosts/srv-lx-mailbox/stalwart-hoo.password.age"
+  "hosts/srv-lx-mailbox/stalwart-admin.password.age"
+  "hosts/srv-lx-mailbox/ses-smtp.username.age"
+  "hosts/srv-lx-mailbox/ses-smtp.password.age"
 ]
 // mkSecretsForHost "srv-lx-khaos" [
   "hosts/srv-lx-khaos/host.password.age"

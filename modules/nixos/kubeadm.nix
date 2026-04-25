@@ -1,30 +1,11 @@
 {
   flake.nixosModules.kubeadm =
-    {
-      config,
-      lib,
-      pkgs,
-      ...
-    }:
+    { pkgs, ... }:
 
     let
-      inherit (lib)
-        mkOption
-        optionals
-        types
-        ;
       k8s = pkgs.kubernetes;
-      cfg = config.dsqr.nixos.kubeadm;
     in
     {
-      options.dsqr.nixos.kubeadm = {
-        helm.enable = mkOption {
-          type = types.bool;
-          default = true;
-          description = "Install the Helm CLI alongside the kubeadm baseline.";
-        };
-      };
-
       config = {
         networking.firewall = {
           allowedTCPPorts = [
@@ -47,18 +28,16 @@
 
         swapDevices = [ ];
 
-        environment.systemPackages =
-          (with pkgs; [
-            k8s
-            cri-tools
-            cni-plugins
-            conntrack-tools
-            ethtool
-            socat
-            iproute2
-            iptables
-          ])
-          ++ optionals cfg.helm.enable [ pkgs.kubernetes-helm ];
+        environment.systemPackages = with pkgs; [
+          k8s
+          cri-tools
+          cni-plugins
+          conntrack-tools
+          ethtool
+          socat
+          iproute2
+          iptables
+        ];
 
         virtualisation.containerd = {
           enable = true;

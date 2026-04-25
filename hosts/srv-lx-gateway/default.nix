@@ -1,17 +1,19 @@
 {
-  self,
+  commonModules,
+  homeModules,
+  nixosModules,
   lib,
   collectHostNix,
   ...
 }:
 let
+  inherit (lib) mkAfter;
   inherit (lib.attrsets) attrValues removeAttrs;
-  inherit (lib.lists) singleton;
 
   modules =
-    attrValues self.commonModules
+    attrValues commonModules
     ++ attrValues (
-      removeAttrs self.nixosModules [
+      removeAttrs nixosModules [
         "containers"
         "kubeadm"
         "monitoring-alloy-prometheus"
@@ -21,17 +23,47 @@ let
         "rustfs"
       ]
     )
-    ++ singleton {
-      home.extraModules = attrValues (
-        removeAttrs self.homeModules [
-          "tmux"
-          "zsh"
-        ]
-      );
-    }
+    ++ [
+      {
+        home-manager.sharedModules = mkAfter (
+          attrValues (
+            removeAttrs homeModules [
+              "aws"
+              "bat"
+              "cinny"
+              "claude-code"
+              "codex"
+              "darwin-wm"
+              "difftastic"
+              "discord"
+              "exo"
+              "hammerspoon"
+              "hushlogin"
+              "ollama"
+              "packages-containers"
+              "packages-databases"
+              "packages-debugging"
+              "packages-kubernetes"
+              "packages-media"
+              "packages-node"
+              "packages-signing"
+              "opencode"
+              "pi"
+              "signal"
+              "theme"
+              "thunderbird"
+              "web-browser"
+            ]
+          )
+        );
+      }
+    ]
     ++ collectHostNix { dir = ./.; };
 in
 {
+  meta.sshHost = "10.10.60.100";
+  meta.system = "x86_64-linux";
+
   imports = modules;
   networking.hostName = "srv-lx-gateway";
   hardware.report = ./srv-lx-gateway.report.json;
@@ -63,7 +95,6 @@ in
   };
 
   swapDevices = [ ];
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 
   system.stateVersion = "25.05";
 }

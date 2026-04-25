@@ -1,40 +1,97 @@
 {
   flake.homeModules.ghostty =
     {
+      lib,
+      osConfig,
       pkgs,
       ...
-    }: {
+    }:
+    let
+      inherit (lib.attrsets) mapAttrsToList;
+    in
+    {
+      home.packages = lib.optionals pkgs.stdenv.hostPlatform.isLinux [ pkgs.ghostty.terminfo ];
+
       programs.ghostty = {
         enable = true;
         package = if pkgs.stdenv.hostPlatform.isDarwin then pkgs.ghostty-bin else pkgs.ghostty;
-        settings = {
-          # Window settings
-          window-padding-x = 10;
-          window-padding-y = 10;
-          confirm-close-surface = false;
-          resize-overlay = "never";
-          unfocused-split-opacity = 0.78;
-          unfocused-split-fill = "#111111";
-          split-divider-color = "#2a2a2a";
-          mouse-scroll-multiplier = 0.95;
 
-          # Font
-          font-family = "JetBrains Mono";
-          font-size = 18;
+        settings = {
+          inherit (osConfig.theme.ghostty) background;
+          inherit (osConfig.theme.ghostty) foreground;
+          cursor-color = osConfig.theme.ghostty.cursorColor;
+          cursor-text = osConfig.theme.ghostty.cursorText;
+          inherit (osConfig.theme.ghostty) palette;
+          selection-background = osConfig.theme.ghostty.selectionBackground;
+          selection-foreground = osConfig.theme.ghostty.selectionForeground;
+          unfocused-split-opacity = 0.82;
+          unfocused-split-fill = osConfig.theme.ghostty.unfocusedSplitFill;
+          split-divider-color = osConfig.theme.ghostty.splitDividerColor;
+
+          font-family = osConfig.theme.font.mono.name;
+          font-size = osConfig.theme.font.size.terminal;
+
+          scrollback-limit = 100 * 1024 * 1024;
+          mouse-hide-while-typing = true;
+          mouse-scroll-multiplier = 0.95;
+          confirm-close-surface = false;
+          quit-after-last-window-closed = true;
+          resize-overlay = "never";
           cursor-style = "block";
           cursor-style-blink = false;
           shell-integration-features = "no-cursor,ssh-env";
+          window-padding-x = osConfig.theme.padding;
+          window-padding-y = osConfig.theme.padding;
 
-          # Basic keybinds
-          keybind = [
-            "ctrl+k=reset"
-            "ctrl+shift+h=goto_split:left"
-            "ctrl+shift+j=goto_split:bottom"
-            "ctrl+shift+k=goto_split:top"
-            "ctrl+shift+l=goto_split:right"
-            "ctrl+shift+n=new_split:down"
-            "ctrl+shift+w=close_surface"
-          ];
+          keybind =
+            mapAttrsToList (name: value: "ctrl+shift+${name}=${value}") {
+              c = "copy_to_clipboard";
+              v = "paste_from_clipboard";
+
+              z = "jump_to_prompt:-2";
+              x = "jump_to_prompt:2";
+
+              h = "write_scrollback_file:paste";
+              i = "inspector:toggle";
+
+              page_down = "scroll_page_fractional:0.33";
+              down = "scroll_page_lines:1";
+              j = "scroll_page_lines:1";
+
+              page_up = "scroll_page_fractional:-0.33";
+              up = "scroll_page_lines:-1";
+              k = "scroll_page_lines:-1";
+
+              home = "scroll_to_top";
+              end = "scroll_to_bottom";
+
+              enter = "reset_font_size";
+              plus = "increase_font_size:1";
+              minus = "decrease_font_size:1";
+
+              t = "new_window";
+              q = "close_surface";
+
+              "one" = "goto_tab:1";
+              "two" = "goto_tab:2";
+              "three" = "goto_tab:3";
+              "four" = "goto_tab:4";
+              "five" = "goto_tab:5";
+              "six" = "goto_tab:6";
+              "seven" = "goto_tab:7";
+              "eight" = "goto_tab:8";
+              "nine" = "goto_tab:9";
+              "zero" = "goto_tab:10";
+            }
+            ++ mapAttrsToList (name: value: "ctrl+${name}=${value}") {
+              "tab" = "next_tab";
+              "shift+tab" = "previous_tab";
+            };
+        }
+        // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+          macos-option-as-alt = "left";
+          macos-titlebar-style = "tabs";
+          window-decoration = true;
         };
       };
     };

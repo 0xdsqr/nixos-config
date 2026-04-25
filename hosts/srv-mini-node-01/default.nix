@@ -1,64 +1,41 @@
 {
-  self,
-  lib,
+  collectors,
   collectHostNix,
+  commonModules,
+  darwinModules,
+  homeModules,
+  profiles,
   ...
 }:
-let
-  inherit (lib.attrsets) attrValues removeAttrs;
-  inherit (lib.lists) singleton;
-  modules =
-    attrValues self.commonModules
-    ++ attrValues (
-      removeAttrs self.darwinModules [
-        "1password"
-        "alloy"
-        "browsers"
-        "communication"
-        "dock"
-        "docker-desktop"
-        "exo"
-        "homebrew"
-        "ollama"
-        "packages"
-        "shells"
-        "spotify"
-        "tailscale"
-        "update"
-        "zed"
-      ]
-    )
-    ++ singleton {
-      home.extraModules = attrValues (
-        removeAttrs self.homeModules [
-          "direnv"
-          "ghostty"
-          "git"
-          "neovim"
-          "nushell"
-          "ssh"
-          "starship"
-          "tailscale"
-          "tmux"
-          "zsh"
-        ]
-      );
+{
+  meta.system = "aarch64-darwin";
+
+  imports =
+    collectors.collectHostModules {
+      inherit commonModules homeModules;
+      platformModules = darwinModules;
+      platform = profiles.miniCluster.darwin.default;
+      home = profiles.miniCluster.home.default;
     }
     ++ collectHostNix { dir = ./.; };
-in
-{
-  imports = modules;
-
-  system.stateVersion = 5;
-  ids.gids.nixbld = 350;
-
-  # Let Determinate manage the Nix installation on macOS.
-  nix.enable = false;
-  nixpkgs.hostPlatform = lib.mkDefault "aarch64-darwin";
 
   networking = {
     hostName = "srv-mini-node-01";
     computerName = "srv-mini-node-01";
     localHostName = "srv-mini-node-01";
   };
+
+  system.activationScripts.miniClusterPower.text = ''
+    /usr/bin/pmset -a sleep 0 \
+      displaysleep 0 \
+      disksleep 0 \
+      standby 0 \
+      autopoweroff 0 \
+      womp 1 \
+      tcpkeepalive 1 \
+      autorestart 1 \
+      powernap 1
+  '';
+
+  system.stateVersion = 5;
 }

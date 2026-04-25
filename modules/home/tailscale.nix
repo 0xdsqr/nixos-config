@@ -2,7 +2,8 @@
   flake.homeModules.tailscale =
     { lib, pkgs, ... }:
     let
-      inherit (lib) getExe mkIf;
+      inherit (lib) getExe;
+      inherit (lib.modules) mkIf;
       inherit (pkgs.stdenv) hostPlatform;
     in
     {

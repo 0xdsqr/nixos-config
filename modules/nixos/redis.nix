@@ -2,11 +2,7 @@
   flake.nixosModules.redis =
     { config, lib, ... }:
     let
-      inherit (lib)
-        mkIf
-        mkOption
-        types
-        ;
+      inherit (lib) mkIf mkOption types;
       cfg = config.dsqr.nixos.redis;
     in
     {
