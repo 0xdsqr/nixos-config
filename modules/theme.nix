@@ -102,7 +102,6 @@ _: {
 
             size = {
               normal = 16;
-              terminal = 22;
               large = 18;
               big = 20;
             };

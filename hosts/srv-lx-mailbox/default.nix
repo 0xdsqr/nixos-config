@@ -1,14 +1,20 @@
-{
-  commonModules,
-  homeModules,
-  nixosModules,
-  lib,
-  collectHostNix,
-  ...
-}:
+{ self, ... }:
 let
-  inherit (lib) mkAfter;
-  inherit (lib.attrsets) attrValues removeAttrs;
+  inherit (self.lib)
+    commonModules
+    homeModules
+    nixLib
+    nixosModules
+    ;
+  inherit (nixLib.attrsets) attrValues removeAttrs;
+  inherit (nixLib.lists) singleton;
+
+  hostMeta = self.lib.mkHostMeta {
+    class = "nixos";
+    path = ./.;
+    sshHost = "178.156.204.203";
+    system = "x86_64-linux";
+  };
 
   modules =
     attrValues commonModules
@@ -26,96 +32,97 @@ let
         "rustfs"
       ]
     )
+    ++ singleton (
+      self.lib.mkHomeManagerSharedModule (
+        removeAttrs homeModules [
+          "aws"
+          "bat"
+          "cinny"
+          "claude-code"
+          "codex"
+          "darwin-wm"
+          "difftastic"
+          "discord"
+          "exo"
+          "hammerspoon"
+          "hushlogin"
+          "ollama"
+          "packages-containers"
+          "packages-databases"
+          "packages-debugging"
+          "packages-kubernetes"
+          "packages-media"
+          "packages-node"
+          "packages-signing"
+          "opencode"
+          "pi"
+          "signal"
+          "theme"
+          "thunderbird"
+          "web-browser"
+        ]
+      )
+    )
     ++ [
+      ./stalwart.nix
       {
-        home-manager.sharedModules = mkAfter (
-          attrValues (
-            removeAttrs homeModules [
-              "aws"
-              "bat"
-              "cinny"
-              "claude-code"
-              "codex"
-              "darwin-wm"
-              "difftastic"
-              "discord"
-              "exo"
-              "hammerspoon"
-              "hushlogin"
-              "ollama"
-              "packages-containers"
-              "packages-databases"
-              "packages-debugging"
-              "packages-kubernetes"
-              "packages-media"
-              "packages-node"
-              "packages-signing"
-              "opencode"
-              "pi"
-              "signal"
-              "theme"
-              "thunderbird"
-              "web-browser"
-            ]
-          )
-        );
+        networking.hostName = "srv-lx-mailbox";
+        hardware.report = ./srv-lx-mailbox.report.json;
+
+        disko.devices.disk.main = {
+          device = "/dev/sda";
+          type = "disk";
+          content = {
+            type = "gpt";
+            partitions = {
+              boot = {
+                size = "1M";
+                type = "EF02";
+                priority = 1;
+              };
+
+              ESP = {
+                end = "512M";
+                type = "EF00";
+                content = {
+                  type = "filesystem";
+                  format = "vfat";
+                  mountpoint = "/boot";
+                  mountOptions = [ "umask=0077" ];
+                };
+              };
+
+              root = {
+                end = "-0";
+                content = {
+                  type = "filesystem";
+                  format = "ext4";
+                  mountpoint = "/";
+                };
+              };
+            };
+          };
+        };
+
+        services.tailscale = {
+          useRoutingFeatures = "client";
+          extraUpFlags = [ "--ssh" ];
+        };
+
+        services.openssh.openFirewall = true;
+
+        boot.kernelParams = [ "console=ttyS0,115200" ];
+        boot.loader.grub.enable = true;
+
+        system.stateVersion = "25.11";
       }
-    ]
-    ++ collectHostNix { dir = ./.; };
+    ];
 in
 {
-  meta.sshHost = "178.156.204.203";
-  meta.system = "x86_64-linux";
+  flake.hostDefinitions.srv-lx-mailbox = hostMeta;
 
-  imports = modules;
-
-  networking.hostName = "srv-lx-mailbox";
-  hardware.report = ./srv-lx-mailbox.report.json;
-
-  disko.devices.disk.main = {
-    device = "/dev/sda";
-    type = "disk";
-    content = {
-      type = "gpt";
-      partitions = {
-        boot = {
-          size = "1M";
-          type = "EF02";
-          priority = 1;
-        };
-
-        ESP = {
-          end = "512M";
-          type = "EF00";
-          content = {
-            type = "filesystem";
-            format = "vfat";
-            mountpoint = "/boot";
-            mountOptions = [ "umask=0077" ];
-          };
-        };
-
-        root = {
-          end = "-0";
-          content = {
-            type = "filesystem";
-            format = "ext4";
-            mountpoint = "/";
-          };
-        };
-      };
-    };
+  flake.nixosConfigurations.srv-lx-mailbox = self.lib.nixosSystem {
+    inherit hostMeta modules;
+    hostName = "srv-lx-mailbox";
   };
-
-  services.tailscale = {
-    useRoutingFeatures = "client";
-    extraUpFlags = [ "--ssh" ];
-  };
-
-  services.openssh.openFirewall = true;
-
-  boot.kernelParams = [ "console=ttyS0,115200" ];
-  boot.loader.grub.enable = true;
-
-  system.stateVersion = "25.11";
 }

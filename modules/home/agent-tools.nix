@@ -1,9 +1,6 @@
 {
   flake.homeModules.opencode =
     { config, pkgs, ... }:
-    let
-      sharedAgentsHome = "${config.xdg.configHome}/agents";
-    in
     {
       home.packages = [ pkgs.opencode ];
 
@@ -23,13 +20,7 @@
       xdg.configFile."opencode/opencode.json".text = builtins.toJSON {
         "$schema" = "https://opencode.ai/config.json";
         autoupdate = false;
-        instructions = [ "${sharedAgentsHome}/AGENTS.md" ];
-        default_agent = "custom-todo";
-        agent."custom-todo" = {
-          mode = "primary";
-          description = "TODO: replace this starter agent with your real OpenCode workflow";
-          prompt = "{file:~/.config/opencode/prompts/custom-todo.txt}";
-        };
+        instructions = [ "${config.xdg.configHome}/agents/AGENTS.md" ];
         permission = {
           "*" = "ask";
           glob = "allow";
@@ -45,17 +36,6 @@
           websearch = "allow";
         };
       };
-
-      xdg.configFile."opencode/prompts/custom-todo.txt".text = ''
-        TODO custom agent for OpenCode.
-
-        TODO: write the real OpenCode-specific instructions here.
-
-        For now:
-        - preserve repo structure
-        - prefer declarative Nix changes
-        - keep release notes aligned with code changes
-      '';
     };
 
   flake.homeModules."claude-code" =
@@ -109,17 +89,6 @@
         autoInstallIdeExtension = true;
       };
 
-      home.file.".claude/agents/custom-todo.md".text = ''
-        # TODO Custom Agent
-
-        TODO: write the real Claude Code custom agent instructions here.
-
-        Focus on:
-        - repo structure
-        - release note hygiene
-        - declarative config changes
-      '';
-
       home.sessionVariables.CLAUDE_CONFIG_DIR = claudeHome;
     };
 
@@ -127,19 +96,6 @@
     { config, pkgs, ... }:
     let
       codexHome = "${config.home.homeDirectory}/.codex";
-      sharedSkill = ''
-        # TODO Custom Skill
-
-        TODO: describe when to use this skill.
-
-        ## Instructions
-
-        - Preserve the intended folder structure and naming conventions.
-        - Prefer declarative Nix and Home Manager changes over local one-offs.
-        - Keep release notes and migration notes in sync with code changes.
-        - Make the smallest correct change first, then clean up style.
-        - Prefer explicit, reviewable edits over hidden automation.
-      '';
     in
     {
       home.packages = [ pkgs.codex ];
@@ -151,51 +107,23 @@
         child_agents_md = true
       '';
 
-      home.file.".codex/skills/custom-todo/SKILL.md".text = ''
-        ${sharedSkill}
-
-        TODO: expand this Codex skill with scripts/resources once you know the workflow better.
-      '';
       home.file.".codex/plugins/README.md".text = "Drop Codex plugins here when you want them managed declaratively.\n";
       home.file.".codex/agents/README.md".text = "Drop Codex agent presets here when you want them managed declaratively.\n";
     };
 
   flake.homeModules.pi =
-    { config, pkgs, ... }:
-    let
-      piPackageRoot = "${config.home.homeDirectory}/.pi/packages/custom-todo";
-      sharedSkill = ''
-        # TODO Custom Skill
-
-        TODO: describe when to use this skill.
-
-        ## Instructions
-
-        - Preserve the intended folder structure and naming conventions.
-        - Prefer declarative Nix and Home Manager changes over local one-offs.
-        - Keep release notes and migration notes in sync with code changes.
-        - Make the smallest correct change first, then clean up style.
-        - Prefer explicit, reviewable edits over hidden automation.
-      '';
-    in
+    { pkgs, ... }:
     {
       home.packages = [ pkgs."pi-coding-agent" ];
 
-      home.file.".pi/agent/settings.json".text = builtins.toJSON { packages = [ piPackageRoot ]; };
-
-      home.file.".pi/packages/custom-todo/package.json".text = builtins.toJSON {
-        name = "@dsqr/custom-todo";
-        version = "0.1.0";
-        keywords = [ "pi-package" ];
-        pi = {
-          skills = [ "./skills" ];
-        };
+      home.file.".pi/agent/settings.json".text = builtins.toJSON {
+        defaultProvider = "openai-codex";
+        defaultModel = "gpt-5.4";
+        defaultThinkingLevel = "high";
+        skills = [
+          "~/.codex/skills"
+          "~/.claude/skills"
+        ];
       };
-
-      home.file.".pi/packages/custom-todo/skills/custom-todo/SKILL.md".text = ''
-        ${sharedSkill}
-
-        TODO: expand this Pi skill package with prompts/resources once you know the workflow better.
-      '';
     };
 }

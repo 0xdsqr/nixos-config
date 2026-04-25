@@ -1,14 +1,20 @@
-{
-  commonModules,
-  homeModules,
-  nixosModules,
-  lib,
-  collectHostNix,
-  ...
-}:
+{ self, ... }:
 let
-  inherit (lib) mkAfter;
-  inherit (lib.attrsets) attrValues removeAttrs;
+  inherit (self.lib)
+    commonModules
+    homeModules
+    nixLib
+    nixosModules
+    ;
+  inherit (nixLib.attrsets) attrValues removeAttrs;
+  inherit (nixLib.lists) singleton;
+
+  hostMeta = self.lib.mkHostMeta {
+    class = "nixos";
+    path = ./.;
+    sshHost = "10.10.30.102";
+    system = "x86_64-linux";
+  };
 
   modules =
     attrValues commonModules
@@ -22,90 +28,94 @@ let
         "rustfs"
       ]
     )
+    ++ singleton (
+      self.lib.mkHomeManagerSharedModule (
+        removeAttrs homeModules [
+          "aws"
+          "bat"
+          "cinny"
+          "claude-code"
+          "codex"
+          "darwin-wm"
+          "difftastic"
+          "discord"
+          "exo"
+          "hammerspoon"
+          "hushlogin"
+          "ollama"
+          "packages-containers"
+          "packages-databases"
+          "packages-debugging"
+          "packages-kubernetes"
+          "packages-media"
+          "packages-node"
+          "packages-signing"
+          "opencode"
+          "pi"
+          "signal"
+          "theme"
+          "thunderbird"
+          "web-browser"
+        ]
+      )
+    )
     ++ [
+      ./alloy-opnsense.nix
+      ./grafana.nix
+      ./loki.nix
+      ./prometheus.nix
       {
-        home-manager.sharedModules = mkAfter (
-          attrValues (
-            removeAttrs homeModules [
-              "aws"
-              "bat"
-              "cinny"
-              "claude-code"
-              "codex"
-              "darwin-wm"
-              "difftastic"
-              "discord"
-              "exo"
-              "hammerspoon"
-              "hushlogin"
-              "ollama"
-              "packages-containers"
-              "packages-databases"
-              "packages-debugging"
-              "packages-kubernetes"
-              "packages-media"
-              "packages-node"
-              "packages-signing"
-              "opencode"
-              "pi"
-              "signal"
-              "theme"
-              "thunderbird"
-              "web-browser"
-            ]
-          )
-        );
-      }
-    ]
-    ++ collectHostNix { dir = ./.; };
-in
-{
-  meta.sshHost = "10.10.30.102";
-  meta.system = "x86_64-linux";
+        networking.hostName = "srv-lx-beacon";
+        hardware.report = ./srv-lx-beacon.report.json;
 
-  imports = modules;
-  networking.hostName = "srv-lx-beacon";
-  hardware.report = ./srv-lx-beacon.report.json;
-  boot.loader.grub = {
-    enable = true;
-    devices = lib.mkForce [ "/dev/sda" ];
-  };
-
-  disko.devices.disk.main = {
-    device = "/dev/sda";
-    type = "disk";
-    content = {
-      type = "gpt";
-      partitions = {
-        boot = {
-          size = "1M";
-          type = "EF02";
-          priority = 1;
+        boot.loader.grub = {
+          enable = true;
+          devices = nixLib.mkForce [ "/dev/sda" ];
         };
 
-        root = {
-          end = "100%";
+        disko.devices.disk.main = {
+          device = "/dev/sda";
+          type = "disk";
           content = {
-            type = "filesystem";
-            format = "ext4";
-            mountpoint = "/";
+            type = "gpt";
+            partitions = {
+              boot = {
+                size = "1M";
+                type = "EF02";
+                priority = 1;
+              };
+
+              root = {
+                end = "100%";
+                content = {
+                  type = "filesystem";
+                  format = "ext4";
+                  mountpoint = "/";
+                };
+              };
+            };
           };
         };
-      };
-    };
-  };
 
-  services.restic.passwordAgeFile = ./restic.password.age;
-  swapDevices = [ ];
+        services.restic.passwordAgeFile = ./restic.password.age;
+        swapDevices = [ ];
 
-  networking.firewall = {
-    allowedTCPPorts = [
-      8000
-      9090
-      3100
-      1514
+        networking.firewall.allowedTCPPorts = [
+          8000
+          9090
+          3100
+          1514
+        ];
+
+        system.stateVersion = "25.05";
+      }
     ];
-  };
+in
+{
+  flake.hostDefinitions.srv-lx-beacon = hostMeta;
 
-  system.stateVersion = "25.05";
+  flake.nixosConfigurations.srv-lx-beacon = self.lib.nixosSystem {
+    inherit hostMeta modules;
+    hostName = "srv-lx-beacon";
+  };
 }

@@ -1,11 +1,23 @@
 { lib, moduleLocation, ... }:
 let
   inherit (lib.attrsets) mapAttrs;
-  inherit (lib.options) mkOption;
   inherit (lib.lists) singleton;
-  inherit (lib.types) deferredModule lazyAttrsOf;
+  inherit (lib.options) mkOption;
+  inherit (lib.types) deferredModule lazyAttrsOf unspecified;
 in
 {
+  options.flake.hostDefinitions = mkOption {
+    type = lazyAttrsOf unspecified;
+    default = { };
+    description = "Resolved host metadata keyed by host name.";
+  };
+
+  options.flake.darwinConfigurations = mkOption {
+    type = lazyAttrsOf unspecified;
+    default = { };
+    description = "Darwin system configurations.";
+  };
+
   options.flake.commonModules = mkOption {
     type = lazyAttrsOf deferredModule;
     default = { };

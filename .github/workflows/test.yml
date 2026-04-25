@@ -10,8 +10,8 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  nixfmt:
-    name: nixfmt
+  check:
+    name: check
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -22,87 +22,9 @@ jobs:
       - uses: DeterminateSystems/flakehub-cache-action@v3.17.0
       - name: Run nixfmt
         run: nix fmt -- --ci -f nixfmt
-
-  deadnix:
-    name: deadnix
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: DeterminateSystems/determinate-nix-action@v3.17.0
-      - uses: DeterminateSystems/flakehub-cache-action@v3.17.0
       - name: Run deadnix
         run: nix fmt -- --ci -f deadnix
-
-  statix:
-    name: statix
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: DeterminateSystems/determinate-nix-action@v3.17.0
-      - uses: DeterminateSystems/flakehub-cache-action@v3.17.0
       - name: Run statix
         run: nix fmt -- --ci -f statix
-
-  flake-check:
-    name: check all systems
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: DeterminateSystems/determinate-nix-action@v3.17.0
-      - uses: DeterminateSystems/flakehub-cache-action@v3.17.0
       - name: Run flake check
         run: nix flake check --all-systems --no-build
-
-  formatting-required:
-    name: formatting checks passed
-    needs:
-      - nixfmt
-      - deadnix
-      - statix
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: verify formatting jobs passed
-        env:
-          NIXFMT_RESULT: ${{ needs.nixfmt.result }}
-          DEADNIX_RESULT: ${{ needs.deadnix.result }}
-          STATIX_RESULT: ${{ needs.statix.result }}
-        run: |
-          if [ "$NIXFMT_RESULT" != "success" ] || [ "$DEADNIX_RESULT" != "success" ] || [ "$STATIX_RESULT" != "success" ]; then
-            echo "formatting jobs failed:"
-            echo "  nixfmt: $NIXFMT_RESULT"
-            echo "  deadnix: $DEADNIX_RESULT"
-            echo "  statix: $STATIX_RESULT"
-            exit 1
-          fi
-          echo "all formatting jobs passed"
-
-  required:
-    name: all required checks passed
-    needs:
-      - formatting-required
-      - flake-check
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: verify all jobs passed
-        env:
-          FORMATTING_RESULT: ${{ needs.formatting-required.result }}
-          FLAKE_CHECK_RESULT: ${{ needs.flake-check.result }}
-        run: |
-          if [ "$FORMATTING_RESULT" != "success" ] || [ "$FLAKE_CHECK_RESULT" != "success" ]; then
-            echo "required jobs failed:"
-            echo "  formatting-required: $FORMATTING_RESULT"
-            echo "  flake-check: $FLAKE_CHECK_RESULT"
-            exit 1
-          fi
-          echo "all required jobs passed"

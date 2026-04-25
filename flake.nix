@@ -100,44 +100,79 @@
   outputs =
     inputs@{ flake-parts, ... }:
     let
-      nixLib = inputs.nixpkgs.lib // inputs.darwin.lib;
-      inherit (nixLib.filesystem) listFilesRecursive;
-      inherit (nixLib.lists) elem filter;
-      inherit (nixLib.strings) hasPrefix hasSuffix;
+      inherit (inputs.nixpkgs.lib.filesystem) listFilesRecursive;
+      inherit (inputs.nixpkgs.lib.lists) sort;
+      inherit (inputs.nixpkgs.lib.strings) hasInfix hasSuffix;
 
-      collectNix =
-        {
-          dir,
-          ignoredNames ? [ ],
-          ignoredFiles ? [ ],
-          ignoredDirectories ? [ ],
-        }:
-        filter (
+      moduleImports = sort (a: b: toString a < toString b) (
+        builtins.filter (
           path:
           let
-            name = builtins.baseNameOf path;
             pathString = toString path;
           in
           hasSuffix ".nix" pathString
-          && !(elem name ignoredNames)
-          && !(elem path ignoredFiles)
-          && !(builtins.any (ignoredDir: hasPrefix "${toString ignoredDir}/" pathString) ignoredDirectories)
-        ) (listFilesRecursive dir);
+          && !(hasInfix "/home/neovim/plugins/" pathString)
+          && !(hasSuffix "/home/neovim/init-lua.nix" pathString)
+          && !(hasSuffix "/home/neovim/packages.nix" pathString)
+        ) (listFilesRecursive ./modules)
+      );
+
+      hostImports = sort (a: b: toString a < toString b) (
+        builtins.filter (path: builtins.match ".*/hosts/[^/]+/default\\.nix" (toString path) != null) (
+          listFilesRecursive ./hosts
+        )
+      );
     in
     flake-parts.lib.mkFlake { inherit inputs; } {
-      imports = [
-        inputs.home-manager.flakeModules.home-manager
-        ./parts/flake-outputs.nix
-        ./parts/per-system.nix
-      ]
-      ++ collectNix {
-        dir = ./modules;
-        ignoredFiles = [
-          ./modules/home/neovim/init-lua.nix
-          ./modules/home/neovim/packages.nix
-        ];
-        ignoredDirectories = [ ./modules/home/neovim/plugins ];
-      }
-      ++ [ ./parts/hosts.nix ];
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "aarch64-darwin"
+      ];
+
+      imports = [ inputs.home-manager.flakeModules.home-manager ] ++ moduleImports ++ hostImports;
+
+      perSystem =
+        { pkgs, self', ... }:
+        let
+          listRepoFiles = pkgs.callPackage ./packages/tsgo-hello/default.nix { };
+
+          treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs {
+            projectRootFile = "flake.nix";
+
+            programs.nixfmt = {
+              enable = true;
+              strict = true;
+              width = 120;
+            };
+
+            programs.deadnix.enable = true;
+            programs.statix.enable = true;
+          };
+        in
+        {
+          packages.list-repo-files = listRepoFiles;
+
+          apps.list-repo-files = {
+            type = "app";
+            program = "${listRepoFiles}/bin/list-repo-files";
+          };
+
+          formatter = treefmtEval.config.build.wrapper;
+
+          devShells.default = pkgs.mkShellNoCC {
+            packages = with pkgs; [
+              deadnix
+              nil
+              nixd
+              statix
+              treefmtEval.config.build.wrapper
+            ];
+          };
+
+          checks = {
+            formatting = treefmtEval.config.build.check self';
+          };
+        };
     };
 }

@@ -29,7 +29,7 @@
           split-divider-color = osConfig.theme.ghostty.splitDividerColor;
 
           font-family = osConfig.theme.font.mono.name;
-          font-size = osConfig.theme.font.size.terminal;
+          font-size = osConfig.theme.font.size.big;
 
           scrollback-limit = 100 * 1024 * 1024;
           mouse-hide-while-typing = true;
@@ -37,6 +37,7 @@
           confirm-close-surface = false;
           quit-after-last-window-closed = true;
           resize-overlay = "never";
+          window-inherit-font-size = false;
           cursor-style = "block";
           cursor-style-blink = false;
           shell-integration-features = "no-cursor,ssh-env";
@@ -91,6 +92,7 @@
         // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
           macos-option-as-alt = "left";
           macos-titlebar-style = "tabs";
+          window-save-state = "never";
           window-decoration = true;
         };
       };

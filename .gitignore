@@ -63,8 +63,11 @@ pnpm-debug.log*
 # Misc
 notes.md
 refactor.md
+refactor-feedback.md
 TODO.md
 todo.md
+todo-next.md
+todo-next-last.md
 .migration/
 
 infra/
