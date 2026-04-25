@@ -1,16 +1,37 @@
 {
-  flake.darwinModules.communication =
-    { config, lib, ... }:
+  flake.darwinModules.discord =
+    { lib, ... }:
     let
-      inherit (lib) mkIf;
-      inherit (config.dsqr.darwin) devbox;
+      inherit (lib.lists) singleton;
     in
-    mkIf devbox.enable {
-      homebrew.casks = [
-        "discord"
-        "signal"
-        "slack"
-        "zoom"
-      ];
+    {
+      homebrew.casks = singleton "vesktop";
+    };
+
+  flake.darwinModules.signal =
+    { lib, ... }:
+    let
+      inherit (lib.lists) singleton;
+    in
+    {
+      homebrew.casks = singleton "signal";
+    };
+
+  flake.darwinModules.slack =
+    { lib, ... }:
+    let
+      inherit (lib.lists) singleton;
+    in
+    {
+      homebrew.casks = singleton "slack";
+    };
+
+  flake.darwinModules.zoom =
+    { lib, ... }:
+    let
+      inherit (lib.lists) singleton;
+    in
+    {
+      homebrew.casks = singleton "zoom";
     };
 }

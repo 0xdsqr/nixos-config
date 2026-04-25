@@ -1,9 +1,10 @@
 {
   flake.darwinModules.spotify =
-    { config, lib, ... }:
+    { lib, ... }:
     let
-      inherit (lib) mkIf;
-      inherit (config.dsqr.darwin) devbox;
+      inherit (lib.lists) singleton;
     in
-    mkIf devbox.enable { homebrew.casks = [ "spotify" ]; };
+    {
+      homebrew.casks = singleton "spotify";
+    };
 }

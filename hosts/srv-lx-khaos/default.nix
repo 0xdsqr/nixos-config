@@ -1,32 +1,64 @@
 {
-  self,
+  commonModules,
+  homeModules,
+  nixosModules,
   lib,
   collectHostNix,
   ...
 }:
 let
+  inherit (lib) mkAfter;
   inherit (lib.attrsets) attrValues removeAttrs;
-  inherit (lib.lists) singleton;
 
   modules =
-    attrValues self.commonModules
+    attrValues commonModules
     ++ attrValues (
-      removeAttrs self.nixosModules [
+      removeAttrs nixosModules [
         "containers"
         "kubeadm"
       ]
     )
-    ++ singleton {
-      home.extraModules = attrValues (
-        removeAttrs self.homeModules [
-          "tmux"
-          "zsh"
-        ]
-      );
-    }
+    ++ [
+      {
+        home-manager.sharedModules = mkAfter (
+          attrValues (
+            removeAttrs homeModules [
+              "aws"
+              "bat"
+              "cinny"
+              "claude-code"
+              "codex"
+              "darwin-wm"
+              "difftastic"
+              "discord"
+              "exo"
+              "hammerspoon"
+              "hushlogin"
+              "ollama"
+              "packages-containers"
+              "packages-databases"
+              "packages-debugging"
+              "packages-kubernetes"
+              "packages-media"
+              "packages-node"
+              "packages-signing"
+              "opencode"
+              "pi"
+              "signal"
+              "theme"
+              "thunderbird"
+              "web-browser"
+            ]
+          )
+        );
+      }
+    ]
     ++ collectHostNix { dir = ./.; };
 in
 {
+  meta.sshHost = "10.10.30.107";
+  meta.system = "x86_64-linux";
+
   imports = modules;
   networking.hostName = "srv-lx-khaos";
   hardware.report = ./srv-lx-khaos.report.json;
@@ -61,7 +93,6 @@ in
 
   services.restic.passwordAgeFile = ./restic.password.age;
   swapDevices = [ ];
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 
   networking.firewall = {
     allowedTCPPorts = [ 5432 ];

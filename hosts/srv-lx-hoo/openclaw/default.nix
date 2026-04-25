@@ -129,7 +129,7 @@ in
 
   users.users.dsqr.linger = true;
 
-  dsqr.home.imports = [
+  home-manager.users.dsqr.imports = [
     nix-openclaw.homeManagerModules.openclaw
     (
       { config, lib, ... }:

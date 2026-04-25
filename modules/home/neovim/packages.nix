@@ -1,0 +1,33 @@
+{ pkgs }:
+with pkgs;
+[
+  git
+  deno
+  typescript
+  typescript-language-server
+  svelte-language-server
+  tailwindcss-language-server
+  biome
+  go
+  gopls
+  gofumpt
+  gotools
+  python3
+  pyright
+  ruff
+  nil
+  nixfmt
+  jdt-language-server
+  google-java-format
+  kotlin-language-server
+  ktlint
+  bash-language-server
+  shfmt
+  rust-analyzer
+  rustfmt
+  vscode-langservers-extracted
+  yaml-language-server
+  marksman
+  dockerfile-language-server
+  treefmt
+]

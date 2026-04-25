@@ -2,11 +2,7 @@
   flake.nixosModules."monitoring-alloy-loki" =
     { config, lib, ... }:
     let
-      inherit (lib)
-        mkAfter
-        mkOption
-        types
-        ;
+      inherit (lib) mkAfter mkOption types;
       cfg = config.dsqr.nixos.alloy;
       lokiCfg = cfg.loki;
     in

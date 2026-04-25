@@ -85,6 +85,16 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
+
+    helium = {
+      url = "github:amaanq/helium-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    ublock = {
+      url = "github:gorhill/uBlock";
+      flake = false;
+    };
   };
 
   outputs =
@@ -93,32 +103,41 @@
       nixLib = inputs.nixpkgs.lib // inputs.darwin.lib;
       inherit (nixLib.filesystem) listFilesRecursive;
       inherit (nixLib.lists) elem filter;
-      inherit (nixLib.strings) hasSuffix;
+      inherit (nixLib.strings) hasPrefix hasSuffix;
 
       collectNix =
         {
           dir,
           ignoredNames ? [ ],
           ignoredFiles ? [ ],
+          ignoredDirectories ? [ ],
         }:
         filter (
           path:
           let
             name = builtins.baseNameOf path;
+            pathString = toString path;
           in
-          hasSuffix ".nix" path && !(elem name ignoredNames) && !(elem path ignoredFiles)
+          hasSuffix ".nix" pathString
+          && !(elem name ignoredNames)
+          && !(elem path ignoredFiles)
+          && !(builtins.any (ignoredDir: hasPrefix "${toString ignoredDir}/" pathString) ignoredDirectories)
         ) (listFilesRecursive dir);
     in
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         inputs.home-manager.flakeModules.home-manager
-        ./parts/home-manager.nix
         ./parts/flake-outputs.nix
-        ./parts/nix.nix
-        ./parts/nixpkgs.nix
         ./parts/per-system.nix
-        ./parts/hosts.nix
       ]
-      ++ collectNix { dir = ./modules; };
+      ++ collectNix {
+        dir = ./modules;
+        ignoredFiles = [
+          ./modules/home/neovim/init-lua.nix
+          ./modules/home/neovim/packages.nix
+        ];
+        ignoredDirectories = [ ./modules/home/neovim/plugins ];
+      }
+      ++ [ ./parts/hosts.nix ];
     };
 }

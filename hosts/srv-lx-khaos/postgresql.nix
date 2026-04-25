@@ -7,7 +7,8 @@ _: {
   dsqr.nixos.postgresql.allowedCIDRs = [
     "127.0.0.1/32"
     "::1/128"
-    "10.10.30.102/32"
+    "10.10.10.0/24"
+    "10.10.30.0/24"
   ];
   # reserve 4 GiB of huge pages (2048 * 2 MiB) for postgres shared memory
   boot.kernel.sysctl."vm.nr_hugepages" = 2048;
