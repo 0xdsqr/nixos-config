@@ -10,18 +10,14 @@
         inherit (inputs) agenix exo;
       };
 
-      sharedContextModule = {
-        _module.args = {
-          inherit keys;
-
-          ctx = { inherit keys; };
-        };
+      sharedKeysModule = {
+        _module.args = { inherit keys; };
       };
 
       sharedHomeDefaultsModule =
         { lib, ... }:
         let
-          inherit (lib) mkDefault;
+          inherit (lib.modules) mkDefault;
         in
         {
           home.stateVersion = mkDefault "25.11";
@@ -33,7 +29,7 @@
       home-manager.backupFileExtension = "pre-home-manager";
       home-manager.extraSpecialArgs = specialArgs;
       home-manager.sharedModules = [
-        sharedContextModule
+        sharedKeysModule
         sharedHomeDefaultsModule
       ];
       home-manager.useGlobalPkgs = true;

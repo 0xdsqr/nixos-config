@@ -60,7 +60,8 @@
             # agenix only auto-discovers ~/.ssh/id_ed25519 and ~/.ssh/id_rsa,
             # so wrap it to use the homelab key by default on the Mac.
             def --wrapped agenix [...args] {
-              ^agenix -i ~/.ssh/dsqr_homelab_ed25519 ...$args
+              let key = ($env.HOME | path join ".ssh" "dsqr_homelab_ed25519")
+              ^agenix -i $key ...$args
             }
           '';
       };

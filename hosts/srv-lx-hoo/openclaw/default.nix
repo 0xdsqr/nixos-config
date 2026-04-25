@@ -48,7 +48,7 @@ let
   commonInstanceConfig = {
     agents.defaults.model = {
       primary = "openai/gpt-5.4";
-      fallbacks = [ ];
+      fallbacks = [ "openai/gpt-5.5" ];
     };
 
     # `imageModel` is the multimodal "look at this image" fallback that some
@@ -56,7 +56,7 @@ let
     # dedicated "make/edit an image" model chain.
     agents.defaults.imageModel = {
       primary = "openai/gpt-5.4";
-      fallbacks = [ ];
+      fallbacks = [ "openai/gpt-5.5" ];
     };
 
     agents.defaults.imageGenerationModel = {
@@ -142,10 +142,12 @@ in
           # We want different persona docs per instance, so we do not use the
           # current global `programs.openclaw.documents` option here.
           documents = null;
+
+          customPlugins = [ { source = "path:${../../../packages/agentic-tools/goplaces}"; } ];
+
           bundledPlugins = {
             summarize.enable = true;
             sag.enable = true;
-            goplaces.enable = true;
           };
 
           instances.hoo = {
