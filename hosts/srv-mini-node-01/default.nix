@@ -24,7 +24,6 @@ let
         "darwin-wm"
         "desktop-personal"
         "desktop-stablecore"
-        "determinate"
         "discord"
         "google-chrome"
         "hammerspoon"
