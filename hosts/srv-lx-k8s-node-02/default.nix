@@ -36,7 +36,7 @@ let
           "cinny"
           "claude-code"
           "codex"
-          "darwin-wm"
+          "window-manager"
           "difftastic"
           "discord"
           "exo"

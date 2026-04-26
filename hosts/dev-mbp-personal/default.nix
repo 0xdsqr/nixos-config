@@ -12,6 +12,7 @@ let
   hostMeta = self.lib.mkHostMeta {
     class = "darwin";
     path = ./.;
+    sshHost = "10.10.20.126";
     system = "aarch64-darwin";
   };
 

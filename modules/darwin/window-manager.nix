@@ -1,5 +1,5 @@
 {
-  flake.darwinModules."darwin-wm" = {
+  flake.darwinModules."window-manager" = {
     system.defaults.NSGlobalDomain = {
       ApplePressAndHoldEnabled = false;
       AppleShowScrollBars = "WhenScrolling";
