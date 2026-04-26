@@ -21,7 +21,7 @@ let
       removeAttrs darwinModules [
         "bat"
         "clipboard"
-        "darwin-wm"
+        "window-manager"
         "desktop-personal"
         "desktop-stablecore"
         "discord"
@@ -48,7 +48,7 @@ let
           "cinny"
           "claude-code"
           "codex"
-          "darwin-wm"
+          "window-manager"
           "difftastic"
           "direnv"
           "discord"

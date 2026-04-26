@@ -32,7 +32,7 @@ let
           "cinny"
           "claude-code"
           "codex"
-          "darwin-wm"
+          "window-manager"
           "difftastic"
           "discord"
           "exo"
@@ -94,7 +94,7 @@ let
           };
         };
 
-        services.restic.passwordAgeFile = ./restic.password.age;
+        services.restic.hosts = nixLib.mkForce [ ];
         swapDevices = [ ];
 
         networking.firewall.allowedTCPPorts = [ 5432 ];

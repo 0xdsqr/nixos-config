@@ -135,7 +135,9 @@
       perSystem =
         { pkgs, self', ... }:
         let
-          listRepoFiles = pkgs.callPackage ./packages/tsgo-hello/default.nix { };
+          inherit (pkgs) callPackage;
+
+          listRepoFiles = callPackage ./packages/tsgo-hello/default.nix { };
 
           treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs {
             projectRootFile = "flake.nix";
