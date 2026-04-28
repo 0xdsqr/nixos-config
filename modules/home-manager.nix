@@ -3,7 +3,7 @@
   flake.commonModules."home-manager" =
     _:
     let
-      keys = import ./../keys.nix;
+      keys = import ./secrets/keys.nix;
 
       specialArgs = {
         inherit self inputs;

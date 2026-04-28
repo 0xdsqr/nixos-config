@@ -9,7 +9,13 @@
       ...
     }:
     let
-      inherit (lib.attrsets) filterAttrs mapAttrs mapAttrsToList optionalAttrs removeAttrs;
+      inherit (lib.attrsets)
+        filterAttrs
+        mapAttrs
+        mapAttrsToList
+        optionalAttrs
+        removeAttrs
+        ;
       inherit (lib.lists) optional;
       inherit (lib.strings) concatStringsSep;
       inherit (lib.types) isType;
@@ -40,25 +46,18 @@
           trusted-public-keys = [ "exo.cachix.org-1:okq7hl624TBeAR3kV+g39dUFSiaZgLRkLsFBCuJ2NZI=" ];
         };
 
-      builderMachines =
-        optional
-          (
-            managesNix
-            && builderHost != null
-            && hostName != builderHostName
-          )
-          {
-            hostName = if builderHost.sshHost == null then builderHostName else builderHost.sshHost;
-            maxJobs = 20;
-            publicHostKey = builderPublicHostKey;
-            protocol = "ssh-ng";
-            sshUser = "build";
-            supportedFeatures = [
-              "big-parallel"
-              "kvm"
-            ];
-            system = "x86_64-linux";
-          };
+      builderMachines = optional (managesNix && builderHost != null && hostName != builderHostName) {
+        hostName = if builderHost.sshHost == null then builderHostName else builderHost.sshHost;
+        maxJobs = 20;
+        publicHostKey = builderPublicHostKey;
+        protocol = "ssh-ng";
+        sshUser = "build";
+        supportedFeatures = [
+          "big-parallel"
+          "kvm"
+        ];
+        system = "x86_64-linux";
+      };
     in
     {
       config = {

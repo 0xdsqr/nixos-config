@@ -103,7 +103,7 @@
     };
 
     hoo = {
-      url = "git+https://github.com/0xdsqr/hoo.git";
+      url = "git+ssh://git@github.com/0xdsqr/hoo.git";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-parts.follows = "flake-parts";
       inputs.treefmt-nix.follows = "treefmt-nix";
@@ -132,6 +132,7 @@
           && !(hasInfix "/theme/themes/" pathString)
           && !(hasSuffix "/theme/lib.nix" pathString)
           && !(hasSuffix "/theme/catalog.nix" pathString)
+          && !(hasSuffix "/secrets/keys.nix" pathString)
           && !(hasInfix "/home/neovim/plugins/" pathString)
           && !(hasSuffix "/home/neovim/init-lua.nix" pathString)
           && !(hasSuffix "/home/neovim/packages.nix" pathString)

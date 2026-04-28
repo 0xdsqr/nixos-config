@@ -9,6 +9,7 @@ let
   inherit (nixLib.attrsets) attrValues removeAttrs;
   inherit (nixLib.lists) singleton;
   inherit (nixLib.meta) getExe;
+  inherit (nixLib.trivial) flip;
 
   hostMeta = self.lib.mkHostMeta {
     class = "nixos";
@@ -17,10 +18,10 @@ let
     system = "x86_64-linux";
   };
 
-  baseModules =
+  modules =
     attrValues commonModules
     ++ attrValues (
-      removeAttrs nixosModules [
+      flip removeAttrs [
         "containers"
         "kubeadm"
         "monitoring-alloy-base"
@@ -31,11 +32,11 @@ let
         "redis"
         "restic"
         "rustfs"
-      ]
+      ] nixosModules
     )
     ++ singleton (
       self.lib.mkHomeManagerSharedModule (
-        removeAttrs homeModules [
+        flip removeAttrs [
           "aws"
           "bat"
           "cinny"
@@ -61,11 +62,11 @@ let
           "theme"
           "thunderbird"
           "web-browser"
-        ]
+        ] homeModules
       )
     );
 
-  modules = baseModules ++ [
+  systemModules = modules ++ [
     ./stalwart.nix
     {
       networking.hostName = "srv-lx-mailbox";
@@ -119,13 +120,16 @@ let
       system.stateVersion = "25.11";
     }
   ];
+
+  installerModules = modules ++ [ (inputs.nixpkgs + /nixos/modules/installer/cd-dvd/iso-image.nix) ];
 in
 {
   flake.hostDefinitions.srv-lx-mailbox = hostMeta;
 
   flake.nixosConfigurations.srv-lx-mailbox = self.lib.nixosSystem {
-    inherit hostMeta modules;
     hostName = "srv-lx-mailbox";
+    inherit hostMeta;
+    modules = singleton ({ ... }: { imports = systemModules; });
   };
 
   flake.nixosConfigurations.srv-lx-mailbox-installer = self.lib.nixosSystem {
@@ -137,7 +141,7 @@ in
         mailbox = self.nixosConfigurations.srv-lx-mailbox;
       in
       {
-        imports = baseModules ++ singleton (inputs.nixpkgs + /nixos/modules/installer/cd-dvd/iso-image.nix);
+        imports = installerModules;
 
         networking.hostName = "srv-lx-mailbox-installer";
 

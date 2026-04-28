@@ -9,6 +9,7 @@ let
   inherit (nixLib.attrsets) attrValues removeAttrs;
   inherit (nixLib.lists) singleton;
   inherit (nixLib.meta) getExe;
+  inherit (nixLib.trivial) flip;
 
   hostMeta = self.lib.mkHostMeta {
     class = "nixos";
@@ -17,10 +18,10 @@ let
     system = "x86_64-linux";
   };
 
-  baseModules =
+  modules =
     attrValues commonModules
     ++ attrValues (
-      removeAttrs nixosModules [
+      flip removeAttrs [
         "containers"
         "kubeadm"
         "monitoring-alloy-prometheus"
@@ -28,11 +29,11 @@ let
         "redis"
         "restic"
         "rustfs"
-      ]
+      ] nixosModules
     )
     ++ singleton (
       self.lib.mkHomeManagerSharedModule (
-        removeAttrs homeModules [
+        flip removeAttrs [
           "aws"
           "bat"
           "cinny"
@@ -58,16 +59,17 @@ let
           "theme"
           "thunderbird"
           "web-browser"
-        ]
+        ] homeModules
       )
     );
 
-  modules = baseModules ++ [
+  systemModules = modules ++ [
     nixosModules.restic
     ./alloy-opnsense.nix
     ./grafana.nix
     ./loki.nix
     ./prometheus.nix
+    ./tempo.nix
     {
       networking.hostName = "srv-lx-beacon";
       hardware.report = ./srv-lx-beacon.report.json;
@@ -106,19 +108,24 @@ let
         8000
         9090
         3100
+        4317
+        4318
         1514
       ];
 
       system.stateVersion = "25.05";
     }
   ];
+
+  installerModules = modules ++ [ (inputs.nixpkgs + /nixos/modules/installer/cd-dvd/iso-image.nix) ];
 in
 {
   flake.hostDefinitions.srv-lx-beacon = hostMeta;
 
   flake.nixosConfigurations.srv-lx-beacon = self.lib.nixosSystem {
-    inherit hostMeta modules;
     hostName = "srv-lx-beacon";
+    inherit hostMeta;
+    modules = singleton ({ ... }: { imports = systemModules; });
   };
 
   flake.nixosConfigurations.srv-lx-beacon-installer = self.lib.nixosSystem {
@@ -130,7 +137,7 @@ in
         beacon = self.nixosConfigurations.srv-lx-beacon;
       in
       {
-        imports = baseModules ++ singleton (inputs.nixpkgs + /nixos/modules/installer/cd-dvd/iso-image.nix);
+        imports = installerModules;
 
         networking.hostName = "srv-lx-beacon-installer";
 

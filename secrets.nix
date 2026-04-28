@@ -1,5 +1,5 @@
 let
-  keys = import ./keys.nix;
+  keys = import ./modules/secrets/keys.nix;
   inherit (keys) hosts;
   inherit (keys.groups) admins all;
 
@@ -52,6 +52,7 @@ mkSecretsForHost "srv-lx-beacon" [
 ]
 // mkSecretsForHost "srv-lx-hoo" [
   "hosts/srv-lx-hoo/host.password.age"
+  "hosts/srv-lx-hoo/github.deploy-key.age"
   "hosts/srv-lx-hoo/openclaw/openclaw.env.age"
   "hosts/srv-lx-hoo/tailscale.auth-key.age"
 ]

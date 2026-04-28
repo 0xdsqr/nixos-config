@@ -9,6 +9,7 @@ let
   inherit (nixLib.attrsets) attrValues removeAttrs;
   inherit (nixLib.lists) singleton;
   inherit (nixLib.meta) getExe;
+  inherit (nixLib.trivial) flip;
 
   hostMeta = self.lib.mkHostMeta {
     class = "nixos";
@@ -17,10 +18,10 @@ let
     system = "x86_64-linux";
   };
 
-  baseModules =
+  modules =
     attrValues commonModules
     ++ attrValues (
-      removeAttrs nixosModules [
+      flip removeAttrs [
         "containers"
         "kubeadm"
         "monitoring-alloy-prometheus"
@@ -28,11 +29,11 @@ let
         "redis"
         "restic"
         "rustfs"
-      ]
+      ] nixosModules
     )
     ++ singleton (
       self.lib.mkHomeManagerSharedModule (
-        removeAttrs homeModules [
+        flip removeAttrs [
           "aws"
           "bat"
           "cinny"
@@ -58,11 +59,11 @@ let
           "theme"
           "thunderbird"
           "web-browser"
-        ]
+        ] homeModules
       )
     );
 
-  modules = baseModules ++ [
+  systemModules = modules ++ [
     ./alloy-cloudflared.nix
     ./cloudflared.nix
     {
@@ -103,13 +104,16 @@ let
       system.stateVersion = "25.05";
     }
   ];
+
+  installerModules = modules ++ [ (inputs.nixpkgs + /nixos/modules/installer/cd-dvd/iso-image.nix) ];
 in
 {
   flake.hostDefinitions.srv-lx-gateway = hostMeta;
 
   flake.nixosConfigurations.srv-lx-gateway = self.lib.nixosSystem {
-    inherit hostMeta modules;
     hostName = "srv-lx-gateway";
+    inherit hostMeta;
+    modules = singleton ({ ... }: { imports = systemModules; });
   };
 
   flake.nixosConfigurations.srv-lx-gateway-installer = self.lib.nixosSystem {
@@ -121,7 +125,7 @@ in
         gateway = self.nixosConfigurations.srv-lx-gateway;
       in
       {
-        imports = baseModules ++ singleton (inputs.nixpkgs + /nixos/modules/installer/cd-dvd/iso-image.nix);
+        imports = installerModules;
 
         networking.hostName = "srv-lx-gateway-installer";
 

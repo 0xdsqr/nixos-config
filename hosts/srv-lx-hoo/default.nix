@@ -1,26 +1,32 @@
 {
   self,
   inputs,
-  lib,
   ...
 }:
 let
-  inherit (lib.attrsets) attrValues removeAttrs;
-  inherit (lib.lists) singleton;
-  inherit (lib.meta) getExe;
-  inherit (lib.modules) mkAfter mkForce;
+  inherit (self.lib)
+    commonModules
+    homeModules
+    nixLib
+    nixosModules
+    ;
+  inherit (nixLib.attrsets) attrValues removeAttrs;
+  inherit (nixLib.lists) singleton;
+  inherit (nixLib.meta) getExe;
+  inherit (nixLib.modules) mkForce;
+  inherit (nixLib.trivial) flip;
 
-  hostMeta = {
+  hostMeta = self.lib.mkHostMeta {
     class = "nixos";
     path = ./.;
     sshHost = "10.10.30.108";
     system = "x86_64-linux";
   };
 
-  baseModules =
-    attrValues self.commonModules
+  modules =
+    attrValues commonModules
     ++ attrValues (
-      removeAttrs self.nixosModules [
+      flip removeAttrs [
         "containers"
         "kubeadm"
         "monitoring-alloy-prometheus"
@@ -28,90 +34,125 @@ let
         "redis"
         "restic"
         "rustfs"
-      ]
+      ] nixosModules
     )
-    ++ singleton {
-      home-manager.sharedModules = mkAfter (
-        attrValues (
-          removeAttrs self.homeModules [
-            "aws"
-            "bat"
-            "cinny"
-            "claude-code"
-            "codex"
-            "window-manager"
-            "difftastic"
-            "discord"
-            "exo"
-            "hammerspoon"
-            "hushlogin"
-            "ollama"
-            "packages-containers"
-            "packages-databases"
-            "packages-debugging"
-            "packages-kubernetes"
-            "packages-media"
-            "packages-node"
-            "packages-signing"
-            "opencode"
-            "pi"
-            "signal"
-            "theme"
-            "thunderbird"
-            "web-browser"
-          ]
-        )
-      );
-    };
+    ++ singleton (
+      self.lib.mkHomeManagerSharedModule (
+        flip removeAttrs [
+          "aws"
+          "bat"
+          "cinny"
+          "claude-code"
+          "codex"
+          "window-manager"
+          "difftastic"
+          "discord"
+          "exo"
+          "hammerspoon"
+          "hushlogin"
+          "ollama"
+          "packages-containers"
+          "packages-databases"
+          "packages-debugging"
+          "packages-kubernetes"
+          "packages-media"
+          "packages-node"
+          "packages-signing"
+          "opencode"
+          "pi"
+          "signal"
+          "theme"
+          "thunderbird"
+          "web-browser"
+        ] homeModules
+      )
+    );
 
-  modules = singleton {
-    imports =
-      baseModules
-      ++ singleton ./openclaw/default.nix;
+  systemModules = modules ++ [
+    inputs.hoo.nixosModules.hoo
+    ./openclaw/default.nix
+  ];
 
-    networking.hostName = "srv-lx-hoo";
-    hardware.report = ./srv-lx-hoo.report.json;
-
-    boot.loader.grub = {
-      enable = true;
-      devices = mkForce [ "/dev/sda" ];
-    };
-
-    disko.devices.disk.main = {
-      device = "/dev/sda";
-      type = "disk";
-      content = {
-        type = "gpt";
-        partitions = {
-          boot = {
-            size = "1M";
-            type = "EF02";
-            priority = 1;
-          };
-
-          root = {
-            size = "100%";
-            content = {
-              type = "filesystem";
-              format = "ext4";
-              mountpoint = "/";
-            };
-          };
-        };
-      };
-    };
-
-    swapDevices = [ ];
-
-    system.stateVersion = "25.05";
-  };
+  installerModules = modules ++ [ (inputs.nixpkgs + /nixos/modules/installer/cd-dvd/iso-image.nix) ];
 in
 {
   flake.hostDefinitions.srv-lx-hoo = hostMeta;
 
   flake.nixosConfigurations.srv-lx-hoo = self.lib.nixosSystem {
-    inherit hostMeta modules;
     hostName = "srv-lx-hoo";
+    inherit hostMeta;
+    modules = singleton (
+      { config, ... }:
+      {
+        imports = systemModules;
+
+        networking.hostName = "srv-lx-hoo";
+        hardware.report = ./srv-lx-hoo.report.json;
+
+        age.secrets.githubDeployKey = {
+          file = ./github.deploy-key.age;
+          owner = "root";
+          group = "root";
+          mode = "0400";
+        };
+
+        services.hoo.api-server = {
+          enable = true;
+          host = "0.0.0.0";
+          port = 9321;
+        };
+
+        networking.firewall.allowedTCPPorts = [ 9321 ];
+
+        home-manager.users.dsqr.imports = [
+          inputs.hoo.homeManagerModules.hoo
+          {
+            programs.hoo.enable = true;
+          }
+        ];
+
+        programs.ssh.extraConfig = ''
+          Host github.com
+            User git
+            IdentityFile ${config.age.secrets.githubDeployKey.path}
+            IdentitiesOnly yes
+            StrictHostKeyChecking accept-new
+        '';
+
+        boot.loader.grub = {
+          enable = true;
+          devices = mkForce [ "/dev/sda" ];
+        };
+
+        disko.devices.disk.main = {
+          device = "/dev/sda";
+          type = "disk";
+          content = {
+            type = "gpt";
+            partitions = {
+              boot = {
+                size = "1M";
+                type = "EF02";
+                priority = 1;
+              };
+
+              root = {
+                size = "100%";
+                content = {
+                  type = "filesystem";
+                  format = "ext4";
+                  mountpoint = "/";
+                };
+              };
+            };
+          };
+        };
+
+        swapDevices = [ ];
+
+        system.stateVersion = "25.05";
+      }
+    );
   };
 
   flake.nixosConfigurations.srv-lx-hoo-installer = self.lib.nixosSystem {
@@ -123,7 +164,7 @@ in
         hoo = self.nixosConfigurations.srv-lx-hoo;
       in
       {
-        imports = baseModules ++ singleton (inputs.nixpkgs + /nixos/modules/installer/cd-dvd/iso-image.nix);
+        imports = installerModules;
 
         networking.hostName = "srv-lx-hoo-installer";
 

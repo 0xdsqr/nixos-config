@@ -1,9 +1,4 @@
-{
-  config,
-  inputs,
-  lib,
-  ...
-}:
+{ config, lib, ... }:
 let
   inherit (lib.attrsets) mapAttrsToList;
   inherit (lib.strings) concatStringsSep escapeShellArg;
@@ -27,7 +22,7 @@ let
 in
 {
   perSystem =
-    { pkgs, self', ... }:
+    { pkgs, ... }:
     let
       applyPackage = pkgs.writeShellScriptBin "apply" ''
         set -euo pipefail

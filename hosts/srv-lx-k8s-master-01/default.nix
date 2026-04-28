@@ -9,6 +9,7 @@ let
   inherit (nixLib.attrsets) attrValues removeAttrs;
   inherit (nixLib.lists) singleton;
   inherit (nixLib.meta) getExe;
+  inherit (nixLib.trivial) flip;
 
   hostMeta = self.lib.mkHostMeta {
     class = "nixos";
@@ -17,20 +18,20 @@ let
     system = "x86_64-linux";
   };
 
-  baseModules =
+  modules =
     attrValues commonModules
     ++ attrValues (
-      removeAttrs nixosModules [
+      flip removeAttrs [
         "containers"
         "postgresql"
         "redis"
         "restic"
         "rustfs"
-      ]
+      ] nixosModules
     )
     ++ singleton (
       self.lib.mkHomeManagerSharedModule (
-        removeAttrs homeModules [
+        flip removeAttrs [
           "aws"
           "bat"
           "cinny"
@@ -56,11 +57,11 @@ let
           "theme"
           "thunderbird"
           "web-browser"
-        ]
+        ] homeModules
       )
     );
 
-  modules = baseModules ++ [
+  systemModules = modules ++ [
     {
       networking.hostName = "srv-lx-k8s-master-01";
       hardware.report = ./srv-lx-k8s-master-01.report.json;
@@ -119,13 +120,16 @@ let
       system.stateVersion = "25.05";
     }
   ];
+
+  installerModules = modules ++ [ (inputs.nixpkgs + /nixos/modules/installer/cd-dvd/iso-image.nix) ];
 in
 {
   flake.hostDefinitions.srv-lx-k8s-master-01 = hostMeta;
 
   flake.nixosConfigurations.srv-lx-k8s-master-01 = self.lib.nixosSystem {
-    inherit hostMeta modules;
     hostName = "srv-lx-k8s-master-01";
+    inherit hostMeta;
+    modules = singleton ({ ... }: { imports = systemModules; });
   };
 
   flake.nixosConfigurations.srv-lx-k8s-master-01-installer = self.lib.nixosSystem {
@@ -137,7 +141,7 @@ in
         master = self.nixosConfigurations.srv-lx-k8s-master-01;
       in
       {
-        imports = baseModules ++ singleton (inputs.nixpkgs + /nixos/modules/installer/cd-dvd/iso-image.nix);
+        imports = installerModules;
 
         networking.hostName = "srv-lx-k8s-master-01-installer";
 

@@ -8,7 +8,7 @@ let
   inherit (lib.attrsets) recursiveUpdate;
 
   nixLib = inputs.nixpkgs.lib // inputs.darwin.lib;
-  keys = import ../keys.nix;
+  keys = import ./secrets/keys.nix;
 
   inherit (self) commonModules;
   homeModules = self.homeModules // {

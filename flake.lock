@@ -359,11 +359,11 @@
         "rev": "95e998b1b3b4c31533ff19498f81496fcb1d2215",
         "revCount": 17,
         "type": "git",
-        "url": "https://github.com/0xdsqr/hoo.git"
+        "url": "ssh://git@github.com/0xdsqr/hoo.git"
       },
       "original": {
         "type": "git",
-        "url": "https://github.com/0xdsqr/hoo.git"
+        "url": "ssh://git@github.com/0xdsqr/hoo.git"
       }
     },
     "neovim-nightly-overlay": {
