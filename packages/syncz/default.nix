@@ -64,8 +64,11 @@ pkgs.stdenvNoCC.mkDerivation {
 
     node .deps/node_modules/@typescript/native-preview/bin/tsgo.js \
       main.ts \
+      cli.ts \
+      commands.ts \
       --outDir dist \
-      --module esnext \
+      --module node16 \
+      --moduleResolution node16 \
       --target es2024
 
     runHook postBuild
@@ -75,8 +78,8 @@ pkgs.stdenvNoCC.mkDerivation {
     runHook preInstall
 
     mkdir -p "$out/lib/syncz/dist" "$out/bin"
-    cp package.json main.ts "$out/lib/syncz/"
-    cp dist/main.js "$out/lib/syncz/dist/"
+    cp package.json main.ts cli.ts commands.ts "$out/lib/syncz/"
+    cp dist/*.js "$out/lib/syncz/dist/"
 
     cat > "$out/bin/syncz" <<EOF
     #!${pkgs.runtimeShell}
