@@ -47,16 +47,16 @@ let
     '';
   commonInstanceConfig = {
     agents.defaults.model = {
-      primary = "openai/gpt-5.5";
-      fallbacks = [ "openai/gpt-5.4" ];
+      primary = "openai/gpt-5.4";
+      fallbacks = [ ];
     };
 
     # `imageModel` is the multimodal "look at this image" fallback that some
     # OpenClaw paths and CLI surfaces use. `imageGenerationModel` is the
     # dedicated "make/edit an image" model chain.
     agents.defaults.imageModel = {
-      primary = "openai/gpt-5.5";
-      fallbacks = [ "openai/gpt-5.4" ];
+      primary = "openai/gpt-5.4";
+      fallbacks = [ ];
     };
 
     agents.defaults.imageGenerationModel = {
