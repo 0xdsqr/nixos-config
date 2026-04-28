@@ -47,16 +47,16 @@ let
     '';
   commonInstanceConfig = {
     agents.defaults.model = {
-      primary = "openai/gpt-5.4";
-      fallbacks = [ "openai/gpt-5.5" ];
+      primary = "openai/gpt-5.5";
+      fallbacks = [ "openai/gpt-5.4" ];
     };
 
     # `imageModel` is the multimodal "look at this image" fallback that some
     # OpenClaw paths and CLI surfaces use. `imageGenerationModel` is the
     # dedicated "make/edit an image" model chain.
     agents.defaults.imageModel = {
-      primary = "openai/gpt-5.4";
-      fallbacks = [ "openai/gpt-5.5" ];
+      primary = "openai/gpt-5.5";
+      fallbacks = [ "openai/gpt-5.4" ];
     };
 
     agents.defaults.imageGenerationModel = {
@@ -135,6 +135,10 @@ in
       { config, lib, ... }:
       {
         programs.openclaw = {
+          # nix-openclaw's bundled toolchain also ships curl, which collides
+          # with the normal curl package already present in this environment.
+          excludeTools = [ "curl" ];
+
           # Avoid user profile PATH collisions when plugin binaries overlap with
           # tools that the base OpenClaw package already exposes.
           exposePluginPackages = false;
@@ -142,8 +146,6 @@ in
           # We want different persona docs per instance, so we do not use the
           # current global `programs.openclaw.documents` option here.
           documents = null;
-
-          customPlugins = [ { source = "path:${../../../packages/agentic-tools/goplaces}"; } ];
 
           bundledPlugins = {
             summarize.enable = true;

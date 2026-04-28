@@ -12,15 +12,15 @@ _: {
 
         stage.labels {
           values = {
-            action    = ""
-            direction = ""
+            action    = "",
+            direction = "",
           }
         }
 
         stage.structured_metadata {
           values = {
-            interface    = ""
-            match_reason = ""
+            interface    = "",
+            match_reason = "",
           }
         }
       }

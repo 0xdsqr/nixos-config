@@ -41,10 +41,12 @@ let
     )
     ++ [
       {
+        themeId = "im-in-love-with-emo-girl";
+
         networking = {
-          hostName = "dev-mbp-personal";
-          computerName = "dev-mbp-personal";
-          localHostName = "dev-mbp-personal";
+          hostName = "devbox-macbook-pro";
+          computerName = "devbox-macbook-pro";
+          localHostName = "devbox-macbook-pro";
         };
 
         system.stateVersion = 5;
@@ -52,7 +54,13 @@ let
     ];
 in
 {
+  flake.hostDefinitions.devbox-macbook-pro = hostMeta;
   flake.hostDefinitions.dev-mbp-personal = hostMeta;
+
+  flake.darwinConfigurations.devbox-macbook-pro = self.lib.darwinSystem {
+    inherit hostMeta modules;
+    hostName = "devbox-macbook-pro";
+  };
 
   flake.darwinConfigurations.dev-mbp-personal = self.lib.darwinSystem {
     inherit hostMeta modules;

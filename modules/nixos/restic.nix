@@ -2,51 +2,49 @@
   flake.nixosModules.restic =
     {
       config,
+      hostMeta,
       keys,
       lib,
       pkgs,
       ...
     }:
     let
-      inherit (lib)
-        genAttrs
-        mkIf
-        mkOption
-        types
-        ;
-      cfg = config.services.restic;
+      inherit (lib) genAttrs mkIf mkOption;
+      inherit (lib.lists) elem optional;
+      inherit (lib.types) listOf str;
+
+      backupHost =
+        if config.networking.hostName == "srv-lx-khaos" then
+          "srv-lx-beacon"
+        else
+          null;
+
+      resticHosts = optional (backupHost != null) backupHost;
+      receiverHosts = [ "srv-lx-beacon" ];
+      isReceiver = elem config.networking.hostName receiverHosts;
+      passwordAgeFile = hostMeta.path + "/restic.password.age";
+      hasPasswordAgeFile = builtins.pathExists passwordAgeFile;
     in
     {
       options.services.restic.hosts = mkOption {
-        type = types.listOf types.str;
-        default =
-          if config.networking.hostName == "srv-lx-beacon" then
-            [ "srv-lx-khaos" ]
-          else if config.networking.hostName == "srv-lx-khaos" then
-            [ "srv-lx-beacon" ]
-          else
-            [ ];
-        description = "Hosts that should receive this machine's restic backups.";
+        type = listOf str;
+        default = resticHosts;
+        description = "Computed list of hosts that receive this machine's restic backups.";
       };
 
-      options.services.restic.passwordAgeFile = mkOption {
-        type = types.nullOr types.path;
-        default = null;
-        description = "Encrypted age file that stores the shared restic repository password.";
-      };
-
-      config = mkIf (cfg.hosts != [ ] && cfg.passwordAgeFile != null) {
-        age.secrets.resticPassword.file = cfg.passwordAgeFile;
-
-        environment.systemPackages = [ pkgs.restic ];
-
+      config = mkIf isReceiver {
         users.users.backup = {
           description = "Backup";
           isNormalUser = true;
           openssh.authorizedKeys.keys = keys.all;
         };
+      }
+      // mkIf (config.services.restic.hosts != [ ] && hasPasswordAgeFile) {
+        age.secrets.resticPassword.file = passwordAgeFile;
 
-        services.restic.backups = genAttrs cfg.hosts (host: {
+        environment.systemPackages = [ pkgs.restic ];
+
+        services.restic.backups = genAttrs config.services.restic.hosts (host: {
           repository = "sftp:backup@${host}:${config.networking.hostName}-backup";
           passwordFile = config.age.secrets.resticPassword.path;
           initialize = true;

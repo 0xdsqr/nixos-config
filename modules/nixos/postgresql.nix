@@ -8,7 +8,6 @@
     }:
     let
       inherit (lib)
-        attrByPath
         concatMapStringsSep
         concatStringsSep
         flip
@@ -21,7 +20,7 @@
         unique
         ;
       cfg = config.dsqr.nixos.postgresql;
-      resticHosts = attrByPath [ "services" "restic" "hosts" ] [ ] config;
+      resticHosts = config.services.restic.hosts;
       ensuredRoles = unique (
         cfg.ensure
         ++ [

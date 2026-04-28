@@ -9,10 +9,7 @@
 
       hosts = self.hostDefinitions;
 
-      backupHosts = filterAttrs (
-        name: _host:
-        builtins.hasAttr name self.nixosConfigurations && self.nixosConfigurations.${name}.config.users.users ? backup
-      ) self.hostDefinitions;
+      backupHosts = filterAttrs (_name: host: host.class == "nixos") self.hostDefinitions;
 
       hostBlocks = mapAttrsToList (name: host: ''
         Host ${name}

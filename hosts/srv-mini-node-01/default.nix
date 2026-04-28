@@ -48,6 +48,7 @@ let
           "cinny"
           "claude-code"
           "codex"
+          "codexbar"
           "window-manager"
           "difftastic"
           "direnv"

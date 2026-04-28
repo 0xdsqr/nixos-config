@@ -1,4 +1,4 @@
-{ self, ... }:
+{ self, inputs, ... }:
 let
   inherit (self.lib)
     commonModules
@@ -8,6 +8,7 @@ let
     ;
   inherit (nixLib.attrsets) attrValues removeAttrs;
   inherit (nixLib.lists) singleton;
+  inherit (nixLib.meta) getExe;
 
   hostMeta = self.lib.mkHostMeta {
     class = "nixos";
@@ -16,7 +17,7 @@ let
     system = "x86_64-linux";
   };
 
-  modules =
+  baseModules =
     attrValues commonModules
     ++ attrValues (
       removeAttrs nixosModules [
@@ -25,6 +26,7 @@ let
         "monitoring-alloy-prometheus"
         "postgresql"
         "redis"
+        "restic"
         "rustfs"
       ]
     )
@@ -58,58 +60,58 @@ let
           "web-browser"
         ]
       )
-    )
-    ++ [
-      ./alloy-opnsense.nix
-      ./grafana.nix
-      ./loki.nix
-      ./prometheus.nix
-      {
-        networking.hostName = "srv-lx-beacon";
-        hardware.report = ./srv-lx-beacon.report.json;
+    );
 
-        boot.loader.grub = {
-          enable = true;
-          devices = nixLib.mkForce [ "/dev/sda" ];
-        };
+  modules = baseModules ++ [
+    nixosModules.restic
+    ./alloy-opnsense.nix
+    ./grafana.nix
+    ./loki.nix
+    ./prometheus.nix
+    {
+      networking.hostName = "srv-lx-beacon";
+      hardware.report = ./srv-lx-beacon.report.json;
 
-        disko.devices.disk.main = {
-          device = "/dev/sda";
-          type = "disk";
-          content = {
-            type = "gpt";
-            partitions = {
-              boot = {
-                size = "1M";
-                type = "EF02";
-                priority = 1;
-              };
+      boot.loader.grub = {
+        enable = true;
+        devices = nixLib.mkForce [ "/dev/sda" ];
+      };
 
-              root = {
-                end = "100%";
-                content = {
-                  type = "filesystem";
-                  format = "ext4";
-                  mountpoint = "/";
-                };
+      disko.devices.disk.main = {
+        device = "/dev/sda";
+        type = "disk";
+        content = {
+          type = "gpt";
+          partitions = {
+            boot = {
+              size = "1M";
+              type = "EF02";
+              priority = 1;
+            };
+
+            root = {
+              size = "100%";
+              content = {
+                type = "filesystem";
+                format = "ext4";
+                mountpoint = "/";
               };
             };
           };
         };
+      };
+      swapDevices = [ ];
 
-        services.restic.passwordAgeFile = ./restic.password.age;
-        swapDevices = [ ];
+      networking.firewall.allowedTCPPorts = [
+        8000
+        9090
+        3100
+        1514
+      ];
 
-        networking.firewall.allowedTCPPorts = [
-          8000
-          9090
-          3100
-          1514
-        ];
-
-        system.stateVersion = "25.05";
-      }
-    ];
+      system.stateVersion = "25.05";
+    }
+  ];
 in
 {
   flake.hostDefinitions.srv-lx-beacon = hostMeta;
@@ -117,5 +119,58 @@ in
   flake.nixosConfigurations.srv-lx-beacon = self.lib.nixosSystem {
     inherit hostMeta modules;
     hostName = "srv-lx-beacon";
+  };
+
+  flake.nixosConfigurations.srv-lx-beacon-installer = self.lib.nixosSystem {
+    inherit hostMeta;
+    hostName = "srv-lx-beacon-installer";
+    modules = singleton (
+      { config, pkgs, ... }:
+      let
+        beacon = self.nixosConfigurations.srv-lx-beacon;
+      in
+      {
+        imports = baseModules ++ singleton (inputs.nixpkgs + /nixos/modules/installer/cd-dvd/iso-image.nix);
+
+        networking.hostName = "srv-lx-beacon-installer";
+
+        isoImage.makeEfiBootable = true;
+        isoImage.makeUsbBootable = true;
+        isoImage.storeContents = singleton config.system.build.toplevel;
+
+        hardware.enableAllHardware = true;
+
+        environment.etc."install-closure".source = pkgs.closureInfo {
+          rootPaths = [
+            beacon.config.system.build.toplevel
+            beacon.config.system.build.diskoScript
+            beacon.config.system.build.diskoScript.drvPath
+            beacon.pkgs.stdenv.drvPath
+            (beacon.pkgs.closureInfo { rootPaths = [ ]; }).drvPath
+          ];
+        };
+
+        environment.systemPackages =
+          singleton (
+            pkgs.writeShellScriptBin "install-beacon" ''
+              set -euo pipefail
+
+              exec ${
+                getExe inputs.disko.packages.${pkgs.stdenv.hostPlatform.system}.disko-install
+              } --flake "${self}#srv-lx-beacon" --disk main "${beacon.config.disko.devices.disk.main.device}"
+            ''
+          )
+          ++ singleton (
+            pkgs.writeShellScriptBin "generate-facter-report" ''
+              set -euo pipefail
+
+              exec ${getExe pkgs.nixos-facter}
+            ''
+          );
+
+        nixpkgs.hostPlatform = "x86_64-linux";
+        system.stateVersion = "25.05";
+      }
+    );
   };
 }

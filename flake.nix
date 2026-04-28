@@ -10,8 +10,14 @@
       "nix-command"
     ];
 
+    builders-use-substitutes = true;
     flake-registry = "";
     show-trace = true;
+    trusted-users = [
+      "@wheel"
+      "dsqr"
+      "@build"
+    ];
     warn-dirty = false;
   };
 
@@ -86,9 +92,21 @@
       inputs.home-manager.follows = "home-manager";
     };
 
+    nix-steipete-tools = {
+      url = "github:0xdsqr/nix-steipete-tools/main";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     helium = {
       url = "github:amaanq/helium-flake";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    hoo = {
+      url = "git+https://github.com/0xdsqr/hoo.git";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-parts.follows = "flake-parts";
+      inputs.treefmt-nix.follows = "treefmt-nix";
     };
 
     ublock = {
@@ -111,6 +129,9 @@
             pathString = toString path;
           in
           hasSuffix ".nix" pathString
+          && !(hasInfix "/theme/themes/" pathString)
+          && !(hasSuffix "/theme/lib.nix" pathString)
+          && !(hasSuffix "/theme/catalog.nix" pathString)
           && !(hasInfix "/home/neovim/plugins/" pathString)
           && !(hasSuffix "/home/neovim/init-lua.nix" pathString)
           && !(hasSuffix "/home/neovim/packages.nix" pathString)
@@ -123,58 +144,49 @@
         )
       );
     in
-    flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = [
-        "x86_64-linux"
-        "aarch64-linux"
-        "aarch64-darwin"
-      ];
+    flake-parts.lib.mkFlake { inherit inputs; } (
+      { ... }:
+      {
+        systems = [
+          "x86_64-linux"
+          "aarch64-linux"
+          "aarch64-darwin"
+        ];
 
-      imports = [ inputs.home-manager.flakeModules.home-manager ] ++ moduleImports ++ hostImports;
+        imports = [ inputs.home-manager.flakeModules.home-manager ] ++ moduleImports ++ hostImports;
 
-      perSystem =
-        { pkgs, self', ... }:
-        let
-          inherit (pkgs) callPackage;
+        perSystem =
+          { pkgs, self', ... }:
+          let
+            treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs {
+              projectRootFile = "flake.nix";
 
-          listRepoFiles = callPackage ./packages/tsgo-hello/default.nix { };
+              programs.nixfmt = {
+                enable = true;
+                strict = true;
+                width = 120;
+              };
 
-          treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs {
-            projectRootFile = "flake.nix";
-
-            programs.nixfmt = {
-              enable = true;
-              strict = true;
-              width = 120;
+              programs.deadnix.enable = true;
+              programs.statix.enable = true;
+            };
+          in
+          {
+            formatter = treefmtEval.config.build.wrapper;
+            devShells.default = pkgs.mkShellNoCC {
+              packages = with pkgs; [
+                deadnix
+                nil
+                nixd
+                statix
+                treefmtEval.config.build.wrapper
+              ];
             };
 
-            programs.deadnix.enable = true;
-            programs.statix.enable = true;
+            checks = {
+              formatting = treefmtEval.config.build.check self';
+            };
           };
-        in
-        {
-          packages.list-repo-files = listRepoFiles;
-
-          apps.list-repo-files = {
-            type = "app";
-            program = "${listRepoFiles}/bin/list-repo-files";
-          };
-
-          formatter = treefmtEval.config.build.wrapper;
-
-          devShells.default = pkgs.mkShellNoCC {
-            packages = with pkgs; [
-              deadnix
-              nil
-              nixd
-              statix
-              treefmtEval.config.build.wrapper
-            ];
-          };
-
-          checks = {
-            formatting = treefmtEval.config.build.check self';
-          };
-        };
-    };
+      }
+    );
 }

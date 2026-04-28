@@ -1,4 +1,4 @@
-{ self, ... }:
+{ self, inputs, ... }:
 let
   inherit (self.lib)
     commonModules
@@ -8,6 +8,7 @@ let
     ;
   inherit (nixLib.attrsets) attrValues removeAttrs;
   inherit (nixLib.lists) singleton;
+  inherit (nixLib.meta) getExe;
 
   hostMeta = self.lib.mkHostMeta {
     class = "nixos";
@@ -16,7 +17,7 @@ let
     system = "x86_64-linux";
   };
 
-  modules =
+  baseModules =
     attrValues commonModules
     ++ attrValues (
       removeAttrs nixosModules [
@@ -58,52 +59,53 @@ let
           "web-browser"
         ]
       )
-    )
-    ++ [
-      {
-        networking = {
-          hostName = "srv-lx-k8s-node-02";
-          domain = "dsqr.dev";
-        };
+    );
 
-        hardware.report = ./srv-lx-k8s-node-02.report.json;
+  modules = baseModules ++ [
+    {
+      networking = {
+        hostName = "srv-lx-k8s-node-02";
+        domain = "dsqr.dev";
+      };
 
-        boot.loader.grub = {
-          enable = true;
-          devices = nixLib.mkForce [ "/dev/sda" ];
-        };
+      hardware.report = ./srv-lx-k8s-node-02.report.json;
 
-        disko.devices.disk.main = {
-          device = "/dev/sda";
-          type = "disk";
-          content = {
-            type = "gpt";
-            partitions = {
-              boot = {
-                size = "1M";
-                type = "EF02";
-                priority = 1;
-              };
+      boot.loader.grub = {
+        enable = true;
+        devices = nixLib.mkForce [ "/dev/sda" ];
+      };
 
-              root = {
-                end = "100%";
-                content = {
-                  type = "filesystem";
-                  format = "ext4";
-                  mountpoint = "/";
-                };
+      disko.devices.disk.main = {
+        device = "/dev/sda";
+        type = "disk";
+        content = {
+          type = "gpt";
+          partitions = {
+            boot = {
+              size = "1M";
+              type = "EF02";
+              priority = 1;
+            };
+
+            root = {
+              size = "100%";
+              content = {
+                type = "filesystem";
+                format = "ext4";
+                mountpoint = "/";
               };
             };
           };
         };
+      };
 
-        dsqr.nixos.alloy.role = "k8s-worker";
+      dsqr.nixos.alloy.role = "k8s-worker";
 
-        swapDevices = [ ];
+      swapDevices = [ ];
 
-        system.stateVersion = "25.05";
-      }
-    ];
+      system.stateVersion = "25.05";
+    }
+  ];
 in
 {
   flake.hostDefinitions.srv-lx-k8s-node-02 = hostMeta;
@@ -111,5 +113,58 @@ in
   flake.nixosConfigurations.srv-lx-k8s-node-02 = self.lib.nixosSystem {
     inherit hostMeta modules;
     hostName = "srv-lx-k8s-node-02";
+  };
+
+  flake.nixosConfigurations.srv-lx-k8s-node-02-installer = self.lib.nixosSystem {
+    inherit hostMeta;
+    hostName = "srv-lx-k8s-node-02-installer";
+    modules = singleton (
+      { config, pkgs, ... }:
+      let
+        node = self.nixosConfigurations.srv-lx-k8s-node-02;
+      in
+      {
+        imports = baseModules ++ singleton (inputs.nixpkgs + /nixos/modules/installer/cd-dvd/iso-image.nix);
+
+        networking.hostName = "srv-lx-k8s-node-02-installer";
+
+        isoImage.makeEfiBootable = true;
+        isoImage.makeUsbBootable = true;
+        isoImage.storeContents = singleton config.system.build.toplevel;
+
+        hardware.enableAllHardware = true;
+
+        environment.etc."install-closure".source = pkgs.closureInfo {
+          rootPaths = [
+            node.config.system.build.toplevel
+            node.config.system.build.diskoScript
+            node.config.system.build.diskoScript.drvPath
+            node.pkgs.stdenv.drvPath
+            (node.pkgs.closureInfo { rootPaths = [ ]; }).drvPath
+          ];
+        };
+
+        environment.systemPackages =
+          singleton (
+            pkgs.writeShellScriptBin "install-k8s-node-02" ''
+              set -euo pipefail
+
+              exec ${
+                getExe inputs.disko.packages.${pkgs.stdenv.hostPlatform.system}.disko-install
+              } --flake "${self}#srv-lx-k8s-node-02" --disk main "${node.config.disko.devices.disk.main.device}"
+            ''
+          )
+          ++ singleton (
+            pkgs.writeShellScriptBin "generate-facter-report" ''
+              set -euo pipefail
+
+              exec ${getExe pkgs.nixos-facter}
+            ''
+          );
+
+        nixpkgs.hostPlatform = "x86_64-linux";
+        system.stateVersion = "25.05";
+      }
+    );
   };
 }

@@ -1,11 +1,16 @@
 {
   flake.homeModules.difftastic =
-    { lib, pkgs, ... }:
+    {
+      lib,
+      osConfig,
+      pkgs,
+      ...
+    }:
     let
       inherit (lib.meta) getExe;
 
       difftDark = pkgs.writeShellScriptBin "difft-dark" ''
-        exec ${getExe pkgs.difftastic} --background dark "$@"
+        exec ${getExe pkgs.difftastic} --background ${osConfig.theme.difftastic.background} "$@"
       '';
     in
     {

@@ -1,4 +1,4 @@
-{ self, ... }:
+{ self, inputs, ... }:
 let
   inherit (self.lib)
     commonModules
@@ -8,6 +8,7 @@ let
     ;
   inherit (nixLib.attrsets) attrValues removeAttrs;
   inherit (nixLib.lists) singleton;
+  inherit (nixLib.meta) getExe;
 
   hostMeta = self.lib.mkHostMeta {
     class = "nixos";
@@ -16,7 +17,7 @@ let
     system = "x86_64-linux";
   };
 
-  modules =
+  baseModules =
     attrValues commonModules
     ++ attrValues (
       removeAttrs nixosModules [
@@ -59,48 +60,49 @@ let
           "web-browser"
         ]
       )
-    )
-    ++ [
-      ./alloy-cloudflared.nix
-      ./cloudflared.nix
-      {
-        networking.hostName = "srv-lx-gateway";
-        hardware.report = ./srv-lx-gateway.report.json;
+    );
 
-        boot.loader.grub = {
-          enable = true;
-          devices = nixLib.mkForce [ "/dev/sda" ];
-        };
+  modules = baseModules ++ [
+    ./alloy-cloudflared.nix
+    ./cloudflared.nix
+    {
+      networking.hostName = "srv-lx-gateway";
+      hardware.report = ./srv-lx-gateway.report.json;
 
-        disko.devices.disk.main = {
-          device = "/dev/sda";
-          type = "disk";
-          content = {
-            type = "gpt";
-            partitions = {
-              boot = {
-                size = "1M";
-                type = "EF02";
-                priority = 1;
-              };
+      boot.loader.grub = {
+        enable = true;
+        devices = nixLib.mkForce [ "/dev/sda" ];
+      };
 
-              root = {
-                end = "100%";
-                content = {
-                  type = "filesystem";
-                  format = "ext4";
-                  mountpoint = "/";
-                };
+      disko.devices.disk.main = {
+        device = "/dev/sda";
+        type = "disk";
+        content = {
+          type = "gpt";
+          partitions = {
+            boot = {
+              size = "1M";
+              type = "EF02";
+              priority = 1;
+            };
+
+            root = {
+              size = "100%";
+              content = {
+                type = "filesystem";
+                format = "ext4";
+                mountpoint = "/";
               };
             };
           };
         };
+      };
 
-        swapDevices = [ ];
+      swapDevices = [ ];
 
-        system.stateVersion = "25.05";
-      }
-    ];
+      system.stateVersion = "25.05";
+    }
+  ];
 in
 {
   flake.hostDefinitions.srv-lx-gateway = hostMeta;
@@ -108,5 +110,58 @@ in
   flake.nixosConfigurations.srv-lx-gateway = self.lib.nixosSystem {
     inherit hostMeta modules;
     hostName = "srv-lx-gateway";
+  };
+
+  flake.nixosConfigurations.srv-lx-gateway-installer = self.lib.nixosSystem {
+    inherit hostMeta;
+    hostName = "srv-lx-gateway-installer";
+    modules = singleton (
+      { config, pkgs, ... }:
+      let
+        gateway = self.nixosConfigurations.srv-lx-gateway;
+      in
+      {
+        imports = baseModules ++ singleton (inputs.nixpkgs + /nixos/modules/installer/cd-dvd/iso-image.nix);
+
+        networking.hostName = "srv-lx-gateway-installer";
+
+        isoImage.makeEfiBootable = true;
+        isoImage.makeUsbBootable = true;
+        isoImage.storeContents = singleton config.system.build.toplevel;
+
+        hardware.enableAllHardware = true;
+
+        environment.etc."install-closure".source = pkgs.closureInfo {
+          rootPaths = [
+            gateway.config.system.build.toplevel
+            gateway.config.system.build.diskoScript
+            gateway.config.system.build.diskoScript.drvPath
+            gateway.pkgs.stdenv.drvPath
+            (gateway.pkgs.closureInfo { rootPaths = [ ]; }).drvPath
+          ];
+        };
+
+        environment.systemPackages =
+          singleton (
+            pkgs.writeShellScriptBin "install-gateway" ''
+              set -euo pipefail
+
+              exec ${
+                getExe inputs.disko.packages.${pkgs.stdenv.hostPlatform.system}.disko-install
+              } --flake "${self}#srv-lx-gateway" --disk main "${gateway.config.disko.devices.disk.main.device}"
+            ''
+          )
+          ++ singleton (
+            pkgs.writeShellScriptBin "generate-facter-report" ''
+              set -euo pipefail
+
+              exec ${getExe pkgs.nixos-facter}
+            ''
+          );
+
+        nixpkgs.hostPlatform = "x86_64-linux";
+        system.stateVersion = "25.05";
+      }
+    );
   };
 }

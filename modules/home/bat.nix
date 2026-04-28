@@ -1,6 +1,11 @@
 {
   flake.homeModules.bat =
-    { lib, pkgs, ... }:
+    {
+      lib,
+      osConfig,
+      pkgs,
+      ...
+    }:
     let
       inherit (lib.meta) getExe;
 
@@ -27,7 +32,7 @@
 
       xdg.configFile."bat/config".text = ''
         --style=numbers,changes,header
-        --theme=TwoDark
+        --theme=${osConfig.theme.bat.themeName}
         --pager="${getExe pkgs.less} --quit-if-one-screen --quit-on-intr --RAW-CONTROL-CHARS"
       '';
     };
