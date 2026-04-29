@@ -1,10 +1,11 @@
-{ pkgs }:
-[
-  {
-    plugin = pkgs.vimPlugins.nvim-surround;
-    type = "lua";
-    config = ''
-      require('nvim-surround').setup({})
-    '';
-  }
-]
+{ lib, pkgs }:
+let
+  inherit (lib.lists) singleton;
+in
+singleton {
+  plugin = pkgs.vimPlugins.nvim-surround;
+  type = "lua";
+  config = /* lua */ ''
+    require('nvim-surround').setup({})
+  '';
+}

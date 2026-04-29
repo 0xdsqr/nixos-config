@@ -129,7 +129,12 @@ in
   flake.nixosConfigurations.srv-lx-mailbox = self.lib.nixosSystem {
     hostName = "srv-lx-mailbox";
     inherit hostMeta;
-    modules = singleton ({ ... }: { imports = systemModules; });
+    modules = singleton (
+      { ... }:
+      {
+        imports = systemModules;
+      }
+    );
   };
 
   flake.nixosConfigurations.srv-lx-mailbox-installer = self.lib.nixosSystem {

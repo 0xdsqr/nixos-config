@@ -1,8 +1,4 @@
-{
-  self,
-  inputs,
-  ...
-}:
+{ self, inputs, ... }:
 let
   inherit (self.lib)
     commonModules
@@ -106,9 +102,7 @@ in
 
         home-manager.users.dsqr.imports = [
           inputs.hoo.homeManagerModules.hoo
-          {
-            programs.hoo.enable = true;
-          }
+          { programs.hoo.enable = true; }
         ];
 
         programs.ssh.extraConfig = ''

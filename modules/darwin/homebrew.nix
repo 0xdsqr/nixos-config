@@ -1,21 +1,37 @@
 {
   flake.darwinModules.homebrew =
-    { config, inputs, ... }:
+    {
+      config,
+      inputs,
+      lib,
+      ...
+    }:
     let
-      inherit (config.system) primaryUser;
+      inherit (lib.options) mkOption;
+      inherit (lib.types) str;
+
+      cfg = config.dsqr.darwin.homebrew;
     in
     {
-      homebrew.enable = true;
+      options.dsqr.darwin.homebrew.user = mkOption {
+        type = str;
+        default = config.dsqr.darwin.personal.user.name;
+        description = "Darwin user that owns the managed Homebrew prefix.";
+      };
 
-      nix-homebrew = {
-        enable = true;
-        autoMigrate = true;
-        user = primaryUser;
+      config = {
+        homebrew.enable = true;
 
-        taps."homebrew/homebrew-core" = inputs."homebrew-core";
-        taps."homebrew/homebrew-cask" = inputs."homebrew-cask";
+        nix-homebrew = {
+          enable = true;
+          autoMigrate = true;
+          inherit (cfg) user;
 
-        mutableTaps = false;
+          taps."homebrew/homebrew-core" = inputs."homebrew-core";
+          taps."homebrew/homebrew-cask" = inputs."homebrew-cask";
+
+          mutableTaps = false;
+        };
       };
     };
 }

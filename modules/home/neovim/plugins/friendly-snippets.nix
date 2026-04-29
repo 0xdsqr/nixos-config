@@ -1,1 +1,5 @@
-{ pkgs }: [ pkgs.vimPlugins.friendly-snippets ]
+{ lib, pkgs }:
+let
+  inherit (lib.lists) singleton;
+in
+singleton pkgs.vimPlugins.friendly-snippets

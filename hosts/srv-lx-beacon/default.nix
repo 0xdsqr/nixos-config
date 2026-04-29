@@ -125,7 +125,12 @@ in
   flake.nixosConfigurations.srv-lx-beacon = self.lib.nixosSystem {
     hostName = "srv-lx-beacon";
     inherit hostMeta;
-    modules = singleton ({ ... }: { imports = systemModules; });
+    modules = singleton (
+      { ... }:
+      {
+        imports = systemModules;
+      }
+    );
   };
 
   flake.nixosConfigurations.srv-lx-beacon-installer = self.lib.nixosSystem {

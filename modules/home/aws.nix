@@ -7,7 +7,16 @@
       ...
     }:
     let
-      awsConfig = lib.generators.toINI { } {
+      inherit (lib.generators) toINI;
+      inherit (lib.lists) singleton;
+      inherit (lib.modules) mkIf;
+      inherit (lib.options) mkEnableOption mkOption;
+      inherit (lib.strings) optionalString;
+      inherit (lib.types) lines package;
+
+      cfg = config.dsqr.home.aws;
+
+      defaultConfig = toINI { } {
         "profile dsqr-dave" = {
           sso_session = "dsqr";
           sso_account_id = "244826541288";
@@ -24,15 +33,39 @@
       };
     in
     {
-      home.packages = [ pkgs.awscli2 ];
-      home.sessionVariables.AWS_PAGER = "";
+      options.dsqr.home.aws = {
+        enable = mkEnableOption "AWS CLI tooling" // {
+          default = true;
+        };
 
-      xdg.configFile."aws/config".text = awsConfig;
+        package = mkOption {
+          type = package;
+          default = pkgs.awscli2;
+          description = "AWS CLI package to install.";
+        };
 
-      home.activation.ensureAwsCredentials = lib.hm.dag.entryAfter [ "ensureXdgToolingPaths" ] ''
-        if [ ! -e "${config.xdg.configHome}/aws/credentials" ]; then
-          touch "${config.xdg.configHome}/aws/credentials"
-        fi
-      '';
+        config.enable = mkEnableOption "managed AWS config file";
+
+        config.extraText = mkOption {
+          type = lines;
+          default = "";
+          description = "Additional AWS config text appended after the managed default config.";
+        };
+      };
+
+      config = mkIf cfg.enable {
+        home.packages = singleton cfg.package;
+        home.sessionVariables.AWS_PAGER = "";
+
+        xdg.configFile."aws/config" = mkIf cfg.config.enable {
+          text = defaultConfig + optionalString (cfg.config.extraText != "") ("\n" + cfg.config.extraText);
+        };
+
+        home.activation.ensureAwsCredentials = lib.hm.dag.entryAfter (singleton "ensureXdgToolingPaths") /* bash */ ''
+          if [ ! -e "${config.xdg.configHome}/aws/credentials" ]; then
+            touch "${config.xdg.configHome}/aws/credentials"
+          fi
+        '';
+      };
     };
 }

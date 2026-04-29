@@ -1,8 +1,4 @@
-{
-  self,
-  inputs,
-  ...
-}:
+{ self, inputs, ... }:
 let
   inherit (self.lib)
     commonModules
@@ -25,14 +21,7 @@ let
 
   modules =
     attrValues commonModules
-    ++ attrValues (
-      flip removeAttrs [
-        "containers"
-        "iso"
-        "kubeadm"
-        "restic"
-      ] nixosModules
-    )
+    ++ attrValues (flip removeAttrs [ "containers" "iso" "kubeadm" "restic" ] nixosModules)
     ++ singleton (
       self.lib.mkHomeManagerSharedModule (
         flip removeAttrs [
@@ -65,17 +54,15 @@ let
       )
     );
 
-  systemModules =
-    modules
-    ++ [
-      self.nixosModules.restic
-      ../lib/build-user.nix
-      ./alloy-postgres.nix
-      ./postgresql.nix
-      ./redis.nix
-      ./rustfs.nix
-      ./vault.nix
-    ];
+  systemModules = modules ++ [
+    self.nixosModules.restic
+    ../lib/build-user.nix
+    ./alloy-postgres.nix
+    ./postgresql.nix
+    ./redis.nix
+    ./rustfs.nix
+    ./vault.nix
+  ];
 
   installerModules = modules ++ [ (inputs.nixpkgs + /nixos/modules/installer/cd-dvd/iso-image.nix) ];
 in

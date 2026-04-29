@@ -1,5 +1,7 @@
-{ pkgs }:
+{ lib, pkgs }:
 let
+  inherit (lib.lists) singleton;
+
   treesitterWithGrammars = pkgs.vimPlugins.nvim-treesitter.withPlugins (p: [
     p.bash
     p.c
@@ -29,21 +31,19 @@ let
     p.yaml
   ]);
 in
-[
-  {
-    plugin = treesitterWithGrammars;
-    type = "lua";
-    config = ''
-      require('nvim-treesitter').setup({
-        auto_install = false,
-        highlight = {
-          enable = true,
-          additional_vim_regex_highlighting = false,
-        },
-        indent = {
-          enable = true,
-        },
-      })
-    '';
-  }
-]
+singleton {
+  plugin = treesitterWithGrammars;
+  type = "lua";
+  config = /* lua */ ''
+    require('nvim-treesitter').setup({
+      auto_install = false,
+      highlight = {
+        enable = true,
+        additional_vim_regex_highlighting = false,
+      },
+      indent = {
+        enable = true,
+      },
+    })
+  '';
+}

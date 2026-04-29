@@ -20,15 +20,7 @@ let
 
   modules =
     attrValues commonModules
-    ++ attrValues (
-      flip removeAttrs [
-        "containers"
-        "postgresql"
-        "redis"
-        "restic"
-        "rustfs"
-      ] nixosModules
-    )
+    ++ attrValues (flip removeAttrs [ "containers" "postgresql" "redis" "restic" "rustfs" ] nixosModules)
     ++ singleton (
       self.lib.mkHomeManagerSharedModule (
         flip removeAttrs [
@@ -129,7 +121,12 @@ in
   flake.nixosConfigurations.srv-lx-k8s-master-01 = self.lib.nixosSystem {
     hostName = "srv-lx-k8s-master-01";
     inherit hostMeta;
-    modules = singleton ({ ... }: { imports = systemModules; });
+    modules = singleton (
+      { ... }:
+      {
+        imports = systemModules;
+      }
+    );
   };
 
   flake.nixosConfigurations.srv-lx-k8s-master-01-installer = self.lib.nixosSystem {

@@ -1,54 +1,66 @@
 {
-  flake.homeModules.starship = _: {
-    programs.starship = {
-      enable = true;
-      enableNushellIntegration = true;
-      settings = {
-        add_newline = true;
-        command_timeout = 200;
-        format = "[$directory$git_branch$git_status$nix_shell]($style)$character";
+  flake.homeModules.starship =
+    { config, lib, ... }:
+    let
+      inherit (lib.modules) mkIf;
+      inherit (lib.options) mkEnableOption;
 
-        character = {
-          error_symbol = "[✗](bold #C8A2D0)";
-          success_symbol = "[❯](bold #C8A2D0)";
-        };
+      cfg = config.dsqr.home.starship;
+    in
+    {
+      options.dsqr.home.starship.enable = mkEnableOption "Starship prompt" // {
+        default = true;
+      };
 
-        directory = {
-          truncation_length = 2;
-          truncation_symbol = "…/";
-          style = "#C8A2D0";
-          repo_root_style = "bold #C8A2D0";
-          repo_root_format = "[$repo_root]($repo_root_style)[$path]($style)[$read_only]($read_only_style) ";
-        };
+      config = mkIf cfg.enable {
+        programs.starship.enable = true;
+        programs.starship.enableNushellIntegration = true;
+        programs.starship.settings = {
+          add_newline = true;
+          command_timeout = 200;
+          format = "[$directory$git_branch$git_status$nix_shell]($style)$character";
 
-        git_branch = {
-          format = "[$branch]($style) ";
-          style = "italic #C8A2D0";
-        };
+          character = {
+            error_symbol = "[✗](bold #C8A2D0)";
+            success_symbol = "[❯](bold #C8A2D0)";
+          };
 
-        git_status = {
-          format = "[$all_status]($style)";
-          style = "#C8A2D0";
-          ahead = "⇡\${count} ";
-          diverged = "⇕⇡\${ahead_count}⇣\${behind_count} ";
-          behind = "⇣\${count} ";
-          conflicted = " ";
-          up_to_date = " ";
-          untracked = "? ";
-          modified = " ";
-          stashed = "";
-          staged = "";
-          renamed = "";
-          deleted = "";
-        };
+          directory = {
+            truncation_length = 2;
+            truncation_symbol = "…/";
+            style = "#C8A2D0";
+            repo_root_style = "bold #C8A2D0";
+            repo_root_format = "[$repo_root]($repo_root_style)[$path]($style)[$read_only]($read_only_style) ";
+          };
 
-        nix_shell = {
-          format = "[❄️ $state]($style) ";
-          style = "bold #C8A2D0";
-          impure_msg = "impure";
-          pure_msg = "pure";
+          git_branch = {
+            format = "[$branch]($style) ";
+            style = "italic #C8A2D0";
+          };
+
+          git_status = {
+            format = "[$all_status]($style)";
+            style = "#C8A2D0";
+            ahead = "⇡\${count} ";
+            diverged = "⇕⇡\${ahead_count}⇣\${behind_count} ";
+            behind = "⇣\${count} ";
+            conflicted = " ";
+            up_to_date = " ";
+            untracked = "? ";
+            modified = " ";
+            stashed = "";
+            staged = "";
+            renamed = "";
+            deleted = "";
+          };
+
+          nix_shell = {
+            format = "[❄️ $state]($style) ";
+            style = "bold #C8A2D0";
+            impure_msg = "impure";
+            pure_msg = "pure";
+          };
         };
       };
     };
-  };
 }

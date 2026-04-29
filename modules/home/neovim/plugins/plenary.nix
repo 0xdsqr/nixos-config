@@ -1,1 +1,5 @@
-{ pkgs }: [ pkgs.vimPlugins.plenary-nvim ]
+{ lib, pkgs }:
+let
+  inherit (lib.lists) singleton;
+in
+singleton pkgs.vimPlugins.plenary-nvim

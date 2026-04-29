@@ -1,10 +1,11 @@
-{ pkgs }:
-[
-  {
-    plugin = pkgs.vimPlugins.which-key-nvim;
-    type = "lua";
-    config = ''
-      require('which-key').setup({})
-    '';
-  }
-]
+{ lib, pkgs }:
+let
+  inherit (lib.lists) singleton;
+in
+singleton {
+  plugin = pkgs.vimPlugins.which-key-nvim;
+  type = "lua";
+  config = /* lua */ ''
+    require('which-key').setup({})
+  '';
+}

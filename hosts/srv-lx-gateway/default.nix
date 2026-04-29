@@ -113,7 +113,12 @@ in
   flake.nixosConfigurations.srv-lx-gateway = self.lib.nixosSystem {
     hostName = "srv-lx-gateway";
     inherit hostMeta;
-    modules = singleton ({ ... }: { imports = systemModules; });
+    modules = singleton (
+      { ... }:
+      {
+        imports = systemModules;
+      }
+    );
   };
 
   flake.nixosConfigurations.srv-lx-gateway-installer = self.lib.nixosSystem {

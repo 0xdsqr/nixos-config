@@ -1,9 +1,20 @@
 {
   flake.homeModules.ssh =
-    { self, lib, ... }:
+    {
+      config,
+      self,
+      lib,
+      ...
+    }:
     let
       inherit (lib.attrsets) filterAttrs mapAttrsToList;
-      inherit (lib.strings) concatLines;
+      inherit (lib.lists) optionals;
+      inherit (lib.modules) mkIf;
+      inherit (lib.options) mkEnableOption mkOption;
+      inherit (lib.strings) concatLines optionalString;
+      inherit (lib.types) lines;
+
+      cfg = config.dsqr.home.ssh;
 
       hostNameFor = name: host: if host ? sshHost && host.sshHost != null then host.sshHost else name;
 
@@ -11,7 +22,7 @@
 
       backupHosts = filterAttrs (_name: host: host.class == "nixos") self.hostDefinitions;
 
-      hostBlocks = mapAttrsToList (name: host: ''
+      hostBlocks = mapAttrsToList (name: host: /* sshconfig */ ''
         Host ${name}
           HostName ${hostNameFor name host}
           User dsqr
@@ -19,7 +30,7 @@
           StrictHostKeyChecking accept-new
       '') hosts;
 
-      backupHostBlocks = mapAttrsToList (name: host: ''
+      backupHostBlocks = mapAttrsToList (name: host: /* sshconfig */ ''
         Host ${name}-backup
           HostName ${hostNameFor name host}
           User backup
@@ -28,15 +39,34 @@
       '') backupHosts;
     in
     {
-      home.file.".ssh/config".text = concatLines (
-        [
-          ''
-            Host *
-              IdentitiesOnly yes
-          ''
-        ]
-        ++ hostBlocks
-        ++ backupHostBlocks
-      );
+      options.dsqr.home.ssh = {
+        enable = mkEnableOption "SSH configuration" // {
+          default = true;
+        };
+
+        homelab.enable = mkEnableOption "generated homelab SSH host entries" // {
+          default = true;
+        };
+
+        extraConfig = mkOption {
+          type = lines;
+          default = "";
+          description = "Additional SSH config appended after the generated homelab entries.";
+        };
+      };
+
+      config = mkIf cfg.enable {
+        home.file.".ssh/config".text =
+          concatLines (
+            [
+              /* sshconfig */ ''
+                Host *
+                  IdentitiesOnly yes
+              ''
+            ]
+            ++ optionals cfg.homelab.enable (hostBlocks ++ backupHostBlocks)
+          )
+          + optionalString (cfg.extraConfig != "") ("\n" + cfg.extraConfig);
+      };
     };
 }

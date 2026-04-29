@@ -6,8 +6,10 @@ let
     homeModules
     nixLib
     ;
-  inherit (nixLib.attrsets) attrValues removeAttrs;
+  inherit (nixLib.attrsets) attrValues;
   inherit (nixLib.lists) singleton;
+
+  hostName = "srv-mini-master";
 
   hostMeta = self.lib.mkHostMeta {
     class = "darwin";
@@ -17,69 +19,45 @@ let
 
   modules =
     attrValues commonModules
-    ++ attrValues (
-      removeAttrs darwinModules [
-        "bat"
-        "clipboard"
-        "window-manager"
-        "desktop-personal"
-        "desktop-stablecore"
-        "discord"
-        "google-chrome"
-        "hammerspoon"
-        "helium"
-        "monitoring-alloy-base"
-        "monitoring-alloy-loki"
-        "obs-studio"
-        "packages"
-        "signal"
-        "slack"
-        "spotify"
-        "zoom"
-      ]
-    )
-    ++ singleton (
-      self.lib.mkHomeManagerSharedModule (
-        removeAttrs homeModules [
-          "aws"
-          "bat"
-          "btop"
-          "carapace"
-          "cinny"
-          "claude-code"
-          "codex"
-          "codexbar"
-          "window-manager"
-          "difftastic"
-          "direnv"
-          "discord"
-          "exo"
-          "hammerspoon"
-          "hushlogin"
-          "ollama"
-          "opencode"
-          "packages-containers"
-          "packages-databases"
-          "packages-debugging"
-          "packages-kubernetes"
-          "packages-media"
-          "packages-node"
-          "packages-shell-utils"
-          "packages-signing"
-          "pi"
-          "signal"
-          "theme"
-          "thunderbird"
-          "web-browser"
-        ]
-      )
-    )
+    ++ attrValues darwinModules
+    ++ singleton (self.lib.mkHomeManagerSharedModule homeModules)
     ++ [
       {
+        dsqr = {
+          theme.id = "dsqr";
+
+          darwin = {
+            determinate.enable = true;
+
+            grafana = {
+              alloy.enable = true;
+              loki = {
+                enable = true;
+                exo.enable = true;
+              };
+            };
+
+            desktop = {
+              dock.enable = false;
+              system.enable = false;
+              maccy.enable = false;
+            };
+          };
+        };
+
+        home-manager.users.dsqr.dsqr.home = {
+          aws.enable = false;
+          exo.enable = true;
+          ollama.enable = false;
+          neovim.plugins.enable = false;
+          nu.integrations.enable = false;
+        };
+      }
+      {
         networking = {
-          hostName = "srv-mini-master";
-          computerName = "srv-mini-master";
-          localHostName = "srv-mini-master";
+          inherit hostName;
+          computerName = hostName;
+          localHostName = hostName;
         };
 
         system.activationScripts.miniClusterPower.text = /* bash */ ''
@@ -103,6 +81,6 @@ in
 
   flake.darwinConfigurations.srv-mini-master = self.lib.darwinSystem {
     inherit hostMeta modules;
-    hostName = "srv-mini-master";
+    inherit hostName;
   };
 }

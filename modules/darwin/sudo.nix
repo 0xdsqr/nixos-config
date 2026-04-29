@@ -5,7 +5,7 @@
       touchIdAuth = true;
     };
 
-    security.sudo.extraConfig = ''
+    security.sudo.extraConfig = /* sudo */ ''
       Defaults lecture = never
       Defaults pwfeedback
       Defaults env_keep += "EDITOR PATH"

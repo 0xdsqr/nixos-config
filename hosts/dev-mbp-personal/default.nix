@@ -6,7 +6,7 @@ let
     homeModules
     nixLib
     ;
-  inherit (nixLib.attrsets) attrValues removeAttrs;
+  inherit (nixLib.attrsets) attrValues;
   inherit (nixLib.lists) singleton;
 
   hostMeta = self.lib.mkHostMeta {
@@ -18,49 +18,49 @@ let
 
   modules =
     attrValues commonModules
-    ++ attrValues (
-      removeAttrs darwinModules [
-        "desktop-stablecore"
-        "monitoring-alloy-base"
-        "monitoring-alloy-loki"
-        "signal"
-        "slack"
-        "zoom"
-      ]
-    )
-    ++ singleton (
-      self.lib.mkHomeManagerSharedModule (
-        removeAttrs homeModules [
-          "carapace"
-          "cinny"
-          "exo"
-          "ollama"
-          "signal"
-        ]
-      )
-    )
-    ++ [
-      {
-        themeId = "im-in-love-with-emo-girl";
+    ++ attrValues darwinModules
+    ++ singleton (self.lib.mkHomeManagerSharedModule homeModules)
+    ++ singleton {
+      dsqr = {
+        theme.id = "im-in-love-with-emo-girl";
 
-        networking = {
-          hostName = "devbox-macbook-pro";
-          computerName = "devbox-macbook-pro";
-          localHostName = "devbox-macbook-pro";
+        darwin = {
+          determinate.enable = true;
+          hostname.smb.enable = true;
+
+          desktop = {
+            dock.enable = true;
+            system.enable = true;
+            wallpaper.enable = true;
+            windowManager.enable = true;
+            maccy.enable = true;
+            codex.enable = true;
+            hammerspoon.enable = true;
+            obs-studio.enable = true;
+            browsers.googleChrome.enable = true;
+            communication.discord.enable = true;
+          };
         };
 
-        system.stateVersion = 5;
-      }
-    ];
+      };
+
+      home-manager.users.dsqr.dsqr.home.desktop = {
+        codexbar.enable = true;
+        hammerspoon.enable = true;
+        windowManager.enable = true;
+      };
+
+      networking = {
+        hostName = "devbox-macbook-pro";
+        computerName = "devbox-macbook-pro";
+        localHostName = "devbox-macbook-pro";
+      };
+
+      system.stateVersion = 5;
+    };
 in
 {
-  flake.hostDefinitions.devbox-macbook-pro = hostMeta;
   flake.hostDefinitions.dev-mbp-personal = hostMeta;
-
-  flake.darwinConfigurations.devbox-macbook-pro = self.lib.darwinSystem {
-    inherit hostMeta modules;
-    hostName = "devbox-macbook-pro";
-  };
 
   flake.darwinConfigurations.dev-mbp-personal = self.lib.darwinSystem {
     inherit hostMeta modules;

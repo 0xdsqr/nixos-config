@@ -1,5 +1,5 @@
 let
-  keys = import ./modules/secrets/keys.nix;
+  keys = import ./modules/common/keys.nix;
   inherit (keys) hosts;
   inherit (keys.groups) admins all;
 
