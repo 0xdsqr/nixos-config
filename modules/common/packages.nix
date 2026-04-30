@@ -22,7 +22,6 @@
           (pkgs.curl.override {
             gnutlsSupport = false;
             opensslSupport = true;
-            wolfsslSupport = false;
             rustlsSupport = false;
             brotliSupport = true;
             zlibSupport = true;

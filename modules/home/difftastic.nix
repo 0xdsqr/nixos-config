@@ -3,7 +3,6 @@
     {
       config,
       lib,
-      osConfig,
       pkgs,
       ...
     }:
@@ -22,7 +21,7 @@
           writeShellScriptBin,
         }:
         writeShellScriptBin "difft-dark" /* bash */ ''
-          exec ${lib.meta.getExe difftastic} --background ${osConfig.theme.difftastic.background} "$@"
+          exec ${lib.meta.getExe difftastic} --background dark "$@"
         ''
       ) { };
     in

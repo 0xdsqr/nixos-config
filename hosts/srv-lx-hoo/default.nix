@@ -57,7 +57,6 @@ let
           "opencode"
           "pi"
           "signal"
-          "theme"
           "thunderbird"
           "web-browser"
         ] homeModules
@@ -65,6 +64,7 @@ let
     );
 
   systemModules = modules ++ [
+    { nixpkgs.overlays = singleton inputs.nix-openclaw.overlays.default; }
     inputs.hoo.nixosModules.hoo
     ./openclaw/default.nix
   ];

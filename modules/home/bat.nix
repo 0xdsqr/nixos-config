@@ -3,7 +3,6 @@
     {
       config,
       lib,
-      osConfig,
       pkgs,
       ...
     }:
@@ -55,7 +54,7 @@
         xdg.configFile."bat/config" = {
           text = /* ini */ ''
             --style=numbers,changes,header
-            --theme=${osConfig.theme.bat.themeName}
+            --theme=TwoDark
             --pager="${getExe pkgs.less} --quit-if-one-screen --quit-on-intr --RAW-CONTROL-CHARS"
           '';
         };

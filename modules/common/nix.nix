@@ -2,6 +2,7 @@
 {
   flake.commonModules.nix =
     {
+      config,
       hostMeta ? null,
       hostName,
       lib,
@@ -17,9 +18,12 @@
         removeAttrs
         ;
       inherit (lib.lists) optional singleton;
+      inherit (lib.modules) mkIf;
+      inherit (lib.options) mkEnableOption;
       inherit (lib.strings) concatStringsSep;
       inherit (lib.types) isType;
 
+      cfg = config.dsqr.nix;
       registryMap = filterAttrs (_: isType "flake") (removeAttrs inputs [ "hoo" ]);
       isDarwinHost = hostMeta != null && hostMeta.class == "darwin";
       managesNix = hostMeta != null && hostMeta.class == "nixos";
@@ -60,7 +64,11 @@
       };
     in
     {
-      config = {
+      options.dsqr.nix.enable = mkEnableOption "shared Nix configuration" // {
+        default = true;
+      };
+
+      config = mkIf cfg.enable {
         environment.systemPackages = with pkgs; [
           nh
           nix-index

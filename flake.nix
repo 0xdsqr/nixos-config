@@ -122,9 +122,6 @@
             pathString = toString path;
           in
           hasSuffix ".nix" pathString
-          && !(hasInfix "/common/theme/themes/" pathString)
-          && !(hasSuffix "/common/theme/lib.nix" pathString)
-          && !(hasSuffix "/common/theme/catalog.nix" pathString)
           && !(hasSuffix "/common/keys.nix" pathString)
           && !(hasInfix "/home/neovim/plugins/" pathString)
           && !(hasSuffix "/home/neovim/init-lua.nix" pathString)

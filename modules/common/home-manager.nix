@@ -1,9 +1,12 @@
 { self, inputs, ... }:
 {
   flake.commonModules."home-manager" =
-    _:
+    { lib, pkgs, ... }:
     let
+      inherit (lib.modules) mkForce;
+
       keys = import ./keys.nix;
+      homeDirectory = if pkgs.stdenv.hostPlatform.isDarwin then "/Users/dsqr" else "/home/dsqr";
 
       specialArgs = {
         inherit self inputs;
@@ -24,7 +27,10 @@
         };
     in
     {
-      home-manager.users.dsqr = { };
+      home-manager.users.dsqr.home = {
+        homeDirectory = mkForce homeDirectory;
+        username = "dsqr";
+      };
 
       home-manager.backupFileExtension = "pre-home-manager";
       home-manager.extraSpecialArgs = specialArgs;

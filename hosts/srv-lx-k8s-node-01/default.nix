@@ -48,7 +48,6 @@ let
           "opencode"
           "pi"
           "signal"
-          "theme"
           "thunderbird"
           "web-browser"
         ] homeModules

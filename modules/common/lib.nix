@@ -12,9 +12,7 @@ let
   keys = import ./keys.nix;
 
   inherit (self) commonModules;
-  homeModules = self.homeModules // {
-    inherit (commonModules) theme;
-  };
+  inherit (self) homeModules;
   inherit (self) darwinModules;
   inherit (self) nixosModules;
 
@@ -79,8 +77,8 @@ in
 
     darwinSystem =
       {
-        hostMeta,
         hostName,
+        hostMeta ? self.hostDefinitions.${hostName},
         modules,
       }:
       inputs.darwin.lib.darwinSystem {

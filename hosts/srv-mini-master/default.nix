@@ -11,37 +11,39 @@ let
 
   hostName = "srv-mini-master";
 
-  hostMeta = self.lib.mkHostMeta {
+  modules =
+    attrValues commonModules ++ attrValues darwinModules ++ singleton (self.lib.mkHomeManagerSharedModule homeModules);
+in
+{
+  flake.hostDefinitions.${hostName} = self.lib.mkHostMeta {
     class = "darwin";
     path = ./.;
     system = "aarch64-darwin";
   };
 
-  modules =
-    attrValues commonModules
-    ++ attrValues darwinModules
-    ++ singleton (self.lib.mkHomeManagerSharedModule homeModules)
-    ++ [
+  flake.darwinConfigurations.${hostName} = self.lib.darwinSystem {
+    inherit hostName;
+
+    modules = singleton (
+      { ... }:
       {
-        dsqr = {
-          theme.id = "dsqr";
+        imports = modules;
 
-          darwin = {
-            determinate.enable = true;
+        dsqr.darwin = {
+          determinate.enable = true;
 
-            grafana = {
-              alloy.enable = true;
-              loki = {
-                enable = true;
-                exo.enable = true;
-              };
+          grafana = {
+            alloy.enable = true;
+            loki = {
+              enable = true;
+              exo.enable = true;
             };
+          };
 
-            desktop = {
-              dock.enable = false;
-              system.enable = false;
-              maccy.enable = false;
-            };
+          desktop = {
+            dock.enable = false;
+            system.enable = false;
+            maccy.enable = false;
           };
         };
 
@@ -52,8 +54,7 @@ let
           neovim.plugins.enable = false;
           nu.integrations.enable = false;
         };
-      }
-      {
+
         networking = {
           inherit hostName;
           computerName = hostName;
@@ -74,13 +75,6 @@ let
 
         system.stateVersion = 5;
       }
-    ];
-in
-{
-  flake.hostDefinitions.srv-mini-master = hostMeta;
-
-  flake.darwinConfigurations.srv-mini-master = self.lib.darwinSystem {
-    inherit hostMeta modules;
-    inherit hostName;
+    );
   };
 }

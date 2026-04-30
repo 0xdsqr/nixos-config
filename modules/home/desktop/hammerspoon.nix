@@ -3,7 +3,6 @@
     {
       config,
       lib,
-      osConfig,
       pkgs,
       ...
     }:
@@ -31,7 +30,7 @@
 
             local super = { "cmd", "ctrl" }
             local super_shift = { "cmd", "ctrl", "shift" }
-            local gap = ${toString (osConfig.theme.padding * 3)}
+            local gap = 24
             local ghostty = "Ghostty"
             local browser = "Helium"
 
