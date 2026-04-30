@@ -2,7 +2,6 @@
 with pkgs;
 [
   git
-  deno
   typescript
   typescript-language-server
   svelte-language-server
