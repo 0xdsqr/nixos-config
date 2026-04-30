@@ -64,6 +64,11 @@ let
       fallbacks = [ "openai/gpt-image-1" ];
     };
 
+    auth.order.openai-codex = [
+      "openai-codex:default"
+      "openai-codex:dave.w.dennis@gmail.com"
+    ];
+
     models = {
       mode = "merge";
       providers.cloudflare-workers-ai = {
