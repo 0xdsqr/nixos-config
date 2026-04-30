@@ -307,15 +307,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1776183358,
-        "narHash": "sha256-uRWaRXGhkyGWMbNgQcmx0+RPzPLenVGopkNHgAEfmBQ=",
-        "owner": "openclaw",
+        "lastModified": 1777525684,
+        "narHash": "sha256-UST+fDITSPkmTp/K76a/S7IZhIN5mhCShamS8LfseGk=",
+        "owner": "0xdsqr",
         "repo": "nix-openclaw",
-        "rev": "53aac0dce0810c40c75793fdad3d41b0f7e7baaf",
+        "rev": "0c49e61b5ae4824234b6789daf3939c50245036a",
         "type": "github"
       },
       "original": {
-        "owner": "openclaw",
+        "owner": "0xdsqr",
+        "ref": "slop",
         "repo": "nix-openclaw",
         "type": "github"
       }

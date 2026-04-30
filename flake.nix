@@ -85,7 +85,7 @@
     };
 
     nix-openclaw = {
-      url = "github:openclaw/nix-openclaw";
+      url = "github:0xdsqr/nix-openclaw/slop";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };

@@ -47,7 +47,7 @@ let
     '';
   commonInstanceConfig = {
     agents.defaults.model = {
-      primary = "openai/gpt-5.4";
+      primary = "openai-codex/gpt-5.5";
       fallbacks = [ ];
     };
 
@@ -55,7 +55,7 @@ let
     # OpenClaw paths and CLI surfaces use. `imageGenerationModel` is the
     # dedicated "make/edit an image" model chain.
     agents.defaults.imageModel = {
-      primary = "openai/gpt-5.4";
+      primary = "openai-codex/gpt-5.5";
       fallbacks = [ ];
     };
 
