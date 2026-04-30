@@ -123,6 +123,17 @@ let
       maxResults = 5;
       timeoutSeconds = 30;
     };
+
+    mcp.servers = {
+      x-docs = {
+        url = "https://docs.x.com/mcp";
+      };
+
+      x-api = {
+        url = "http://127.0.0.1:8000/mcp";
+        transport = "streamable-http";
+      };
+    };
   };
 in
 {
