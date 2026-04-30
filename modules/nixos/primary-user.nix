@@ -8,7 +8,9 @@
       ...
     }:
     let
-      inherit (lib) mkIf mkOption types;
+      inherit (lib.modules) mkIf;
+      inherit (lib.options) mkEnableOption mkOption;
+      inherit (lib.types) nullOr path;
       defaultPasswordAgeFile =
         let
           agePath = hostMeta.path + "/host.password.age";
@@ -18,14 +20,16 @@
     in
     {
       options.dsqr.nixos.user = {
+        enable = mkEnableOption "Enable the shared primary NixOS user";
+
         passwordAgeFile = mkOption {
-          type = types.nullOr types.path;
+          type = nullOr path;
           default = defaultPasswordAgeFile;
           description = "Encrypted age file that stores the shared password hash for dsqr and root.";
         };
       };
 
-      config = mkIf (cfg.passwordAgeFile != null) {
+      config = mkIf (cfg.enable && cfg.passwordAgeFile != null) {
         age.secrets.hostPassword.file = cfg.passwordAgeFile;
 
         users.users.dsqr = {

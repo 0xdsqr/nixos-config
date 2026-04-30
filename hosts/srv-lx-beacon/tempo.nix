@@ -1,6 +1,6 @@
 { config, lib, ... }:
 let
-  inherit (lib) genAttrs;
+  inherit (lib.attrsets) genAttrs;
 
   httpPort = 3200;
   grpcPort = 3201;

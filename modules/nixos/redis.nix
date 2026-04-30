@@ -2,19 +2,23 @@
   flake.nixosModules.redis =
     { config, lib, ... }:
     let
-      inherit (lib) mkIf mkOption types;
+      inherit (lib.modules) mkIf;
+      inherit (lib.options) mkEnableOption mkOption;
+      inherit (lib.types) nullOr path;
       cfg = config.dsqr.nixos.redis;
     in
     {
       options.dsqr.nixos.redis = {
+        enable = mkEnableOption "Enable Redis";
+
         passwordAgeFile = mkOption {
-          type = types.nullOr types.path;
+          type = nullOr path;
           default = null;
           description = "Encrypted age file that stores the Redis password.";
         };
       };
 
-      config = mkIf (cfg.passwordAgeFile != null) {
+      config = mkIf (cfg.enable && cfg.passwordAgeFile != null) {
         age.secrets.redisPassword = {
           file = cfg.passwordAgeFile;
           owner = "redis-main";

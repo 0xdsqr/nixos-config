@@ -9,6 +9,11 @@ let
   inherit (lib.lists) singleton;
 
   nixLib = inputs.nixpkgs.lib // inputs.darwin.lib;
+  inherit (nixLib.attrsets) filterAttrs mapAttrsToList;
+  inherit (nixLib.filesystem) listFilesRecursive;
+  inherit (nixLib.lists) sort;
+  inherit (nixLib.strings) hasSuffix;
+
   keys = import ./keys.nix;
 
   inherit (self) commonModules;
@@ -48,6 +53,23 @@ in
       darwinModules
       nixosModules
       ;
+
+    collectNix =
+      {
+        path,
+        recursive ? false,
+        exclude ? _: false,
+      }:
+      let
+        files =
+          if recursive then
+            listFilesRecursive path
+          else
+            mapAttrsToList (name: _: path + "/${name}") (filterAttrs (_: type: type == "regular") (builtins.readDir path));
+      in
+      sort (a: b: toString a < toString b) (
+        builtins.filter (file: hasSuffix ".nix" (toString file) && !(exclude file)) files
+      );
 
     mkHostMeta =
       {
@@ -94,8 +116,8 @@ in
 
     nixosSystem =
       {
-        hostMeta,
         hostName,
+        hostMeta ? self.hostDefinitions.${hostName},
         modules,
       }:
       inputs.nixpkgs.lib.nixosSystem {

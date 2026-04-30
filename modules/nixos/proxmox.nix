@@ -1,11 +1,16 @@
 {
   flake.nixosModules.proxmox =
-    { lib, ... }:
+    { config, lib, ... }:
     let
-      inherit (lib) mkDefault;
+      inherit (lib.modules) mkDefault mkIf;
+      inherit (lib.options) mkEnableOption;
+
+      cfg = config.dsqr.nixos.proxmox;
     in
     {
-      config = {
+      options.dsqr.nixos.proxmox.enable = mkEnableOption "Enable the shared Proxmox guest baseline";
+
+      config = mkIf cfg.enable {
         services.timesyncd.enable = true;
 
         services.cloud-init.enable = false;

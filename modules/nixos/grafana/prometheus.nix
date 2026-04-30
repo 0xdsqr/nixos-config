@@ -2,59 +2,65 @@
   flake.nixosModules."monitoring-alloy-prometheus" =
     { config, lib, ... }:
     let
-      inherit (lib)
-        mkAfter
-        mkForce
-        mkIf
-        mkOption
-        optionalString
-        types
+      inherit (lib.modules) mkAfter mkForce mkIf;
+      inherit (lib.options) mkEnableOption mkOption;
+      inherit (lib.strings) optionalString;
+      inherit (lib.types)
+        lines
+        nullOr
+        port
+        str
         ;
       cfg = config.dsqr.nixos.alloy;
+      prometheusCfg = cfg.prometheus;
       k8sCfg = cfg.kubernetes;
     in
     {
       options.dsqr.nixos.alloy = {
-        prometheus.extraConfig = mkOption {
-          type = types.lines;
-          default = "";
-          description = "Additional Prometheus-related Alloy config appended to the shared metrics pipeline.";
+        prometheus = {
+          enable = mkEnableOption "Enable Alloy Prometheus metric scraping";
+
+          extraConfig = mkOption {
+            type = lines;
+            default = "";
+            description = "Additional Prometheus-related Alloy config appended to the shared metrics pipeline.";
+          };
         };
 
         kubernetes = {
           kubeconfigFile = mkOption {
-            type = types.nullOr types.str;
+            type = nullOr str;
             default = null;
             description = "Kubeconfig file Alloy should use for Kubernetes API discovery. Leave null on non-Kubernetes hosts.";
           };
 
           cluster = mkOption {
-            type = types.str;
+            type = str;
             default = "homelab";
             description = "Stable cluster label applied to Kubernetes metrics scraped by Alloy.";
           };
 
           kubeStateMetrics = {
             namespace = mkOption {
-              type = types.str;
+              type = str;
               default = "kube-system";
               description = "Namespace where kube-state-metrics runs.";
             };
 
             labelSelector = mkOption {
-              type = types.str;
+              type = str;
               default = "app.kubernetes.io/name=kube-state-metrics";
               description = "Kubernetes label selector used to discover kube-state-metrics pods.";
             };
 
             port = mkOption {
-              type = types.port;
+              type = port;
               default = 8080;
               description = "Metrics port exposed by kube-state-metrics.";
             };
 
             scrapeInterval = mkOption {
-              type = types.str;
+              type = str;
               default = "30s";
               description = "Scrape interval for kube-state-metrics.";
             };
@@ -62,7 +68,7 @@
         };
       };
 
-      config = {
+      config = mkIf (cfg.enable && prometheusCfg.enable) {
         systemd.services.alloy.serviceConfig = mkIf (k8sCfg.kubeconfigFile != null) {
           # Kubernetes API discovery needs kubeconfig access on the host. Running
           # Alloy as root on cluster nodes keeps the setup simple and avoids
@@ -74,7 +80,7 @@
 
         dsqr.nixos.alloy.configFragments = mkAfter [
           (
-            cfg.prometheus.extraConfig
+            prometheusCfg.extraConfig
             + optionalString (k8sCfg.kubeconfigFile != null) ''
 
               discovery.kubernetes "kube_state_metrics" {

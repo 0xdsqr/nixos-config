@@ -8,7 +8,6 @@ let
     ;
   inherit (nixLib.attrsets) attrValues removeAttrs;
   inherit (nixLib.lists) singleton;
-  inherit (nixLib.meta) getExe;
   inherit (nixLib.trivial) flip;
 
   hostMeta = self.lib.mkHostMeta {
@@ -20,20 +19,7 @@ let
 
   modules =
     attrValues commonModules
-    ++ attrValues (
-      flip removeAttrs [
-        "containers"
-        "kubeadm"
-        "monitoring-alloy-base"
-        "monitoring-alloy-loki"
-        "monitoring-alloy-prometheus"
-        "postgresql"
-        "proxmox"
-        "redis"
-        "restic"
-        "rustfs"
-      ] nixosModules
-    )
+    ++ attrValues nixosModules
     ++ singleton (
       self.lib.mkHomeManagerSharedModule (
         flip removeAttrs [
@@ -70,6 +56,13 @@ let
     {
       networking.hostName = "srv-lx-mailbox";
       hardware.report = ./srv-lx-mailbox.report.json;
+
+      dsqr.nixos = {
+        fonts.enable = true;
+        openssh.enable = true;
+        tailscale.enable = true;
+        user.enable = true;
+      };
 
       disko.devices.disk.main = {
         device = "/dev/sda";
@@ -140,50 +133,16 @@ in
     inherit hostMeta;
     hostName = "srv-lx-mailbox-installer";
     modules = singleton (
-      { config, pkgs, ... }:
-      let
-        mailbox = self.nixosConfigurations.srv-lx-mailbox;
-      in
+      { ... }:
       {
         imports = installerModules;
 
-        networking.hostName = "srv-lx-mailbox-installer";
-
-        isoImage.makeEfiBootable = true;
-        isoImage.makeUsbBootable = true;
-        isoImage.storeContents = singleton config.system.build.toplevel;
-
-        hardware.enableAllHardware = true;
-
-        environment.etc."install-closure".source = pkgs.closureInfo {
-          rootPaths = [
-            mailbox.config.system.build.toplevel
-            mailbox.config.system.build.diskoScript
-            mailbox.config.system.build.diskoScript.drvPath
-            mailbox.pkgs.stdenv.drvPath
-            (mailbox.pkgs.closureInfo { rootPaths = [ ]; }).drvPath
-          ];
+        dsqr.nixos.installer = {
+          enable = true;
+          hostName = "srv-lx-mailbox-installer";
+          targetHostName = "srv-lx-mailbox";
         };
 
-        environment.systemPackages =
-          singleton (
-            pkgs.writeShellScriptBin "install-mailbox" ''
-              set -euo pipefail
-
-              exec ${
-                getExe inputs.disko.packages.${pkgs.stdenv.hostPlatform.system}.disko-install
-              } --flake "${self}#srv-lx-mailbox" --disk main "${mailbox.config.disko.devices.disk.main.device}"
-            ''
-          )
-          ++ singleton (
-            pkgs.writeShellScriptBin "generate-facter-report" ''
-              set -euo pipefail
-
-              exec ${getExe pkgs.nixos-facter}
-            ''
-          );
-
-        nixpkgs.hostPlatform = "x86_64-linux";
         system.stateVersion = "25.11";
       }
     );

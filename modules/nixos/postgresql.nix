@@ -7,17 +7,18 @@
       ...
     }:
     let
-      inherit (lib)
-        concatMapStringsSep
-        concatStringsSep
-        flip
-        genAttrs
-        getExe
-        mkOption
-        mkForce
-        mkOverride
-        types
-        unique
+      inherit (lib.attrsets) genAttrs;
+      inherit (lib.lists) unique;
+      inherit (lib.meta) getExe;
+      inherit (lib.modules) mkForce mkIf mkOverride;
+      inherit (lib.options) mkEnableOption mkOption;
+      inherit (lib.strings) concatMapStringsSep concatStringsSep;
+      inherit (lib.trivial) flip;
+      inherit (lib.types)
+        enum
+        listOf
+        package
+        str
         ;
       cfg = config.dsqr.nixos.postgresql;
       resticHosts = config.services.restic.hosts or [ ];
@@ -32,14 +33,30 @@
     in
     {
       options.dsqr.nixos.postgresql = {
+        enable = mkEnableOption "Enable PostgreSQL";
+
+        package = mkOption {
+          type = package;
+          default = pkgs.postgresql_18;
+          defaultText = "pkgs.postgresql_18";
+          description = "PostgreSQL package to run.";
+        };
+
+        gzipPackage = mkOption {
+          type = package;
+          default = pkgs.gzip;
+          defaultText = "pkgs.gzip";
+          description = "gzip package used for restic dump preparation.";
+        };
+
         ensure = mkOption {
-          type = types.listOf types.str;
+          type = listOf str;
           default = [ ];
           description = "Databases and matching users to create automatically.";
         };
 
         listenAddresses = mkOption {
-          type = types.listOf types.str;
+          type = listOf str;
           default = [
             "127.0.0.1"
             "::1"
@@ -48,7 +65,7 @@
         };
 
         allowedCIDRs = mkOption {
-          type = types.listOf types.str;
+          type = listOf str;
           default = [
             "127.0.0.1/32"
             "::1/128"
@@ -57,7 +74,7 @@
         };
 
         hostAuthMethod = mkOption {
-          type = types.enum [
+          type = enum [
             "md5"
             "scram-sha-256"
           ];
@@ -66,13 +83,13 @@
         };
 
         exporter.listenAddress = mkOption {
-          type = types.str;
+          type = str;
           default = "127.0.0.1";
           description = "Address the postgres Prometheus exporter listens on.";
         };
       };
 
-      config = {
+      config = mkIf cfg.enable {
         services.prometheus.exporters.postgres = {
           enable = true;
           inherit (cfg.exporter) listenAddress;
@@ -84,7 +101,7 @@
 
           backupPrepareCommand = /* sh */ ''
             ${config.services.postgresql.package}/bin/pg_dumpall --clean \
-            | ${getExe pkgs.gzip} --rsyncable \
+            | ${getExe cfg.gzipPackage} --rsyncable \
             > /tmp/postgresql-dump.sql.gz
           '';
 
@@ -97,7 +114,7 @@
 
         services.postgresql = {
           enable = true;
-          package = pkgs.postgresql_18;
+          inherit (cfg) package;
 
           enableJIT = true;
           enableTCPIP = true;

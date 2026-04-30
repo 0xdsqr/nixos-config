@@ -97,6 +97,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    hoo = {
+      url = "git+ssh://git@github.com/0xdsqr/hoo.git";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-parts.follows = "flake-parts";
+      inputs.treefmt-nix.follows = "treefmt-nix";
+    };
+
     helium = {
       url = "github:amaanq/helium-flake";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -115,27 +122,34 @@
       inherit (inputs.nixpkgs.lib.lists) sort;
       inherit (inputs.nixpkgs.lib.strings) hasInfix hasSuffix;
 
-      moduleImports = sort (a: b: toString a < toString b) (
-        builtins.filter (
+      # Bootstrap copy of self.lib.collectNix. The flake has to discover and import
+      # modules/common/lib.nix before self.lib exists, so this stays local here.
+      collectNix =
+        {
+          path,
+          exclude ? _: false,
+        }:
+        sort (a: b: toString a < toString b) (
+          builtins.filter (file: hasSuffix ".nix" (toString file) && !(exclude file)) (listFilesRecursive path)
+        );
+
+      moduleImports = collectNix {
+        path = ./modules;
+        exclude =
           path:
           let
             pathString = toString path;
           in
-          hasSuffix ".nix" pathString
-          && !(hasSuffix "/common/keys.nix" pathString)
-          && !(hasInfix "/home/neovim/plugins/" pathString)
-          && !(hasSuffix "/home/neovim/init-lua.nix" pathString)
-          && !(hasSuffix "/home/neovim/packages.nix" pathString)
-        ) (listFilesRecursive ./modules)
-      );
+          hasSuffix "/common/keys.nix" pathString
+          || hasInfix "/home/neovim/plugins/" pathString
+          || hasSuffix "/home/neovim/init-lua.nix" pathString
+          || hasSuffix "/home/neovim/packages.nix" pathString;
+      };
 
-      hostImports = sort (a: b: toString a < toString b) (
-        builtins.filter (
-          path:
-          builtins.match ".*/hosts/[^/]+/default\\.nix" (toString path) != null
-          && !(hasSuffix "/hosts/srv-lx-hoo/default.nix" (toString path))
-        ) (listFilesRecursive ./hosts)
-      );
+      hostImports = collectNix {
+        path = ./hosts;
+        exclude = path: builtins.match ".*/hosts/[^/]+/default\\.nix" (toString path) == null;
+      };
     in
     flake-parts.lib.mkFlake { inherit inputs; } (
       { ... }:

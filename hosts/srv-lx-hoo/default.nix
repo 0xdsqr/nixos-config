@@ -6,84 +6,58 @@ let
     nixLib
     nixosModules
     ;
-  inherit (nixLib.attrsets) attrValues removeAttrs;
+  inherit (nixLib.attrsets) attrValues;
   inherit (nixLib.lists) singleton;
-  inherit (nixLib.meta) getExe;
-  inherit (nixLib.modules) mkForce;
-  inherit (nixLib.trivial) flip;
 
-  hostMeta = self.lib.mkHostMeta {
+  hostName = "srv-lx-hoo";
+
+  modules =
+    attrValues commonModules ++ attrValues nixosModules ++ singleton (self.lib.mkHomeManagerSharedModule homeModules);
+
+  installerModules = modules ++ [ (inputs.nixpkgs + /nixos/modules/installer/cd-dvd/iso-image.nix) ];
+in
+{
+  flake.hostDefinitions.${hostName} = self.lib.mkHostMeta {
     class = "nixos";
     path = ./.;
     sshHost = "10.10.30.108";
     system = "x86_64-linux";
   };
 
-  modules =
-    attrValues commonModules
-    ++ attrValues (
-      flip removeAttrs [
-        "containers"
-        "kubeadm"
-        "monitoring-alloy-prometheus"
-        "postgresql"
-        "redis"
-        "restic"
-        "rustfs"
-      ] nixosModules
-    )
-    ++ singleton (
-      self.lib.mkHomeManagerSharedModule (
-        flip removeAttrs [
-          "aws"
-          "bat"
-          "cinny"
-          "claude-code"
-          "codex"
-          "window-manager"
-          "difftastic"
-          "discord"
-          "exo"
-          "hammerspoon"
-          "hushlogin"
-          "ollama"
-          "packages-containers"
-          "packages-databases"
-          "packages-debugging"
-          "packages-kubernetes"
-          "packages-media"
-          "packages-node"
-          "packages-signing"
-          "opencode"
-          "pi"
-          "signal"
-          "thunderbird"
-          "web-browser"
-        ] homeModules
-      )
-    );
+  flake.nixosConfigurations.${hostName} = self.lib.nixosSystem {
+    inherit hostName;
 
-  systemModules = modules ++ [
-    { nixpkgs.overlays = singleton inputs.nix-openclaw.overlays.default; }
-    inputs.hoo.nixosModules.hoo
-    ./openclaw/default.nix
-  ];
-
-  installerModules = modules ++ [ (inputs.nixpkgs + /nixos/modules/installer/cd-dvd/iso-image.nix) ];
-in
-{
-  flake.hostDefinitions.srv-lx-hoo = hostMeta;
-
-  flake.nixosConfigurations.srv-lx-hoo = self.lib.nixosSystem {
-    hostName = "srv-lx-hoo";
-    inherit hostMeta;
     modules = singleton (
       { config, ... }:
       {
-        imports = systemModules;
+        imports =
+          modules
+          ++ [
+            inputs.hoo.nixosModules.hoo
+            ./openclaw/default.nix
+          ]
+          ++ self.lib.collectNix {
+            path = ./.;
+            exclude = path: path == ./default.nix;
+          };
 
-        networking.hostName = "srv-lx-hoo";
+        nixpkgs.overlays = singleton inputs.nix-openclaw.overlays.default;
+
+        networking.hostName = hostName;
         hardware.report = ./srv-lx-hoo.report.json;
+
+        dsqr.nixos = {
+          alloy = {
+            enable = true;
+            loki.enable = true;
+          };
+
+          fonts.enable = true;
+          openssh.enable = true;
+          proxmox.enable = true;
+          tailscale.enable = true;
+          user.enable = true;
+        };
 
         age.secrets.githubDeployKey = {
           file = ./github.deploy-key.age;
@@ -100,6 +74,29 @@ in
 
         networking.firewall.allowedTCPPorts = [ 9321 ];
 
+        home-manager.users.dsqr.dsqr.home = {
+          aws.enable = false;
+          bat.enable = false;
+          codex.enable = false;
+          difftastic.enable = false;
+          hushlogin.enable = false;
+          pi.enable = false;
+
+          packages = {
+            containers.enable = false;
+            databases.enable = false;
+            debugging.enable = false;
+            kubernetes.enable = false;
+            media.enable = false;
+            node.enable = false;
+            signing.enable = false;
+          };
+
+          desktop = {
+            browsers.helium.enable = false;
+          };
+        };
+
         home-manager.users.dsqr.imports = [
           inputs.hoo.homeManagerModules.hoo
           { programs.hoo.enable = true; }
@@ -113,90 +110,26 @@ in
             StrictHostKeyChecking accept-new
         '';
 
-        boot.loader.grub = {
-          enable = true;
-          devices = mkForce [ "/dev/sda" ];
-        };
-
-        disko.devices.disk.main = {
-          device = "/dev/sda";
-          type = "disk";
-          content = {
-            type = "gpt";
-            partitions = {
-              boot = {
-                size = "1M";
-                type = "EF02";
-                priority = 1;
-              };
-
-              root = {
-                size = "100%";
-                content = {
-                  type = "filesystem";
-                  format = "ext4";
-                  mountpoint = "/";
-                };
-              };
-            };
-          };
-        };
-
-        swapDevices = [ ];
-
         system.stateVersion = "25.05";
       }
     );
   };
 
   flake.nixosConfigurations.srv-lx-hoo-installer = self.lib.nixosSystem {
-    inherit hostMeta;
+    hostMeta = self.hostDefinitions.${hostName};
     hostName = "srv-lx-hoo-installer";
+
     modules = singleton (
-      { config, pkgs, ... }:
-      let
-        hoo = self.nixosConfigurations.srv-lx-hoo;
-      in
+      { ... }:
       {
         imports = installerModules;
 
-        networking.hostName = "srv-lx-hoo-installer";
-
-        isoImage.makeEfiBootable = true;
-        isoImage.makeUsbBootable = true;
-        isoImage.storeContents = singleton config.system.build.toplevel;
-
-        hardware.enableAllHardware = true;
-
-        environment.etc."install-closure".source = pkgs.closureInfo {
-          rootPaths = [
-            hoo.config.system.build.toplevel
-            hoo.config.system.build.diskoScript
-            hoo.config.system.build.diskoScript.drvPath
-            hoo.pkgs.stdenv.drvPath
-            (hoo.pkgs.closureInfo { rootPaths = [ ]; }).drvPath
-          ];
+        dsqr.nixos.installer = {
+          enable = true;
+          hostName = "srv-lx-hoo-installer";
+          targetHostName = hostName;
         };
 
-        environment.systemPackages =
-          singleton (
-            pkgs.writeShellScriptBin "install-hoo" ''
-              set -euo pipefail
-
-              exec ${
-                getExe inputs.disko.packages.${pkgs.stdenv.hostPlatform.system}.disko-install
-              } --flake "${self}#srv-lx-hoo" --disk main "${hoo.config.disko.devices.disk.main.device}"
-            ''
-          )
-          ++ singleton (
-            pkgs.writeShellScriptBin "generate-facter-report" ''
-              set -euo pipefail
-
-              exec ${getExe pkgs.nixos-facter}
-            ''
-          );
-
-        nixpkgs.hostPlatform = "x86_64-linux";
         system.stateVersion = "25.05";
       }
     );

@@ -288,6 +288,32 @@
         "type": "github"
       }
     },
+    "hoo": {
+      "inputs": {
+        "flake-parts": [
+          "flake-parts"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "treefmt-nix": [
+          "treefmt-nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1777234250,
+        "narHash": "sha256-dVmqFA34SyFMW0y3vHOWKPC7PoRZKms4+NmPn/4x8Vo=",
+        "ref": "refs/heads/master",
+        "rev": "95e998b1b3b4c31533ff19498f81496fcb1d2215",
+        "revCount": 17,
+        "type": "git",
+        "url": "ssh://git@github.com/0xdsqr/hoo.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://git@github.com/0xdsqr/hoo.git"
+      }
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -644,6 +670,7 @@
         "home-manager": "home-manager",
         "homebrew-cask": "homebrew-cask",
         "homebrew-core": "homebrew-core",
+        "hoo": "hoo",
         "neovim-nightly-overlay": "neovim-nightly-overlay",
         "nix-homebrew": "nix-homebrew",
         "nix-openclaw": "nix-openclaw",
@@ -679,11 +706,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1777439579,
-        "narHash": "sha256-6TwNhJIKVF47wgfXoYMWUNI/y3I9r+oYbotC0ehVi3M=",
+        "lastModified": 1776327381,
+        "narHash": "sha256-Fm8lU0/C1Y2/be7cuNFoFRuivQIDsO0Hmt4pq2pKGiI=",
         "owner": "rustfs",
         "repo": "rustfs-flake",
-        "rev": "d02a9396dca25750c519053aec8bb0ecc886495a",
+        "rev": "59ecb1959c42b7508d3b8e797b269027ff378531",
         "type": "github"
       },
       "original": {

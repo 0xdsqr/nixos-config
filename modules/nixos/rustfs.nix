@@ -7,13 +7,10 @@
       ...
     }:
     let
-      inherit (lib)
-        genAttrs'
-        mkIf
-        mkOption
-        nameValuePair
-        types
-        ;
+      inherit (lib.attrsets) genAttrs' nameValuePair;
+      inherit (lib.modules) mkIf;
+      inherit (lib.options) mkEnableOption mkOption;
+      inherit (lib.types) nullOr package path;
       cfg = config.dsqr.nixos.rustfs;
       resticHosts = config.services.restic.hosts or [ ];
     in
@@ -21,20 +18,29 @@
       imports = [ inputs.rustfs.nixosModules.rustfs ];
 
       options.dsqr.nixos.rustfs = {
+        enable = mkEnableOption "Enable RustFS";
+
+        package = mkOption {
+          type = package;
+          inherit (inputs.rustfs.packages.${config.nixpkgs.hostPlatform.system}) default;
+          defaultText = "inputs.rustfs.packages.${config.nixpkgs.hostPlatform.system}.default";
+          description = "RustFS package to run.";
+        };
+
         accessKeyAgeFile = mkOption {
-          type = types.nullOr types.path;
+          type = nullOr path;
           default = null;
           description = "Encrypted age file that stores the RustFS access key.";
         };
 
         secretKeyAgeFile = mkOption {
-          type = types.nullOr types.path;
+          type = nullOr path;
           default = null;
           description = "Encrypted age file that stores the RustFS secret key.";
         };
       };
 
-      config = mkIf (cfg.accessKeyAgeFile != null && cfg.secretKeyAgeFile != null) {
+      config = mkIf (cfg.enable && cfg.accessKeyAgeFile != null && cfg.secretKeyAgeFile != null) {
         age.secrets.rustfsAccessKey = {
           file = cfg.accessKeyAgeFile;
           mode = "0400";
@@ -52,7 +58,7 @@
 
         services.rustfs = {
           enable = true;
-          package = inputs.rustfs.packages.${config.nixpkgs.hostPlatform.system}.default;
+          inherit (cfg) package;
           accessKeyFile = config.age.secrets.rustfsAccessKey.path;
           secretKeyFile = config.age.secrets.rustfsSecretKey.path;
           volumes = [ "/var/lib/rustfs/data" ];

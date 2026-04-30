@@ -2,40 +2,37 @@
   flake.nixosModules."monitoring-alloy-base" =
     { config, lib, ... }:
     let
-      inherit (lib)
-        concatStringsSep
-        mkAfter
-        mkIf
-        mkMerge
-        mkOption
-        optionalString
-        types
-        ;
+      inherit (lib.modules) mkAfter mkIf mkMerge;
+      inherit (lib.options) mkEnableOption mkOption;
+      inherit (lib.strings) concatStringsSep optionalString;
+      inherit (lib.types) lines listOf str;
       cfg = config.dsqr.nixos.alloy;
       composedConfig = concatStringsSep "\n\n" cfg.configFragments;
     in
     {
       options.dsqr.nixos.alloy = {
+        enable = mkEnableOption "Enable the shared Alloy monitoring baseline";
+
         instance = mkOption {
-          type = types.str;
+          type = str;
           default = config.networking.hostName;
           description = "Stable instance label for this host";
         };
 
         role = mkOption {
-          type = types.str;
+          type = str;
           default = config.networking.hostName;
           description = "Role label for this host";
         };
 
         environment = mkOption {
-          type = types.str;
+          type = str;
           default = "homelab";
           description = "Environment label for this host";
         };
 
         remoteWriteUrl = mkOption {
-          type = types.str;
+          type = str;
           default =
             if config.networking.hostName == "srv-lx-beacon" then
               "http://127.0.0.1:9090/api/v1/write"
@@ -45,13 +42,13 @@
         };
 
         extraConfig = mkOption {
-          type = types.lines;
+          type = lines;
           default = "";
           description = "Deprecated compatibility shim for extra Alloy config. Prefer the Prometheus and Loki-specific hooks.";
         };
 
         configFragments = mkOption {
-          type = types.listOf types.lines;
+          type = listOf lines;
           default = [ ];
           internal = true;
           description = "Internal Alloy config fragments composed by the monitoring-* modules.";
@@ -59,7 +56,7 @@
       };
 
       config = mkMerge [
-        {
+        (mkIf cfg.enable {
           services.alloy = {
             enable = true;
             extraFlags = [
@@ -122,7 +119,7 @@
               }
             ''
           ];
-        }
+        })
 
         (mkIf (cfg.extraConfig != "") {
           warnings = [

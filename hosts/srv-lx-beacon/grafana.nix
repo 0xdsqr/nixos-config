@@ -1,6 +1,7 @@
 { config, lib, ... }:
 let
-  inherit (lib) genAttrs;
+  inherit (lib.attrsets) genAttrs;
+
   port = 8000;
 in
 {

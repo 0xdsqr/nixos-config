@@ -2,12 +2,9 @@
   flake.nixosModules.containers =
     { config, lib, ... }:
     let
-      inherit (lib)
-        mkEnableOption
-        mkIf
-        mkOption
-        types
-        ;
+      inherit (lib.modules) mkIf;
+      inherit (lib.options) mkEnableOption mkOption;
+      inherit (lib.types) bool;
       cfg = config.dsqr.nixos.containers;
     in
     {
@@ -15,31 +12,31 @@
         enable = mkEnableOption "Enable the shared container runtime baseline";
 
         docker.enable = mkOption {
-          type = types.bool;
+          type = bool;
           default = true;
           description = "Enable Docker when the shared container runtime baseline is active.";
         };
 
         podman.enable = mkOption {
-          type = types.bool;
+          type = bool;
           default = false;
           description = "Enable Podman when the shared container runtime baseline is active.";
         };
 
         podman.dockerCompat = mkOption {
-          type = types.bool;
+          type = bool;
           default = true;
           description = "Expose the Docker-compatible Podman CLI shim when Podman is enabled.";
         };
 
         podman.dockerSocket.enable = mkOption {
-          type = types.bool;
+          type = bool;
           default = true;
           description = "Expose the Docker-compatible Podman socket when Podman is enabled.";
         };
 
         podman.defaultNetwork.dnsEnabled = mkOption {
-          type = types.bool;
+          type = bool;
           default = true;
           description = "Enable DNS in the default Podman network when Podman is enabled.";
         };
