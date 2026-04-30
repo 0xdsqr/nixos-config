@@ -16,14 +16,16 @@ let
   managedPolicyPlist = toPlist { escape = true; } heliumPolicy;
 in
 {
-  flake.darwinModules.helium =
+  flake.darwinModules."helium-policy" =
     { config, ... }:
     let
-      cfg = config.dsqr.darwin.desktop.browsers.helium;
+      cfg = config.dsqr.darwin.desktop.browsers.helium.policy;
     in
     {
-      options.dsqr.darwin.desktop.browsers.helium.enable = mkEnableOption "Helium browser managed policy" // {
-        default = true;
+      options.dsqr.darwin.desktop.browsers.helium.policy = {
+        enable = mkEnableOption "Helium browser managed policy" // {
+          default = true;
+        };
       };
 
       config = mkIf cfg.enable {

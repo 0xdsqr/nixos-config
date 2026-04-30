@@ -7,19 +7,26 @@
       ...
     }:
     let
-      inherit (lib.options) mkOption;
+      inherit (lib.modules) mkIf;
+      inherit (lib.options) mkEnableOption mkOption;
       inherit (lib.types) str;
 
       cfg = config.dsqr.darwin.homebrew;
     in
     {
-      options.dsqr.darwin.homebrew.user = mkOption {
-        type = str;
-        default = config.dsqr.darwin.personal.user.name;
-        description = "Darwin user that owns the managed Homebrew prefix.";
+      options.dsqr.darwin.homebrew = {
+        enable = mkEnableOption "Darwin Homebrew and nix-homebrew management" // {
+          default = true;
+        };
+
+        user = mkOption {
+          type = str;
+          default = config.dsqr.darwin.personal.user.name;
+          description = "Darwin user that owns the managed Homebrew prefix.";
+        };
       };
 
-      config = {
+      config = mkIf cfg.enable {
         homebrew.enable = true;
 
         nix-homebrew = {

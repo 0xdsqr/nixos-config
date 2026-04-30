@@ -37,14 +37,16 @@ let
             codex.enable = true;
             hammerspoon.enable = true;
             obs-studio.enable = true;
-            browsers.googleChrome.enable = true;
             communication.discord.enable = true;
           };
         };
 
       };
 
+      allowedUnfreePackageNames = [ "google-chrome" ];
+
       home-manager.users.dsqr.dsqr.home.desktop = {
+        browsers.googleChrome.enable = true;
         codexbar.enable = true;
         hammerspoon.enable = true;
         windowManager.enable = true;

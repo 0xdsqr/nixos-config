@@ -14,7 +14,7 @@
 
         package = mkOption {
           type = str;
-          default = "codex";
+          default = "codex-app";
           description = "Homebrew cask to install for the Codex desktop app.";
         };
       };
