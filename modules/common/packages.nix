@@ -1,128 +1,273 @@
 {
   flake.homeModules.network-tools =
-    { lib, pkgs, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     let
       inherit (lib.lists) optionals singleton;
+      inherit (lib.modules) mkIf;
+      inherit (lib.options) mkEnableOption;
+      cfg = config.dsqr.home.packages.networkTools;
     in
     {
-      home.packages = [
-        (pkgs.curl.override {
-          gnutlsSupport = false;
-          opensslSupport = true;
-          wolfsslSupport = false;
-          rustlsSupport = false;
-          brotliSupport = true;
-          zlibSupport = true;
-          zstdSupport = true;
-          c-aresSupport = true;
-          http2Support = true;
-          http3Support = true;
-        })
-        (pkgs.xh.override { withNativeTls = false; })
-        pkgs.dig
-        pkgs.doggo
-      ]
-      ++ optionals pkgs.stdenv.hostPlatform.isDarwin (singleton pkgs.iproute2mac);
+      options.dsqr.home.packages.networkTools.enable = mkEnableOption "network tooling package bundle" // {
+        default = true;
+      };
+
+      config = mkIf cfg.enable {
+        home.packages = [
+          (pkgs.curl.override {
+            gnutlsSupport = false;
+            opensslSupport = true;
+            wolfsslSupport = false;
+            rustlsSupport = false;
+            brotliSupport = true;
+            zlibSupport = true;
+            zstdSupport = true;
+            c-aresSupport = true;
+            http2Support = true;
+            http3Support = true;
+          })
+          (pkgs.xh.override { withNativeTls = false; })
+          pkgs.dig
+          pkgs.doggo
+        ]
+        ++ optionals pkgs.stdenv.hostPlatform.isDarwin (singleton pkgs.iproute2mac);
+      };
     };
 
   flake.homeModules.packages-kubernetes =
-    { pkgs, ... }:
     {
-      home.packages = [
-        pkgs.kubectl
-        pkgs.kubernetes-helm
-      ];
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    let
+      inherit (lib.modules) mkIf;
+      inherit (lib.options) mkEnableOption;
+      cfg = config.dsqr.home.packages.kubernetes;
+    in
+    {
+      options.dsqr.home.packages.kubernetes.enable = mkEnableOption "Kubernetes package bundle" // {
+        default = true;
+      };
+
+      config = mkIf cfg.enable {
+        home.packages = [
+          pkgs.kubectl
+          pkgs.kubernetes-helm
+        ];
+      };
     };
 
   flake.homeModules.packages-databases =
-    { lib, pkgs, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     let
       inherit (lib.lists) singleton;
+      inherit (lib.modules) mkIf;
+      inherit (lib.options) mkEnableOption;
+      cfg = config.dsqr.home.packages.databases;
     in
     {
-      home.packages = singleton pkgs.postgresql;
+      options.dsqr.home.packages.databases.enable = mkEnableOption "database package bundle" // {
+        default = true;
+      };
+
+      config = mkIf cfg.enable { home.packages = singleton pkgs.postgresql; };
     };
 
   flake.homeModules.packages-node =
-    { pkgs, ... }:
     {
-      home.packages = [
-        pkgs.bun
-        pkgs.nodejs_25
-      ];
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    let
+      inherit (lib.modules) mkIf;
+      inherit (lib.options) mkEnableOption;
+      cfg = config.dsqr.home.packages.node;
+    in
+    {
+      options.dsqr.home.packages.node.enable = mkEnableOption "Node.js package bundle" // {
+        default = true;
+      };
+
+      config = mkIf cfg.enable {
+        home.packages = [
+          pkgs.bun
+          pkgs.nodejs_25
+        ];
+      };
     };
 
   flake.homeModules.packages-shell-utils =
-    { pkgs, ... }:
     {
-      home.packages = [
-        pkgs.asciinema
-        pkgs.eza
-        pkgs.fastfetch
-        pkgs.fd
-        pkgs.fzf
-        pkgs.gnumake
-        pkgs.jc
-        pkgs.jq
-        pkgs.moreutils
-        pkgs.p7zip
-        pkgs.rclone
-        pkgs.rsync
-        pkgs.sd
-        pkgs.timg
-        pkgs.tokei
-        pkgs.unzip
-        pkgs.uutils-coreutils-noprefix
-        pkgs.wget
-        pkgs.yazi
-      ];
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    let
+      inherit (lib.modules) mkIf;
+      inherit (lib.options) mkEnableOption;
+      cfg = config.dsqr.home.packages.shellUtils;
+    in
+    {
+      options.dsqr.home.packages.shellUtils.enable = mkEnableOption "shell utilities package bundle" // {
+        default = true;
+      };
+
+      config = mkIf cfg.enable {
+        home.packages = [
+          pkgs.asciinema
+          pkgs.eza
+          pkgs.fastfetch
+          pkgs.fd
+          pkgs.fzf
+          pkgs.gnumake
+          pkgs.jc
+          pkgs.jq
+          pkgs.moreutils
+          pkgs.p7zip
+          pkgs.rclone
+          pkgs.rsync
+          pkgs.sd
+          pkgs.timg
+          pkgs.tokei
+          pkgs.unzip
+          pkgs.uutils-coreutils-noprefix
+          pkgs.wget
+          pkgs.yazi
+        ];
+      };
     };
 
   flake.homeModules.packages-containers =
-    { pkgs, ... }:
     {
-      home.packages = [
-        pkgs.docker-compose
-        pkgs.lazydocker
-      ];
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    let
+      inherit (lib.modules) mkIf;
+      inherit (lib.options) mkEnableOption;
+      cfg = config.dsqr.home.packages.containers;
+    in
+    {
+      options.dsqr.home.packages.containers.enable = mkEnableOption "container tooling package bundle" // {
+        default = true;
+      };
+
+      config = mkIf cfg.enable {
+        home.packages = [
+          pkgs.docker-compose
+          pkgs.lazydocker
+        ];
+      };
     };
 
   flake.homeModules.packages-media =
-    { lib, pkgs, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     let
       inherit (lib.lists) singleton;
+      inherit (lib.modules) mkIf;
+      inherit (lib.options) mkEnableOption;
+      cfg = config.dsqr.home.packages.media;
     in
     {
-      home.packages = singleton pkgs.ffmpeg;
+      options.dsqr.home.packages.media.enable = mkEnableOption "media package bundle" // {
+        default = true;
+      };
+
+      config = mkIf cfg.enable { home.packages = singleton pkgs.ffmpeg; };
     };
 
   flake.homeModules.packages-debugging =
-    { pkgs, ... }:
     {
-      home.packages = [
-        pkgs.hyperfine
-        pkgs.typos
-      ];
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    let
+      inherit (lib.modules) mkIf;
+      inherit (lib.options) mkEnableOption;
+      cfg = config.dsqr.home.packages.debugging;
+    in
+    {
+      options.dsqr.home.packages.debugging.enable = mkEnableOption "debugging package bundle" // {
+        default = true;
+      };
+
+      config = mkIf cfg.enable {
+        home.packages = [
+          pkgs.hyperfine
+          pkgs.typos
+        ];
+      };
     };
 
   flake.homeModules.packages-signing =
-    { agenix, pkgs, ... }:
+    {
+      agenix,
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     let
+      inherit (lib.modules) mkIf;
+      inherit (lib.options) mkEnableOption;
+      cfg = config.dsqr.home.packages.signing;
       agenixPackage = agenix.packages.${pkgs.stdenv.hostPlatform.system}.default;
     in
     {
-      home.packages = [
-        agenixPackage
-        pkgs.gnupg
-      ];
+      options.dsqr.home.packages.signing.enable = mkEnableOption "signing package bundle" // {
+        default = true;
+      };
+
+      config = mkIf cfg.enable {
+        home.packages = [
+          agenixPackage
+          pkgs.gnupg
+        ];
+      };
     };
 
   flake.darwinModules.packages =
-    { lib, pkgs, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     let
       inherit (lib.lists) singleton;
+      inherit (lib.modules) mkIf;
+      inherit (lib.options) mkEnableOption;
+      cfg = config.dsqr.darwin.packages.screen;
     in
     {
-      environment.systemPackages = singleton pkgs.screen;
+      options.dsqr.darwin.packages.screen.enable = mkEnableOption "screen terminal multiplexer package" // {
+        default = true;
+      };
+
+      config = mkIf cfg.enable { environment.systemPackages = singleton pkgs.screen; };
     };
 }

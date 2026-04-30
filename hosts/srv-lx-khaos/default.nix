@@ -56,7 +56,6 @@ let
 
   systemModules = modules ++ [
     self.nixosModules.restic
-    ../lib/build-user.nix
     ./alloy-postgres.nix
     ./postgresql.nix
     ./redis.nix
@@ -76,6 +75,8 @@ in
       { ... }:
       {
         imports = systemModules;
+
+        allowedUnfreePackageNames = [ "vault-bin" ];
 
         networking.hostName = "srv-lx-khaos";
         hardware.report = ./srv-lx-khaos.report.json;

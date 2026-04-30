@@ -18,13 +18,6 @@
         ];
       };
 
-      config = {
-        allowedUnfreePackageNames = [
-          "claude-code"
-          "vault-bin"
-        ];
-
-        nixpkgs.config.allowUnfreePredicate = package: elem (getName package) config.allowedUnfreePackageNames;
-      };
+      config.nixpkgs.config.allowUnfreePredicate = package: elem (getName package) config.allowedUnfreePackageNames;
     };
 }

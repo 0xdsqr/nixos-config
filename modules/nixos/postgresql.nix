@@ -20,7 +20,7 @@
         unique
         ;
       cfg = config.dsqr.nixos.postgresql;
-      resticHosts = config.services.restic.hosts;
+      resticHosts = config.services.restic.hosts or [ ];
       ensuredRoles = unique (
         cfg.ensure
         ++ [

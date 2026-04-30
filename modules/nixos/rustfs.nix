@@ -15,7 +15,7 @@
         types
         ;
       cfg = config.dsqr.nixos.rustfs;
-      resticHosts = config.services.restic.hosts;
+      resticHosts = config.services.restic.hosts or [ ];
     in
     {
       imports = [ inputs.rustfs.nixosModules.rustfs ];

@@ -102,13 +102,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    hoo = {
-      url = "git+ssh://git@github.com/0xdsqr/hoo.git";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.flake-parts.follows = "flake-parts";
-      inputs.treefmt-nix.follows = "treefmt-nix";
-    };
-
     ublock = {
       url = "github:gorhill/uBlock";
       flake = false;
@@ -140,9 +133,11 @@
       );
 
       hostImports = sort (a: b: toString a < toString b) (
-        builtins.filter (path: builtins.match ".*/hosts/[^/]+/default\\.nix" (toString path) != null) (
-          listFilesRecursive ./hosts
-        )
+        builtins.filter (
+          path:
+          builtins.match ".*/hosts/[^/]+/default\\.nix" (toString path) != null
+          && !(hasSuffix "/hosts/srv-lx-hoo/default.nix" (toString path))
+        ) (listFilesRecursive ./hosts)
       );
     in
     flake-parts.lib.mkFlake { inherit inputs; } (
@@ -157,7 +152,7 @@
         imports = [ inputs.home-manager.flakeModules.home-manager ] ++ moduleImports ++ hostImports;
 
         perSystem =
-          { pkgs, self', ... }:
+          { pkgs, ... }:
           let
             treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs {
               projectRootFile = "flake.nix";
@@ -185,7 +180,7 @@
             };
 
             checks = {
-              formatting = treefmtEval.config.build.check self';
+              formatting = treefmtEval.config.build.check ./.;
             };
           };
       }
