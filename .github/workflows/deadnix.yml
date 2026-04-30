@@ -1,0 +1,24 @@
+name: deadnix
+
+on:
+  push: {}
+  pull_request: {}
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  deadnix:
+    name: deadnix
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/determinate-nix-action@v3.17.0
+      - uses: DeterminateSystems/flakehub-cache-action@v3.17.0
+      - name: Run deadnix
+        run: nix fmt -- --ci -f deadnix

@@ -1,0 +1,43 @@
+name: check
+
+on:
+  push: {}
+  pull_request: {}
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  check:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: flake
+            os: ubuntu-latest
+            command: nix flake check --all-systems --no-build
+          - name: dev-mbp-personal
+            os: macos-latest
+            command: nix eval --raw .#darwinConfigurations.dev-mbp-personal.config.system.build.toplevel.drvPath
+          - name: dev-mbp-stablecore
+            os: macos-latest
+            command: nix eval --raw .#darwinConfigurations.dev-mbp-stablecore.config.system.build.toplevel.drvPath
+          - name: srv-mini-master
+            os: macos-latest
+            command: nix eval --raw .#darwinConfigurations.srv-mini-master.config.system.build.toplevel.drvPath
+          - name: srv-mini-node-01
+            os: macos-latest
+            command: nix eval --raw .#darwinConfigurations.srv-mini-node-01.config.system.build.toplevel.drvPath
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/determinate-nix-action@v3.17.0
+      - uses: DeterminateSystems/flakehub-cache-action@v3.17.0
+      - name: Run check
+        run: ${{ matrix.command }}

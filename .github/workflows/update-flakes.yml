@@ -1,0 +1,28 @@
+name: update flakes
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-flakes:
+    name: update flakes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/determinate-nix-action@v3.17.0
+      - uses: DeterminateSystems/flakehub-cache-action@v3.17.0
+      - name: Update flake.lock
+        run: nix flake update
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: update-flake-lock
+          delete-branch: true
+          title: "chore(flake): update lock file"
+          commit-message: "chore(flake): update lock file"
+          body: |
+            Automated flake lock update from the manual update-flakes workflow.
