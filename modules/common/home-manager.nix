@@ -10,7 +10,7 @@
 
       specialArgs = {
         inherit self inputs;
-        inherit (inputs) agenix exo;
+        inherit (inputs) agenix;
       };
 
       sharedKeysModule = {

@@ -40,7 +40,7 @@ let
       darwinModules
       nixosModules
       ;
-    inherit (inputs) agenix exo nix-openclaw;
+    inherit (inputs) agenix nix-openclaw;
     lib = nixLib;
   };
 in

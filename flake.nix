@@ -67,8 +67,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    exo.url = "github:exo-explore/exo";
-
     agenix = {
       url = "github:ryantm/agenix";
 
