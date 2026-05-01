@@ -16,7 +16,9 @@
     in
     {
       options.dsqr.home.claudeCode = {
-        enable = mkEnableOption "Claude Code CLI and config";
+        enable = mkEnableOption "Claude Code CLI and config" // {
+          default = true;
+        };
 
         package = mkOption {
           type = package;

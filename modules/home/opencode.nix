@@ -16,7 +16,9 @@
     in
     {
       options.dsqr.home.opencode = {
-        enable = mkEnableOption "OpenCode CLI and config";
+        enable = mkEnableOption "OpenCode CLI and config" // {
+          default = true;
+        };
 
         package = mkOption {
           type = package;
