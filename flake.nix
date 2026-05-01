@@ -95,13 +95,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    hoo = {
-      url = "git+ssh://git@github.com/0xdsqr/hoo.git";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.flake-parts.follows = "flake-parts";
-      inputs.treefmt-nix.follows = "treefmt-nix";
-    };
-
     helium = {
       url = "github:amaanq/helium-flake";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -146,7 +139,13 @@
 
       hostImports = collectNix {
         path = ./hosts;
-        exclude = path: builtins.match ".*/hosts/[^/]+/default\\.nix" (toString path) == null;
+        exclude =
+          path:
+          let
+            pathString = toString path;
+          in
+          builtins.match ".*/hosts/[^/]+/default\\.nix" pathString == null
+          || hasSuffix "/hosts/srv-lx-hoo/default.nix" pathString;
       };
     in
     flake-parts.lib.mkFlake { inherit inputs; } (

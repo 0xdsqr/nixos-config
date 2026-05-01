@@ -47,15 +47,20 @@ let
     '';
   commonInstanceConfig = {
     agents.defaults.model = {
-      primary = "openai-codex/gpt-5.5";
+      primary = "openai/gpt-5.5";
       fallbacks = [ ];
+    };
+
+    agents.defaults.agentRuntime = {
+      id = "codex";
+      fallback = "none";
     };
 
     # `imageModel` is the multimodal "look at this image" fallback that some
     # OpenClaw paths and CLI surfaces use. `imageGenerationModel` is the
     # dedicated "make/edit an image" model chain.
     agents.defaults.imageModel = {
-      primary = "openai-codex/gpt-5.5";
+      primary = "openai/gpt-5.5";
       fallbacks = [ ];
     };
 
@@ -107,6 +112,7 @@ let
     };
 
     plugins.entries = {
+      codex.enabled = true;
       brave = {
         enabled = true;
         config.webSearch = {

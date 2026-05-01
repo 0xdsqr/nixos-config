@@ -24,7 +24,7 @@
       inherit (lib.types) isType;
 
       cfg = config.dsqr.nix;
-      registryMap = filterAttrs (_: isType "flake") (removeAttrs inputs [ "hoo" ]);
+      registryMap = filterAttrs (_: isType "flake") inputs;
       isDarwinHost = hostMeta != null && hostMeta.class == "darwin";
       managesNix = hostMeta != null && hostMeta.class == "nixos";
       registryPathEntries = mapAttrsToList (name: value: "${name}=${value}") registryMap;
