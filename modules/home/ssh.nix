@@ -44,6 +44,10 @@
           default = true;
         };
 
+        defaults.enable = mkEnableOption "base SSH defaults block" // {
+          default = true;
+        };
+
         homelab.enable = mkEnableOption "generated homelab SSH host entries" // {
           default = true;
         };
@@ -58,7 +62,7 @@
       config = mkIf cfg.enable {
         home.file.".ssh/config".text =
           concatLines (
-            [
+            optionals cfg.defaults.enable [
               /* sshconfig */ ''
                 Host *
                   IdentitiesOnly yes
