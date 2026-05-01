@@ -61,6 +61,7 @@
           pkgs.kubectl
           pkgs.kubernetes-helm
           pkgs.opentofu
+          pkgs.terraformer
         ];
       };
     };
