@@ -141,6 +141,7 @@
           pkgs.jq
           pkgs.moreutils
           pkgs.p7zip
+          (pkgs.python3.withPackages (ps: [ ps.pyyaml ]))
           pkgs.rclone
           pkgs.rsync
           pkgs.sd

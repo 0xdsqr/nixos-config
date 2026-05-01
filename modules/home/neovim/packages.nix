@@ -11,7 +11,7 @@ with pkgs;
   gopls
   gofumpt
   gotools
-  (python3.withPackages (ps: [ ps.pyyaml ]))
+  python3
   pyright
   ruff
   nil
