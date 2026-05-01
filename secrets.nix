@@ -80,6 +80,7 @@ mkSecretsForHost "srv-lx-beacon" [
 ]
 // {
   "hosts/dev-mbp-personal/tailscale.auth-key.age".publicKeys = admins;
+  "hosts/dev-mbp-stablecore/git.config.inc.age".publicKeys = admins;
   "hosts/srv-mini-master/tailscale.auth-key.age".publicKeys = admins;
   "hosts/srv-mini-node-01/tailscale.auth-key.age".publicKeys = admins;
 }
