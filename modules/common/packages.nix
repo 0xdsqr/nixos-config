@@ -57,8 +57,10 @@
 
       config = mkIf cfg.enable {
         home.packages = [
+          pkgs.argocd
           pkgs.kubectl
           pkgs.kubernetes-helm
+          pkgs.opentofu
         ];
       };
     };
