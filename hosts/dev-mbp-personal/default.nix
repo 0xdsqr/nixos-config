@@ -52,11 +52,32 @@ in
           "opencode"
         ];
 
-        home-manager.users.dsqr.dsqr.home.desktop = {
-          browsers.googleChrome.enable = true;
-          codexbar.enable = true;
-          hammerspoon.enable = true;
-          windowManager.enable = true;
+        home-manager.users.dsqr.dsqr.home = {
+          aws.config = {
+            enable = true;
+            sections = {
+              "profile dsqr-dave" = {
+                sso_session = "dsqr";
+                sso_account_id = "244826541288";
+                sso_role_name = "AdministratorAccess";
+                region = "us-east-1";
+                output = "json";
+              };
+
+              "sso-session dsqr" = {
+                sso_start_url = "https://d-90660ae665.awsapps.com/start";
+                sso_region = "us-east-1";
+                sso_registration_scopes = "sso:account:access";
+              };
+            };
+          };
+
+          desktop = {
+            browsers.googleChrome.enable = true;
+            codexbar.enable = true;
+            hammerspoon.enable = true;
+            windowManager.enable = true;
+          };
         };
 
         networking = {
