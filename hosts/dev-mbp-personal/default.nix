@@ -46,7 +46,11 @@ in
           };
         };
 
-        allowedUnfreePackageNames = [ "google-chrome" ];
+        allowedUnfreePackageNames = [
+          "claude-code"
+          "google-chrome"
+          "opencode"
+        ];
 
         home-manager.users.dsqr.dsqr.home.desktop = {
           browsers.googleChrome.enable = true;

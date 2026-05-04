@@ -71,9 +71,11 @@
 
             dsqr.home = {
               aws.enable = false;
+              claudeCode.enable = false;
               ollama.enable = false;
               neovim.plugins.enable = false;
               nu.integrations.enable = false;
+              opencode.enable = false;
             };
           };
 

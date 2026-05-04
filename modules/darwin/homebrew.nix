@@ -49,13 +49,13 @@
 
         nix-homebrew = mkIf cfg.nixHomebrew.enable {
           enable = true;
-          autoMigrate = cfg.nixHomebrew.autoMigrate;
+          inherit (cfg.nixHomebrew) autoMigrate;
           inherit (cfg) user;
 
           taps."homebrew/homebrew-core" = inputs."homebrew-core";
           taps."homebrew/homebrew-cask" = inputs."homebrew-cask";
 
-          mutableTaps = cfg.nixHomebrew.mutableTaps;
+          inherit (cfg.nixHomebrew) mutableTaps;
         };
       };
     };
