@@ -63,9 +63,11 @@ in
         home-manager.users.dsqr.dsqr.home = {
           aws.enable = false;
           bat.enable = false;
+          claudeCode.enable = false;
           codex.enable = false;
           difftastic.enable = false;
           hushlogin.enable = false;
+          opencode.enable = false;
           pi.enable = false;
 
           packages = {
@@ -101,6 +103,11 @@ in
           enable = true;
           hostName = "srv-lx-k8s-node-02-installer";
           targetHostName = hostName;
+        };
+
+        home-manager.users.dsqr.dsqr.home = {
+          claudeCode.enable = false;
+          opencode.enable = false;
         };
 
         system.stateVersion = "25.05";
