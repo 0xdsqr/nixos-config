@@ -71,3 +71,5 @@ todo-next-last.md
 .migration/
 
 infra/
+
+/hosts/dev-mbp-stablecore/
