@@ -42,6 +42,7 @@ in
             codex.enable = true;
             hammerspoon.enable = true;
             obs-studio.enable = true;
+            statusClock.enable = true;
             communication.discord.enable = true;
           };
         };
@@ -74,7 +75,6 @@ in
 
           desktop = {
             browsers.googleChrome.enable = true;
-            codexbar.enable = true;
             hammerspoon.enable = true;
             windowManager.enable = true;
           };

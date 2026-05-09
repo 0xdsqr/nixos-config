@@ -84,17 +84,6 @@
       url = "github:nix-community/nixos-facter-modules";
     };
 
-    nix-openclaw = {
-      url = "github:0xdsqr/nix-openclaw/slop";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.home-manager.follows = "home-manager";
-    };
-
-    nix-steipete-tools = {
-      url = "github:0xdsqr/nix-steipete-tools/main";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     helium = {
       url = "github:amaanq/helium-flake";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -144,8 +133,7 @@
           let
             pathString = toString path;
           in
-          builtins.match ".*/hosts/[^/]+/default\\.nix" pathString == null
-          || hasSuffix "/hosts/srv-lx-hoo/default.nix" pathString;
+          builtins.match ".*/hosts/[^/]+/default\\.nix" pathString == null;
       };
     in
     flake-parts.lib.mkFlake { inherit inputs; } (

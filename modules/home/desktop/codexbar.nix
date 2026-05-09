@@ -1,4 +1,3 @@
-{ inputs, ... }:
 {
   flake.homeModules.codexbar =
     {
@@ -16,8 +15,6 @@
       inherit (pkgs.stdenv.hostPlatform) isDarwin;
     in
     {
-      imports = singleton inputs.nix-steipete-tools.homeManagerModules.codexbar;
-
       options.dsqr.home.desktop.codexbar = {
         enable = mkEnableOption "CodexBar desktop integration";
 
@@ -31,9 +28,6 @@
           assertion = isDarwin;
           message = "dsqr.home.desktop.codexbar requires Darwin.";
         };
-
-        programs.codexbar.enable = mkIf isDarwin true;
-        programs.codexbar.launchd.enable = mkIf isDarwin cfg.launchd.enable;
       };
     };
 }

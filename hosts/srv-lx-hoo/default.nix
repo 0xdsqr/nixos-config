@@ -32,16 +32,10 @@ in
       {
         imports =
           modules
-          ++ [
-            inputs.hoo.nixosModules.hoo
-            ./openclaw/default.nix
-          ]
           ++ self.lib.collectNix {
             path = ./.;
             exclude = path: path == ./default.nix;
           };
-
-        nixpkgs.overlays = singleton inputs.nix-openclaw.overlays.default;
 
         networking.hostName = hostName;
         hardware.report = ./srv-lx-hoo.report.json;
@@ -65,14 +59,6 @@ in
           group = "root";
           mode = "0400";
         };
-
-        services.hoo.api-server = {
-          enable = true;
-          host = "0.0.0.0";
-          port = 9321;
-        };
-
-        networking.firewall.allowedTCPPorts = [ 9321 ];
 
         home-manager.users.dsqr.dsqr.home = {
           aws.enable = false;
@@ -98,11 +84,6 @@ in
             browsers.helium.enable = false;
           };
         };
-
-        home-manager.users.dsqr.imports = [
-          inputs.hoo.homeManagerModules.hoo
-          { programs.hoo.enable = true; }
-        ];
 
         programs.ssh.extraConfig = ''
           Host github.com
