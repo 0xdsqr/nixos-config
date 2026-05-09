@@ -71,7 +71,7 @@ in
             containers.enable = false;
             databases.enable = false;
             debugging.enable = false;
-            kubernetes.enable = false;
+            kubernetes.enable = true;
             media.enable = false;
             node.enable = false;
             signing.enable = false;
