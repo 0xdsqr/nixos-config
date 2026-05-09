@@ -75,6 +75,7 @@ in
 
           desktop = {
             browsers.googleChrome.enable = true;
+            codexbar.enable = true;
             hammerspoon.enable = true;
             windowManager.enable = true;
           };
