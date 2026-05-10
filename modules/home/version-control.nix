@@ -156,8 +156,6 @@
           github.user = cfg.git.github.user;
           init.defaultBranch = "master";
           push.default = "tracking";
-          url."ssh://git@github.com/".insteadOf = "https://github.com/";
-          url."ssh://git@gitlab.com/".insteadOf = "https://gitlab.com/";
           user = {
             name = cfg.git.userName;
             email = cfg.git.userEmail;
