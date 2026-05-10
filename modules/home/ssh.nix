@@ -37,6 +37,14 @@
           IdentityFile ~/.ssh/dsqr_homelab_ed25519
           StrictHostKeyChecking accept-new
       '') backupHosts;
+
+      githubBlock = /* sshconfig */ ''
+        Host github.com
+          HostName github.com
+          User git
+          IdentityFile ~/.ssh/github_automation
+          IdentitiesOnly yes
+      '';
     in
     {
       options.dsqr.home.ssh = {
@@ -67,6 +75,7 @@
                 Host *
                   IdentitiesOnly yes
               ''
+              githubBlock
             ]
             ++ optionals cfg.homelab.enable (hostBlocks ++ backupHostBlocks)
           )
