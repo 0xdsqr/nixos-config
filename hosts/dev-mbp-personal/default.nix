@@ -79,6 +79,14 @@ in
             hammerspoon.enable = true;
             windowManager.enable = true;
           };
+
+          ssh.extraConfig = /* sshconfig */ ''
+            Host github.com
+              HostName github.com
+              User git
+              IdentityFile ~/.ssh/github_automation
+              IdentitiesOnly yes
+          '';
         };
 
         networking = {
