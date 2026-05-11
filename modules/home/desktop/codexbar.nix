@@ -48,6 +48,7 @@
               SuccessfulExit = false;
             };
             ProcessType = "Interactive";
+            EnvironmentVariables.PATH = "/etc/profiles/per-user/${config.home.username}/bin:/run/current-system/sw/bin:/usr/local/bin:/usr/bin:/bin";
           };
         };
       };
