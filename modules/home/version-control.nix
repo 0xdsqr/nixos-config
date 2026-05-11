@@ -105,6 +105,12 @@
               default = keys.users.dsqr;
               description = "SSH public key used when Git signing format is ssh.";
             };
+
+            ssh.privateKeyFile = mkOption {
+              type = nullOr path;
+              default = null;
+              description = "Path to SSH private key for signing. When set, uses the file directly instead of the agent, which avoids SSH_AUTH_SOCK inheritance issues in signing subprocesses.";
+            };
           };
         };
 
@@ -165,7 +171,13 @@
         // cfg.git.extraSettings;
         programs.git.signing.format = mkIf cfg.git.signing.enable cfg.git.signing.format;
         programs.git.signing.key = mkIf cfg.git.signing.enable (
-          if useSshSigning then "key::${cfg.git.signing.ssh.publicKey}" else cfg.git.signing.key
+          if useSshSigning then
+            (if cfg.git.signing.ssh.privateKeyFile != null then
+              toString cfg.git.signing.ssh.privateKeyFile
+            else
+              "key::${cfg.git.signing.ssh.publicKey}")
+          else
+            cfg.git.signing.key
         );
         programs.git.signing.signByDefault = mkIf cfg.git.signing.enable cfg.git.signing.signByDefault;
 
