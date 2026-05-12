@@ -108,7 +108,8 @@
             tree = "eza --tree --git-ignore --group-directories-first";
           }
           // cfg.extraAliases;
-          extraConfig = readFile ./nushell.config.nu
+          extraConfig =
+            readFile ./nushell.config.nu
             + optionalString pkgs.stdenv.isDarwin /* nu */ ''
               # agenix only auto-discovers ~/.ssh/id_ed25519 and ~/.ssh/id_rsa,
               # so wrap it to use the homelab key by default on the Mac.

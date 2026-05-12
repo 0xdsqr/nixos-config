@@ -172,10 +172,12 @@
         programs.git.signing.format = mkIf cfg.git.signing.enable cfg.git.signing.format;
         programs.git.signing.key = mkIf cfg.git.signing.enable (
           if useSshSigning then
-            (if cfg.git.signing.ssh.privateKeyFile != null then
-              toString cfg.git.signing.ssh.privateKeyFile
-            else
-              "key::${cfg.git.signing.ssh.publicKey}")
+            (
+              if cfg.git.signing.ssh.privateKeyFile != null then
+                toString cfg.git.signing.ssh.privateKeyFile
+              else
+                "key::${cfg.git.signing.ssh.publicKey}"
+            )
           else
             cfg.git.signing.key
         );

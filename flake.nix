@@ -94,15 +94,7 @@
       flake = false;
     };
 
-    pi-skills = {
-      url = "github:badlogic/pi-skills";
-      flake = false;
-    };
-
-    anthropic-skills = {
-      url = "github:anthropics/skills";
-      flake = false;
-    };
+    nix-pi.url = "github:0xdsqr/nix-pi";
   };
 
   outputs =
