@@ -1,10 +1,6 @@
 {
   flake.homeModules.pi-bridge =
-    {
-      config,
-      lib,
-      ...
-    }:
+    { config, lib, ... }:
     let
       inherit (lib.attrsets) filterAttrs listToAttrs mapAttrsToList;
       inherit (lib.lists) concatLists;
@@ -39,8 +35,6 @@
         };
       };
 
-      config = mkIf cfg.enable {
-        home.file = listToAttrs (concatLists (map mkLinks cfg.paths));
-      };
+      config = mkIf cfg.enable { home.file = listToAttrs (concatLists (map mkLinks cfg.paths)); };
     };
 }
