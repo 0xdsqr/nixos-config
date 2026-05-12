@@ -44,6 +44,7 @@
             skills = [
               "${config.xdg.configHome}/codex/skills"
               "~/.claude/skills"
+              "~/.agents/skills"
             ]
             ++ cfg.extraSkills;
           };

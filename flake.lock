@@ -297,6 +297,22 @@
         "type": "github"
       }
     },
+    "pi-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1770070110,
+        "narHash": "sha256-muBtAiAiLmsh2bd05YvRmyGkJcBs0qBuqATDVenk7ms=",
+        "owner": "badlogic",
+        "repo": "pi-skills",
+        "rev": "75d32a382b0c8aafce356d68e17d2dc94c0c953b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "badlogic",
+        "repo": "pi-skills",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "agenix": "agenix",
@@ -311,6 +327,7 @@
         "nix-homebrew": "nix-homebrew",
         "nixos-facter": "nixos-facter",
         "nixpkgs": "nixpkgs",
+        "pi-skills": "pi-skills",
         "rustfs": "rustfs",
         "treefmt-nix": "treefmt-nix",
         "ublock": "ublock"

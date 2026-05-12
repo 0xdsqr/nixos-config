@@ -93,6 +93,11 @@
       url = "github:gorhill/uBlock";
       flake = false;
     };
+
+    pi-skills = {
+      url = "github:badlogic/pi-skills";
+      flake = false;
+    };
   };
 
   outputs =

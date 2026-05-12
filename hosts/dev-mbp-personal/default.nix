@@ -73,6 +73,8 @@ in
             };
           };
 
+          agentic-tools.enable = true;
+
           desktop = {
             browsers.googleChrome.enable = true;
             codexbar.enable = true;
