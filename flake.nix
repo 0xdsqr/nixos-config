@@ -98,6 +98,11 @@
       url = "github:badlogic/pi-skills";
       flake = false;
     };
+
+    anthropic-skills = {
+      url = "github:anthropics/skills";
+      flake = false;
+    };
   };
 
   outputs =
