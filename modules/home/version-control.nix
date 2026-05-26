@@ -122,6 +122,10 @@
           default = true;
         };
 
+        glab.enable = mkEnableOption "GitLab CLI integration" // {
+          default = true;
+        };
+
         gpg.enable = mkEnableOption "GPG tooling" // {
           default = true;
         };
@@ -144,6 +148,7 @@
       config = mkIf cfg.enable {
         home.packages =
           optionals cfg.lazygit.enable (singleton pkgs.lazygit)
+          ++ optionals cfg.glab.enable (singleton pkgs.glab)
           ++ optionals cfg.jj.enable [
             pkgs.jjui
             cfg.jj.package
