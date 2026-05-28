@@ -68,7 +68,6 @@ in
           difftastic.enable = false;
           hushlogin.enable = false;
           opencode.enable = false;
-          pi.enable = false;
 
           packages = {
             containers.enable = false;

@@ -107,7 +107,7 @@
       config = mkIf cfg.enable {
         home.packages = [
           pkgs.bun
-          pkgs.nodejs_25
+          pkgs.nodejs_latest
         ];
       };
     };
