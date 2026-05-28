@@ -20,6 +20,12 @@
               linux-x64 = "sha256-Z/bKt+bBJAEPYqwY+AeLwJ4NtqW56K6HTp5zAzxFF5M=";
             };
             codexVersion = "0.134.0";
+            codexSrc = prev.fetchFromGitHub {
+              owner = "openai";
+              repo = "codex";
+              tag = "rust-v${codexVersion}";
+              hash = "sha256-eHe4bjUIvSK512ZTlFcOBqv5hhM+zfzkxcLfrzDA7L4=";
+            };
           in
           {
             claude-code = prev.claude-code.overrideAttrs (_: {
@@ -32,11 +38,13 @@
 
             codex = prev.codex.overrideAttrs (_: {
               version = codexVersion;
-              src = prev.fetchFromGitHub {
-                owner = "openai";
-                repo = "codex";
-                tag = "rust-v${codexVersion}";
-                hash = "sha256-eHe4bjUIvSK512ZTlFcOBqv5hhM+zfzkxcLfrzDA7L4=";
+              src = codexSrc;
+              cargoDeps = prev.rustPlatform.fetchCargoVendor {
+                pname = "codex";
+                version = codexVersion;
+                src = codexSrc;
+                sourceRoot = "${codexSrc.name}/codex-rs";
+                hash = "sha256-DjqTn6DWfOlwdQ387eWeT5fs6qIgaD2rAXjxNStKgrs=";
               };
               cargoHash = "sha256-DjqTn6DWfOlwdQ387eWeT5fs6qIgaD2rAXjxNStKgrs=";
             });
