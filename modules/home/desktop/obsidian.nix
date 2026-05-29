@@ -7,7 +7,12 @@
       ...
     }:
     let
-      inherit (lib.attrsets) filterAttrs mapAttrsToList recursiveUpdate;
+      inherit (lib.attrsets)
+        filterAttrs
+        mapAttrsToList
+        optionalAttrs
+        recursiveUpdate
+        ;
       inherit (lib.lists) unique;
       inherit (lib.modules) mkIf;
       inherit (lib.options) mkEnableOption mkOption;
@@ -22,6 +27,7 @@
         anything
         attrsOf
         bool
+        enum
         lines
         listOf
         nullOr
@@ -99,6 +105,37 @@
           path
         else
           "${config.home.homeDirectory}/${path}";
+
+      profileDefaultPaths = {
+        personal = "Documents/Obsidian/Personal";
+        stablecore = "Documents/Obsidian/Stablecore";
+        work = "Documents/Obsidian/Work";
+      };
+
+      profilePath =
+        if cfg.profilePath != null then
+          cfg.profilePath
+        else if cfg.profile != null then
+          profileDefaultPaths.${cfg.profile}
+        else
+          null;
+
+      mkProfileVault = path: {
+        inherit path;
+
+        appSettings = { };
+        appearance = { };
+        communityPlugins = [ ];
+        corePlugins = null;
+        enable = true;
+        extraFiles = { };
+        folders = [ ];
+        force = false;
+        hotkeys = { };
+        snippets = { };
+      };
+
+      profileVaults = optionalAttrs (cfg.profile != null) { ${cfg.profile} = mkProfileVault profilePath; };
 
       snippetFileName = name: if hasSuffix ".css" name then name else "${name}.css";
 
@@ -228,12 +265,29 @@
           ) extraFiles
         );
 
-      enabledVaults = filterAttrs (_: vault: vault.enable) cfg.vaults;
+      effectiveVaults = recursiveUpdate profileVaults cfg.vaults;
+      enabledVaults = filterAttrs (_: vault: vault.enable) effectiveVaults;
       vaultScripts = concatStringsSep "\n" (mapAttrsToList mkVaultScript enabledVaults);
     in
     {
       options.dsqr.home.desktop.obsidian = {
         enable = mkEnableOption "Obsidian vault bootstrap configuration";
+
+        profile = mkOption {
+          type = nullOr (enum [
+            "personal"
+            "stablecore"
+            "work"
+          ]);
+          default = null;
+          description = "Optional single-vault profile for hosts that should not mix personal and work vaults.";
+        };
+
+        profilePath = mkOption {
+          type = nullOr str;
+          default = null;
+          description = "Optional path override for the selected profile vault.";
+        };
 
         defaults = {
           folders = mkOption {

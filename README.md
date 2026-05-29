@@ -17,11 +17,9 @@ Obsidian is installed at the Darwin layer with the Homebrew cask. Vault bootstra
 ```nix
 home-manager.users.dsqr.dsqr.home.desktop.obsidian = {
   enable = true;
-
-  vaults.personal = {
-    path = "Documents/Obsidian/Personal";
-    # force = true; # Overwrite the managed .obsidian files on every activation.
-  };
+  profile = "personal";
+  # profilePath = "Documents/Obsidian/Personal";
+  # vaults.personal.force = true; # Overwrite the managed .obsidian files on every activation.
 
   # Recommended community plugins to install manually first, then enable here:
   # defaults.communityPlugins = [
