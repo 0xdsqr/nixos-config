@@ -36,7 +36,45 @@ home-manager.users.dsqr.dsqr.home.desktop.obsidian = {
   # defaults.extraFiles."plugins/dataview/data.json" = builtins.toJSON {
   #   enableInlineDataview = true;
   # };
+  #
+  # Vault files can also be seeded without touching .obsidian:
+  # defaults.files."Resources/Runbook.md" = ''
+  #   # Runbook
+  # '';
 };
 ```
 
-By default the module creates common folders, seeds `app.json`, `appearance.json`, core plugin defaults, an empty community plugin list, `hotkeys.json`, and a small readable CSS snippet. Existing files are kept unless `force = true`.
+Default vault shape:
+
+```text
+Personal/
+|-- Inbox/
+|-- Daily/
+|-- Projects/
+|   `-- Example Project.md
+|-- Areas/
+|   `-- Engineering.md
+|-- Resources/
+|   `-- Runbooks.md
+|-- Archive/
+|-- Templates/
+|   |-- Daily.md
+|   |-- Project.md
+|   |-- Area.md
+|   `-- Resource.md
+|-- assets/
+`-- .obsidian/
+    |-- app.json
+    |-- appearance.json
+    |-- core-plugins.json
+    |-- community-plugins.json
+    |-- daily-notes.json
+    |-- hotkeys.json
+    |-- templates.json
+    `-- snippets/
+        `-- dsqr-readable.css
+```
+
+`Inbox/` is for quick capture, `Daily/` is the dated log, `Projects/` is finite outcomes, `Areas/` is ongoing responsibility, `Resources/` is reference material, `Archive/` is inactive material, `Templates/` holds reusable note shapes, and `assets/` keeps attachments out of the note flow.
+
+The module seeds the folders, template files, daily note/template plugin settings, `app.json`, `appearance.json`, core plugin defaults, an empty community plugin list, `hotkeys.json`, and a small readable CSS snippet. The example notes under `Projects/`, `Areas/`, and `Resources/` show where real notes belong; they are not created by default. Existing files are kept unless `force = true`.

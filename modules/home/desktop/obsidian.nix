@@ -97,6 +97,72 @@
         }
       '';
 
+      defaultVaultFiles = {
+        "Templates/Daily.md" = ''
+          # {{date}}
+
+          ## Focus
+
+          ## Log
+
+          ## Notes
+
+          ## Follow Up
+        '';
+
+        "Templates/Project.md" = ''
+          # Project Name
+
+          ## Outcome
+
+          ## Status
+
+          ## Next Actions
+          - [ ]
+
+          ## Notes
+
+          ## Links
+        '';
+
+        "Templates/Area.md" = ''
+          # Area Name
+
+          ## Standard
+
+          ## Current
+
+          ## Routines
+          - [ ]
+
+          ## Related
+        '';
+
+        "Templates/Resource.md" = ''
+          # Resource Name
+
+          ## Summary
+
+          ## Notes
+
+          ## Links
+        '';
+      };
+
+      defaultExtraFiles = {
+        "daily-notes.json" = builtins.toJSON {
+          folder = "Daily";
+          format = "YYYY-MM-DD";
+          template = "Templates/Daily.md";
+        };
+
+        "templates.json" = builtins.toJSON {
+          dateFormat = "YYYY-MM-DD";
+          folder = "Templates";
+          timeFormat = "HH:mm";
+        };
+      };
+
       normalizePath =
         path:
         if hasPrefix "~/" path then
@@ -129,6 +195,7 @@
         corePlugins = null;
         enable = true;
         extraFiles = { };
+        files = { };
         folders = [ ];
         force = false;
         hotkeys = { };
@@ -206,6 +273,12 @@
               default = { };
               description = "Extra files written relative to the vault .obsidian directory.";
             };
+
+            files = mkOption {
+              type = attrsOf lines;
+              default = { };
+              description = "Extra files written relative to the vault root.";
+            };
           };
         }
       );
@@ -239,6 +312,7 @@
           hotkeys = recursiveUpdate cfg.defaults.hotkeys vault.hotkeys;
           snippets = cfg.defaults.snippets // vault.snippets;
           extraFiles = cfg.defaults.extraFiles // vault.extraFiles;
+          files = cfg.defaults.files // vault.files;
         in
         concatStringsSep "\n" (
           map mkEnsureDir folders
@@ -257,6 +331,12 @@
               pkgs.writeText "obsidian-${name}-${snippetFileName snippetName}" text
             )
           ) snippets
+          ++ mapAttrsToList (
+            relativePath: text:
+            mkInstallFile vault.force "${vaultPath}/${relativePath}" (
+              pkgs.writeText "obsidian-${name}-${builtins.baseNameOf relativePath}" text
+            )
+          ) files
           ++ mapAttrsToList (
             relativePath: text:
             mkInstallFile vault.force "${obsidianPath}/${relativePath}" (
@@ -295,6 +375,10 @@
             default = [
               "Inbox"
               "Daily"
+              "Projects"
+              "Areas"
+              "Resources"
+              "Archive"
               "Templates"
               "assets"
             ];
@@ -337,9 +421,15 @@
             description = "Shared CSS snippets written under .obsidian/snippets.";
           };
 
+          files = mkOption {
+            type = attrsOf lines;
+            default = defaultVaultFiles;
+            description = "Shared files written relative to the vault root.";
+          };
+
           extraFiles = mkOption {
             type = attrsOf lines;
-            default = { };
+            default = defaultExtraFiles;
             description = "Shared extra files written relative to .obsidian.";
           };
         };
