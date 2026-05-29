@@ -5,7 +5,12 @@
       inherit (lib.lists) optional singleton;
       inherit (lib.modules) mkAfter mkIf;
       inherit (lib.options) mkEnableOption mkOption;
-      inherit (lib.types) listOf lines str;
+      inherit (lib.types)
+        listOf
+        lines
+        nullOr
+        str
+        ;
       grafanaCfg = config.dsqr.darwin.grafana;
       alloyCfg = grafanaCfg.alloy;
       lokiCfg = grafanaCfg.loki;
@@ -15,9 +20,9 @@
         enable = mkEnableOption "Grafana Alloy Loki log shipping";
 
         writeUrl = mkOption {
-          type = str;
-          default = "http://10.10.30.102:3100/loki/api/v1/push";
-          description = "Loki push endpoint on beacon.";
+          type = nullOr str;
+          default = null;
+          description = "Loki push endpoint.";
         };
 
         extraFragments = mkOption {
@@ -49,19 +54,23 @@
             assertion = (!lokiCfg.enable) || alloyCfg.enable;
             message = "dsqr.darwin.grafana.loki.enable requires dsqr.darwin.grafana.alloy.enable.";
           }
+          {
+            assertion = (!lokiCfg.enable) || lokiCfg.writeUrl != null;
+            message = "dsqr.darwin.grafana.loki.writeUrl must be set when dsqr.darwin.grafana.loki.enable is true.";
+          }
         ];
 
         dsqr.darwin.grafana.alloy.extraFragments = mkIf (alloyCfg.enable && lokiCfg.enable) (
           mkAfter (
             singleton /* alloy */ ''
-              loki.write "beacon" {
+              loki.write "primary" {
                 endpoint {
-                  url = "${lokiCfg.writeUrl}"
+                  url = "${if lokiCfg.writeUrl == null then "" else lokiCfg.writeUrl}"
                 }
               }
 
               loki.process "system_log" {
-                forward_to = [loki.write.beacon.receiver]
+                forward_to = [loki.write.primary.receiver]
 
                 stage.regex {
                   expression = "^[A-Z][a-z]{2} +\\d{1,2} \\d{2}:\\d{2}:\\d{2} \\S+ (?P<unit>[^\\[]+?)(?:\\[(?P<pid>\\d+)\\])?: (?P<message>.*)$"
@@ -106,7 +115,7 @@
                     "os"       = "macos",
                   },
                 ]
-                forward_to = [loki.write.beacon.receiver]
+                forward_to = [loki.write.primary.receiver]
 
                 file_match {
                   enabled = true
@@ -127,7 +136,7 @@
                     "os"       = "macos",
                   },
                 ]
-                forward_to = [loki.write.beacon.receiver]
+                forward_to = [loki.write.primary.receiver]
 
                 file_match {
                   enabled = true

@@ -1,7 +1,7 @@
 _: {
   dsqr.nixos.alloy.loki.extraConfig = ''
     loki.process "opnsense_syslog" {
-      forward_to = [loki.write.beacon.receiver]
+      forward_to = [loki.write.primary.receiver]
 
       stage.match {
         selector = "{job=\"opnsense-syslog\", app=\"filterlog\"}"
@@ -70,7 +70,7 @@ _: {
         }
       }
 
-      forward_to    = [loki.write.beacon.receiver]
+      forward_to    = [loki.write.primary.receiver]
       relabel_rules = loki.relabel.opnsense_syslog.rules
     }
   '';

@@ -12,7 +12,13 @@ let
   hostName = "srv-mini-node-01";
 
   modules =
-    attrValues commonModules ++ attrValues darwinModules ++ singleton (self.lib.mkHomeManagerSharedModule homeModules);
+    attrValues commonModules
+    ++ attrValues darwinModules
+    ++ [
+      ../../profiles/dsqr/common.nix
+      ../../profiles/dsqr/darwin.nix
+    ]
+    ++ singleton (self.lib.mkHomeManagerSharedModule homeModules);
 in
 {
   flake.hostDefinitions.${hostName} = self.lib.mkHostMeta {

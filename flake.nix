@@ -52,6 +52,12 @@
       flake = false;
     };
 
+    datadog-lapdog = {
+      url = "github:DataDog/homebrew-lapdog";
+
+      flake = false;
+    };
+
     darwin = {
       url = "github:LnL7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -122,8 +128,7 @@
           let
             pathString = toString path;
           in
-          hasSuffix "/common/keys.nix" pathString
-          || hasInfix "/home/neovim/plugins/" pathString
+          hasInfix "/home/neovim/plugins/" pathString
           || hasSuffix "/home/neovim/init-lua.nix" pathString
           || hasSuffix "/home/neovim/packages.nix" pathString;
       };
@@ -147,7 +152,12 @@
           "aarch64-darwin"
         ];
 
-        imports = [ inputs.home-manager.flakeModules.home-manager ] ++ moduleImports ++ hostImports;
+        imports = [
+          inputs.home-manager.flakeModules.home-manager
+          ./packages
+        ]
+        ++ moduleImports
+        ++ hostImports;
 
         perSystem =
           { pkgs, ... }:

@@ -1,11 +1,6 @@
 {
   flake.nixosModules.tailscale =
-    {
-      config,
-      hostMeta,
-      lib,
-      ...
-    }:
+    { config, lib, ... }:
     let
       inherit (lib.modules) mkDefault mkIf;
       inherit (lib.options) mkEnableOption mkOption;
@@ -20,7 +15,7 @@
 
         authKeyAgeFile = mkOption {
           type = nullOr path;
-          default = hostMeta.path + "/tailscale.auth-key.age";
+          default = null;
           description = "Encrypted age file containing the Tailscale auth key.";
         };
       };

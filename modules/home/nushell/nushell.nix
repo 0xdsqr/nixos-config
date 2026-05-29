@@ -15,6 +15,7 @@
         anything
         attrsOf
         lines
+        nullOr
         package
         str
         ;
@@ -66,6 +67,12 @@
           default = "";
           description = "Extra zsh text prepended before the Darwin zsh-to-Nushell handoff.";
         };
+
+        agenixIdentityFile = mkOption {
+          type = nullOr str;
+          default = null;
+          description = "Optional SSH identity file passed to agenix from the Nushell wrapper.";
+        };
       };
 
       config = mkIf cfg.enable {
@@ -110,11 +117,11 @@
           // cfg.extraAliases;
           extraConfig =
             readFile ./nushell.config.nu
-            + optionalString pkgs.stdenv.isDarwin /* nu */ ''
+            + optionalString (pkgs.stdenv.isDarwin && cfg.agenixIdentityFile != null) /* nu */ ''
               # agenix only auto-discovers ~/.ssh/id_ed25519 and ~/.ssh/id_rsa,
-              # so wrap it to use the homelab key by default on the Mac.
+              # so wrap it when a profile supplies a different identity.
               def --wrapped agenix [...args] {
-                let key = ($env.HOME | path join ".ssh" "dsqr_homelab_ed25519")
+                let key = ($env.HOME | path join ${builtins.toJSON cfg.agenixIdentityFile})
                 ^agenix -i $key ...$args
               }
             ''

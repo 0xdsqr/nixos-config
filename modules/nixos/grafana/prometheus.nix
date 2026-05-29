@@ -36,7 +36,7 @@
 
           cluster = mkOption {
             type = str;
-            default = "homelab";
+            default = "default";
             description = "Stable cluster label applied to Kubernetes metrics scraped by Alloy.";
           };
 
@@ -135,7 +135,7 @@
               prometheus.scrape "kube_state_metrics" {
                 targets         = discovery.relabel.kube_state_metrics.output
                 scrape_interval = "${k8sCfg.kubeStateMetrics.scrapeInterval}"
-                forward_to      = [prometheus.remote_write.beacon.receiver]
+                forward_to      = [prometheus.remote_write.primary.receiver]
               }
             ''
           )

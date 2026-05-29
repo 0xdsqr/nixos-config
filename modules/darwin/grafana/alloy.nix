@@ -12,7 +12,12 @@
       inherit (lib.modules) mkIf;
       inherit (lib.options) mkEnableOption mkOption mkPackageOption;
       inherit (lib.strings) concatStringsSep;
-      inherit (lib.types) listOf lines str;
+      inherit (lib.types)
+        listOf
+        lines
+        nullOr
+        str
+        ;
       cfg = config.dsqr.darwin.grafana.alloy;
 
       alloyConfig = pkgs.writeText "config.alloy" (
@@ -21,7 +26,7 @@
             prometheus.exporter.unix "host" {}
 
             prometheus.relabel "host" {
-              forward_to = [prometheus.remote_write.beacon.receiver]
+              forward_to = [prometheus.remote_write.primary.receiver]
 
               rule {
                 target_label = "instance"
@@ -55,10 +60,10 @@
               forward_to      = [prometheus.relabel.host.receiver]
             }
 
-            prometheus.remote_write "beacon" {
+            prometheus.remote_write "primary" {
               endpoint {
-                name = "beacon"
-                url  = "${cfg.prometheus.remoteWriteUrl}"
+                name = "primary"
+                url  = "${if cfg.prometheus.remoteWriteUrl == null then "" else cfg.prometheus.remoteWriteUrl}"
               }
             }
           ''
@@ -86,14 +91,14 @@
 
         environment = mkOption {
           type = str;
-          default = "homelab";
+          default = "default";
           description = "Environment label for this host.";
         };
 
         prometheus.remoteWriteUrl = mkOption {
-          type = str;
-          default = "http://10.10.30.102:9090/api/v1/write";
-          description = "Prometheus remote_write receiver URL on beacon.";
+          type = nullOr str;
+          default = null;
+          description = "Prometheus remote_write receiver URL.";
         };
 
         extraFragments = mkOption {
@@ -104,6 +109,13 @@
       };
 
       config = mkIf cfg.enable {
+        assertions = [
+          {
+            assertion = cfg.prometheus.remoteWriteUrl != null;
+            message = "dsqr.darwin.grafana.alloy.prometheus.remoteWriteUrl must be set when dsqr.darwin.grafana.alloy.enable is true.";
+          }
+        ];
+
         environment.systemPackages = singleton cfg.package;
 
         system.activationScripts.preActivation.text = /* bash */ ''

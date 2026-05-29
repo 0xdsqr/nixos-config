@@ -7,8 +7,6 @@
       ...
     }:
     let
-      keys = import ../common/keys.nix;
-
       inherit (lib.attrsets) optionalAttrs;
       inherit (lib.lists) optionals singleton;
       inherit (lib.meta) getExe;
@@ -26,7 +24,18 @@
 
       cfg = config.dsqr.home.versionControl;
       tomlFormat = pkgs.formats.toml { };
-      useSshSigning = cfg.git.signing.enable && cfg.git.signing.format == "ssh";
+      hasSshSigningKey = cfg.git.signing.ssh.privateKeyFile != null || cfg.git.signing.ssh.publicKey != null;
+      useSshSigning = cfg.git.signing.enable && cfg.git.signing.format == "ssh" && hasSshSigningKey;
+      signingKey =
+        if cfg.git.signing.format == "ssh" then
+          (
+            if cfg.git.signing.ssh.privateKeyFile != null then
+              toString cfg.git.signing.ssh.privateKeyFile
+            else
+              "key::${cfg.git.signing.ssh.publicKey}"
+          )
+        else
+          cfg.git.signing.key;
     in
     {
       options.dsqr.home.versionControl = {
@@ -38,14 +47,14 @@
           package = mkPackageOption pkgs "git" { };
 
           userName = mkOption {
-            type = str;
-            default = "0xdsqr";
+            type = nullOr str;
+            default = null;
             description = "Default Git author name.";
           };
 
           userEmail = mkOption {
-            type = str;
-            default = "me@dsqr.dev";
+            type = nullOr str;
+            default = null;
             description = "Default Git author email.";
           };
 
@@ -56,8 +65,8 @@
           };
 
           github.user = mkOption {
-            type = str;
-            default = "0xdsqr";
+            type = nullOr str;
+            default = null;
             description = "Default GitHub username used by tooling.";
           };
 
@@ -75,7 +84,7 @@
 
           signing = {
             enable = mkEnableOption "Git signing" // {
-              default = true;
+              default = false;
             };
 
             format = mkOption {
@@ -90,7 +99,7 @@
 
             key = mkOption {
               type = nullOr str;
-              default = "6908FE142198DB65";
+              default = null;
               description = "Signing key identifier or path.";
             };
 
@@ -101,8 +110,8 @@
             };
 
             ssh.publicKey = mkOption {
-              type = str;
-              default = keys.users.dsqr;
+              type = nullOr str;
+              default = null;
               description = "SSH public key used when Git signing format is ssh.";
             };
 
@@ -139,7 +148,7 @@
 
           signing.key = mkOption {
             type = nullOr str;
-            default = keys.users.dsqr;
+            default = null;
             description = "SSH public key used for JJ signing.";
           };
         };
@@ -164,28 +173,21 @@
           core.askPass = "";
           core.editor = "nvim";
           credential.helper = cfg.git.credential.helper;
-          github.user = cfg.git.github.user;
           init.defaultBranch = "master";
           push.default = "tracking";
-          user = {
-            name = cfg.git.userName;
-            email = cfg.git.userEmail;
-          };
         }
-        // optionalAttrs useSshSigning { gpg.ssh.allowedSignersFile = "${config.xdg.configHome}/git/allowed_signers"; }
+        // optionalAttrs (cfg.git.github.user != null) { github.user = cfg.git.github.user; }
+        // optionalAttrs (cfg.git.userName != null || cfg.git.userEmail != null) {
+          user =
+            optionalAttrs (cfg.git.userName != null) { name = cfg.git.userName; }
+            // optionalAttrs (cfg.git.userEmail != null) { email = cfg.git.userEmail; };
+        }
+        // optionalAttrs (useSshSigning && cfg.git.signing.ssh.publicKey != null) {
+          gpg.ssh.allowedSignersFile = "${config.xdg.configHome}/git/allowed_signers";
+        }
         // cfg.git.extraSettings;
         programs.git.signing.format = mkIf cfg.git.signing.enable cfg.git.signing.format;
-        programs.git.signing.key = mkIf cfg.git.signing.enable (
-          if useSshSigning then
-            (
-              if cfg.git.signing.ssh.privateKeyFile != null then
-                toString cfg.git.signing.ssh.privateKeyFile
-              else
-                "key::${cfg.git.signing.ssh.publicKey}"
-            )
-          else
-            cfg.git.signing.key
-        );
+        programs.git.signing.key = mkIf (cfg.git.signing.enable && (useSshSigning || cfg.git.signing.key != null)) signingKey;
         programs.git.signing.signByDefault = mkIf cfg.git.signing.enable cfg.git.signing.signByDefault;
 
         programs.gh.enable = mkIf cfg.gh.enable true;
@@ -199,7 +201,9 @@
           pinentry.package = pkgs.pinentry-curses;
         };
 
-        xdg.configFile."git/allowed_signers" = mkIf useSshSigning { text = "*@* ${cfg.git.signing.ssh.publicKey}\n"; };
+        xdg.configFile."git/allowed_signers" = mkIf (useSshSigning && cfg.git.signing.ssh.publicKey != null) {
+          text = "*@* ${cfg.git.signing.ssh.publicKey}\n";
+        };
 
         xdg.configFile."jj/config.toml" = mkIf cfg.jj.enable {
           source = tomlFormat.generate "jj-config.toml" {
@@ -210,9 +214,11 @@
             ];
             git.push = "origin";
             git.sign-on-push = true;
-            signing.backend = "ssh";
-            signing.behavior = "drop";
-            signing.key = cfg.jj.signing.key;
+            signing = {
+              backend = "ssh";
+              behavior = "drop";
+            }
+            // optionalAttrs (cfg.jj.signing.key != null) { inherit (cfg.jj.signing) key; };
             ui.conflict-marker-style = "snapshot";
             ui.diff-editor = ":builtin";
             ui.graph.style = "square";
@@ -221,10 +227,9 @@
               "-c"
               "exec \${PAGER:-less}"
             ];
-            user = {
-              name = cfg.git.userName;
-              email = cfg.git.userEmail;
-            };
+            user =
+              optionalAttrs (cfg.git.userName != null) { name = cfg.git.userName; }
+              // optionalAttrs (cfg.git.userEmail != null) { email = cfg.git.userEmail; };
           };
         };
       };

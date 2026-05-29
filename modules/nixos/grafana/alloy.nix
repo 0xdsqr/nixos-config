@@ -5,7 +5,12 @@
       inherit (lib.modules) mkAfter mkIf mkMerge;
       inherit (lib.options) mkEnableOption mkOption;
       inherit (lib.strings) concatStringsSep optionalString;
-      inherit (lib.types) lines listOf str;
+      inherit (lib.types)
+        lines
+        listOf
+        nullOr
+        str
+        ;
       cfg = config.dsqr.nixos.alloy;
       composedConfig = concatStringsSep "\n\n" cfg.configFragments;
     in
@@ -27,18 +32,14 @@
 
         environment = mkOption {
           type = str;
-          default = "homelab";
+          default = "default";
           description = "Environment label for this host";
         };
 
         remoteWriteUrl = mkOption {
-          type = str;
-          default =
-            if config.networking.hostName == "srv-lx-beacon" then
-              "http://127.0.0.1:9090/api/v1/write"
-            else
-              "http://10.10.30.102:9090/api/v1/write";
-          description = "Prometheus remote_write receiver URL on beacon";
+          type = nullOr str;
+          default = null;
+          description = "Prometheus remote_write receiver URL.";
         };
 
         extraConfig = mkOption {
@@ -57,6 +58,13 @@
 
       config = mkMerge [
         (mkIf cfg.enable {
+          assertions = [
+            {
+              assertion = cfg.remoteWriteUrl != null;
+              message = "dsqr.nixos.alloy.remoteWriteUrl must be set when dsqr.nixos.alloy.enable is true.";
+            }
+          ];
+
           services.alloy = {
             enable = true;
             extraFlags = [
@@ -77,7 +85,7 @@
               prometheus.exporter.unix "host" {}
 
               prometheus.relabel "host" {
-                forward_to = [prometheus.remote_write.beacon.receiver]
+                forward_to = [prometheus.remote_write.primary.receiver]
 
                 rule {
                   target_label = "instance"
@@ -111,10 +119,10 @@
                 forward_to      = [prometheus.relabel.host.receiver]
               }
 
-              prometheus.remote_write "beacon" {
+              prometheus.remote_write "primary" {
                 endpoint {
-                  name = "beacon"
-                  url  = "${cfg.remoteWriteUrl}"
+                  name = "primary"
+                  url  = "${if cfg.remoteWriteUrl == null then "" else cfg.remoteWriteUrl}"
                 }
               }
             ''

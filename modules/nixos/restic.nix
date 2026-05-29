@@ -2,15 +2,13 @@
   flake.nixosModules.restic =
     {
       config,
-      hostMeta,
-      keys,
       lib,
       pkgs,
       ...
     }:
     let
       inherit (lib.attrsets) genAttrs;
-      inherit (lib.lists) elem optional;
+      inherit (lib.lists) elem;
       inherit (lib.modules) mkIf;
       inherit (lib.options) mkEnableOption mkOption;
       inherit (lib.types)
@@ -20,8 +18,6 @@
         path
         str
         ;
-
-      backupHost = if config.networking.hostName == "srv-lx-khaos" then "srv-lx-beacon" else null;
 
       cfg = config.dsqr.nixos.restic;
       isReceiver = elem config.networking.hostName cfg.receiverHosts;
@@ -34,14 +30,20 @@
 
           hosts = mkOption {
             type = listOf str;
-            default = optional (backupHost != null) backupHost;
+            default = [ ];
             description = "Hosts that receive this machine's restic backups.";
           };
 
           receiverHosts = mkOption {
             type = listOf str;
-            default = [ "srv-lx-beacon" ];
+            default = [ ];
             description = "Hosts that receive restic backups over SSH.";
+          };
+
+          authorizedKeys = mkOption {
+            type = listOf str;
+            default = [ ];
+            description = "SSH public keys authorized to push restic backups to receiver hosts.";
           };
 
           package = mkOption {
@@ -53,7 +55,7 @@
 
           passwordAgeFile = mkOption {
             type = nullOr path;
-            default = hostMeta.path + "/restic.password.age";
+            default = null;
             description = "Encrypted age file that stores the restic repository password.";
           };
         };
@@ -70,7 +72,7 @@
           users.users.backup = {
             description = "Backup";
             isNormalUser = true;
-            openssh.authorizedKeys.keys = keys.all;
+            openssh.authorizedKeys.keys = cfg.authorizedKeys;
           };
         }
         // mkIf (config.services.restic.hosts != [ ] && hasPasswordAgeFile) {

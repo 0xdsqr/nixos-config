@@ -12,7 +12,13 @@ let
   hostName = "srv-lx-k8s-master-01";
 
   modules =
-    attrValues commonModules ++ attrValues nixosModules ++ singleton (self.lib.mkHomeManagerSharedModule homeModules);
+    attrValues commonModules
+    ++ attrValues nixosModules
+    ++ [
+      ../../profiles/dsqr/common.nix
+      ../../profiles/dsqr/nixos.nix
+    ]
+    ++ singleton (self.lib.mkHomeManagerSharedModule homeModules);
 
   installerModules = modules ++ [ (inputs.nixpkgs + /nixos/modules/installer/cd-dvd/iso-image.nix) ];
 in

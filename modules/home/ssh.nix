@@ -1,42 +1,92 @@
 {
   flake.homeModules.ssh =
-    {
-      config,
-      self,
-      lib,
-      ...
-    }:
+    { config, lib, ... }:
     let
-      inherit (lib.attrsets) filterAttrs mapAttrsToList;
+      inherit (lib.attrsets) mapAttrsToList;
       inherit (lib.lists) optionals;
       inherit (lib.modules) mkIf;
       inherit (lib.options) mkEnableOption mkOption;
       inherit (lib.strings) concatLines optionalString;
-      inherit (lib.types) lines;
+      inherit (lib.types)
+        attrsOf
+        lines
+        nullOr
+        str
+        submodule
+        ;
 
       cfg = config.dsqr.home.ssh;
 
-      hostNameFor = name: host: if host ? sshHost && host.sshHost != null then host.sshHost else name;
+      hostOptions =
+        { name, ... }:
+        {
+          options = {
+            hostName = mkOption {
+              type = str;
+              default = name;
+              description = "SSH HostName value.";
+            };
 
-      hosts = self.hostDefinitions;
+            user = mkOption {
+              type = nullOr str;
+              default = null;
+              description = "SSH User value.";
+            };
 
-      backupHosts = filterAttrs (_name: host: host.class == "nixos") self.hostDefinitions;
+            identityFile = mkOption {
+              type = nullOr str;
+              default = null;
+              description = "SSH IdentityFile value.";
+            };
 
-      hostBlocks = mapAttrsToList (name: host: /* sshconfig */ ''
-        Host ${name}
-          HostName ${hostNameFor name host}
-          User dsqr
-          IdentityFile ~/.ssh/dsqr_homelab_ed25519
-          StrictHostKeyChecking accept-new
-      '') hosts;
+            strictHostKeyChecking = mkOption {
+              type = nullOr str;
+              default = null;
+              description = "SSH StrictHostKeyChecking value.";
+            };
 
-      backupHostBlocks = mapAttrsToList (name: host: /* sshconfig */ ''
-        Host ${name}-backup
-          HostName ${hostNameFor name host}
-          User backup
-          IdentityFile ~/.ssh/dsqr_homelab_ed25519
-          StrictHostKeyChecking accept-new
-      '') backupHosts;
+            extraConfig = mkOption {
+              type = lines;
+              default = "";
+              description = "Extra lines appended to this SSH host block.";
+            };
+          };
+        };
+
+      renderHost =
+        defaults: name: host:
+        let
+          user = if host.user != null then host.user else defaults.user;
+          identityFile = if host.identityFile != null then host.identityFile else defaults.identityFile;
+          strictHostKeyChecking =
+            if host.strictHostKeyChecking != null then host.strictHostKeyChecking else defaults.strictHostKeyChecking;
+        in
+        /* sshconfig */ ''
+          Host ${name}
+            HostName ${host.hostName}
+        ''
+        + optionalString (user != null) "  User ${user}\n"
+        + optionalString (identityFile != null) "  IdentityFile ${identityFile}\n"
+        + optionalString (strictHostKeyChecking != null) "  StrictHostKeyChecking ${strictHostKeyChecking}\n"
+        + optionalString (host.extraConfig != "") host.extraConfig;
+
+      hostBlocks = mapAttrsToList (renderHost {
+        inherit (cfg.homelab) identityFile strictHostKeyChecking user;
+      }) cfg.homelab.hosts;
+
+      backupHostBlocks = mapAttrsToList (
+        name: host:
+        renderHost {
+          identityFile =
+            if cfg.homelab.backup.identityFile != null then cfg.homelab.backup.identityFile else cfg.homelab.identityFile;
+          strictHostKeyChecking =
+            if cfg.homelab.backup.strictHostKeyChecking != null then
+              cfg.homelab.backup.strictHostKeyChecking
+            else
+              cfg.homelab.strictHostKeyChecking;
+          inherit (cfg.homelab.backup) user;
+        } "${name}-backup" host
+      ) cfg.homelab.backup.hosts;
     in
     {
       options.dsqr.home.ssh = {
@@ -49,7 +99,57 @@
         };
 
         homelab.enable = mkEnableOption "generated homelab SSH host entries" // {
-          default = true;
+          default = false;
+        };
+
+        homelab.user = mkOption {
+          type = nullOr str;
+          default = null;
+          description = "Default SSH user for generated homelab host entries.";
+        };
+
+        homelab.identityFile = mkOption {
+          type = nullOr str;
+          default = null;
+          description = "Default SSH identity file for generated homelab host entries.";
+        };
+
+        homelab.strictHostKeyChecking = mkOption {
+          type = nullOr str;
+          default = "accept-new";
+          description = "Default StrictHostKeyChecking value for generated homelab host entries.";
+        };
+
+        homelab.hosts = mkOption {
+          type = attrsOf (submodule hostOptions);
+          default = { };
+          description = "Generated homelab SSH host entries keyed by SSH host alias.";
+        };
+
+        homelab.backup.enable = mkEnableOption "generated backup SSH host entries";
+
+        homelab.backup.user = mkOption {
+          type = nullOr str;
+          default = "backup";
+          description = "Default SSH user for generated backup host entries.";
+        };
+
+        homelab.backup.identityFile = mkOption {
+          type = nullOr str;
+          default = null;
+          description = "Default SSH identity file for generated backup host entries.";
+        };
+
+        homelab.backup.strictHostKeyChecking = mkOption {
+          type = nullOr str;
+          default = null;
+          description = "Default StrictHostKeyChecking value for generated backup host entries.";
+        };
+
+        homelab.backup.hosts = mkOption {
+          type = attrsOf (submodule hostOptions);
+          default = { };
+          description = "Generated backup SSH host entries keyed by base SSH host alias.";
         };
 
         extraConfig = mkOption {
@@ -68,7 +168,8 @@
                   IdentitiesOnly yes
               ''
             ]
-            ++ optionals cfg.homelab.enable (hostBlocks ++ backupHostBlocks)
+            ++ optionals cfg.homelab.enable hostBlocks
+            ++ optionals (cfg.homelab.enable && cfg.homelab.backup.enable) backupHostBlocks
           )
           + optionalString (cfg.extraConfig != "") ("\n" + cfg.extraConfig);
       };

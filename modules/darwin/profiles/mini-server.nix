@@ -11,6 +11,9 @@
       inherit (lib.options) mkEnableOption;
 
       cfg = config.dsqr.darwin.profiles.miniServer;
+      userCfg = config.dsqr.darwin.personal.user;
+      userName = if userCfg.name == null then "primary-user-unset" else userCfg.name;
+      userHome = if userCfg.home == null then "/Users/${userName}" else userCfg.home;
     in
     {
       options.dsqr.darwin.profiles.miniServer = {
@@ -34,6 +37,17 @@
       };
 
       config = mkIf cfg.enable {
+        assertions = [
+          {
+            assertion = userCfg.name != null;
+            message = "dsqr.darwin.profiles.miniServer requires dsqr.darwin.personal.user.name.";
+          }
+          {
+            assertion = userCfg.home != null;
+            message = "dsqr.darwin.profiles.miniServer requires dsqr.darwin.personal.user.home.";
+          }
+        ];
+
         dsqr.darwin = {
           determinate.enable = true;
 
@@ -52,7 +66,7 @@
           };
         };
 
-        home-manager.users.dsqr =
+        home-manager.users.${userName} =
           { lib, ... }:
           {
             home.activation.ensureExoLogDirectory = mkIf cfg.exo.enable (
@@ -63,8 +77,8 @@
             );
 
             launchd.agents.exo.config = mkIf cfg.exo.enable {
-              StandardErrorPath = "/Users/dsqr/Library/Logs/exo/exo.log";
-              StandardOutPath = "/Users/dsqr/Library/Logs/exo/exo.log";
+              StandardErrorPath = "${userHome}/Library/Logs/exo/exo.log";
+              StandardOutPath = "${userHome}/Library/Logs/exo/exo.log";
             };
 
             services.exo.enable = cfg.exo.enable;

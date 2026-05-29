@@ -14,8 +14,6 @@ let
   inherit (nixLib.lists) sort;
   inherit (nixLib.strings) hasSuffix;
 
-  keys = import ./keys.nix;
-
   inherit (self) commonModules;
   inherit (self) homeModules;
   inherit (self) darwinModules;
@@ -33,7 +31,7 @@ let
   ];
 
   commonSpecialArgs = {
-    inherit self inputs keys;
+    inherit self inputs;
     inherit
       commonModules
       homeModules

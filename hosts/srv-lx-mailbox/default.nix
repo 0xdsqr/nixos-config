@@ -20,6 +20,10 @@ let
   modules =
     attrValues commonModules
     ++ attrValues nixosModules
+    ++ [
+      ../../profiles/dsqr/common.nix
+      ../../profiles/dsqr/nixos.nix
+    ]
     ++ singleton (
       self.lib.mkHomeManagerSharedModule (
         flip removeAttrs [

@@ -4,7 +4,7 @@
     let
       inherit (lib.modules) mkAfter mkIf;
       inherit (lib.options) mkEnableOption mkOption;
-      inherit (lib.types) lines str;
+      inherit (lib.types) lines nullOr str;
       cfg = config.dsqr.nixos.alloy;
       lokiCfg = cfg.loki;
     in
@@ -13,13 +13,9 @@
         enable = mkEnableOption "Enable Alloy Loki journal shipping";
 
         writeUrl = mkOption {
-          type = str;
-          default =
-            if config.networking.hostName == "srv-lx-beacon" then
-              "http://127.0.0.1:3100/loki/api/v1/push"
-            else
-              "http://10.10.30.102:3100/loki/api/v1/push";
-          description = "Loki push endpoint on beacon";
+          type = nullOr str;
+          default = null;
+          description = "Loki push endpoint.";
         };
 
         journalMaxAge = mkOption {
@@ -42,18 +38,25 @@
       };
 
       config = mkIf (cfg.enable && lokiCfg.enable) {
+        assertions = [
+          {
+            assertion = lokiCfg.writeUrl != null;
+            message = "dsqr.nixos.alloy.loki.writeUrl must be set when dsqr.nixos.alloy.loki.enable is true.";
+          }
+        ];
+
         systemd.services.alloy.serviceConfig.SupplementaryGroups = mkAfter [ "systemd-journal" ];
 
         dsqr.nixos.alloy.configFragments = mkAfter [
           ''
-            loki.write "beacon" {
+            loki.write "primary" {
               endpoint {
-                url = "${lokiCfg.writeUrl}"
+                url = "${if lokiCfg.writeUrl == null then "" else lokiCfg.writeUrl}"
               }
             }
 
             loki.process "journal" {
-              forward_to = [loki.write.beacon.receiver]
+              forward_to = [loki.write.primary.receiver]
 
               ${lokiCfg.journalProcessStages}
             }
@@ -80,7 +83,7 @@
             }
 
             loki.source.journal "systemd" {
-              forward_to    = [loki.write.beacon.receiver]
+              forward_to    = [loki.write.primary.receiver]
               relabel_rules = loki.relabel.journal.rules
               max_age       = "${lokiCfg.journalMaxAge}"
 

@@ -64,6 +64,22 @@
         "type": "github"
       }
     },
+    "datadog-lapdog": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1779999972,
+        "narHash": "sha256-EmudUJEukhCVC4iUo4msk31mIUXhooNGahW2xM2KIRs=",
+        "owner": "DataDog",
+        "repo": "homebrew-lapdog",
+        "rev": "c43b349b094c202bfa5762f8902070d414aca4f7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "DataDog",
+        "repo": "homebrew-lapdog",
+        "type": "github"
+      }
+    },
     "disko": {
       "inputs": {
         "nixpkgs": [
@@ -392,6 +408,7 @@
       "inputs": {
         "agenix": "agenix",
         "darwin": "darwin",
+        "datadog-lapdog": "datadog-lapdog",
         "disko": "disko",
         "flake-parts": "flake-parts",
         "helium": "helium",

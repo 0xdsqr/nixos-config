@@ -12,7 +12,7 @@ _: {
         },
       ]
       scrape_interval = "15s"
-      forward_to      = [prometheus.remote_write.beacon.receiver]
+      forward_to      = [prometheus.remote_write.primary.receiver]
     }
   '';
 

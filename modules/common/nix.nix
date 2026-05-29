@@ -1,10 +1,9 @@
-{ inputs, self, ... }:
+{ inputs, ... }:
 {
   flake.commonModules.nix =
     {
       config,
       hostMeta ? null,
-      hostName,
       lib,
       pkgs,
       ...
@@ -15,89 +14,115 @@
         mapAttrs
         mapAttrsToList
         optionalAttrs
-        removeAttrs
         ;
-      inherit (lib.lists) optional singleton;
       inherit (lib.modules) mkIf;
-      inherit (lib.options) mkEnableOption;
+      inherit (lib.options) mkEnableOption mkOption;
       inherit (lib.strings) concatStringsSep;
-      inherit (lib.types) isType;
+      inherit (lib.types)
+        anything
+        attrsOf
+        bool
+        listOf
+        package
+        isType
+        ;
 
       cfg = config.dsqr.nix;
       registryMap = filterAttrs (_: isType "flake") inputs;
       isDarwinHost = hostMeta != null && hostMeta.class == "darwin";
       managesNix = hostMeta != null && hostMeta.class == "nixos";
       registryPathEntries = mapAttrsToList (name: value: "${name}=${value}") registryMap;
-      builderHostName = "srv-lx-khaos";
-      builderPublicHostKey = "AAAAC3NzaC1lZDI1NTE5AAAAIO96/hopscQBRbeWkv6CCcCNpe/5lwYt13c3bEWBDkyD";
-      builderHost =
-        if builtins.hasAttr builderHostName self.hostDefinitions then self.hostDefinitions.${builderHostName} else null;
-
-      rootNixSettings =
-        removeAttrs (import (self + /flake.nix)).nixConfig (
-          [
-            "extra-substituters"
-            "extra-trusted-public-keys"
-          ]
-          ++ optional isDarwinHost "use-cgroups"
-        )
-        // {
-          substituters = [
-            "https://cache.nixos.org/"
-            "https://exo.cachix.org"
-          ];
-
-          trusted-public-keys = singleton "exo.cachix.org-1:okq7hl624TBeAR3kV+g39dUFSiaZgLRkLsFBCuJ2NZI=";
-        };
-
-      builderMachines = optional (managesNix && builderHost != null && hostName != builderHostName) {
-        hostName = if builderHost.sshHost == null then builderHostName else builderHost.sshHost;
-        maxJobs = 20;
-        publicHostKey = builderPublicHostKey;
-        protocol = "ssh-ng";
-        sshUser = "build";
-        supportedFeatures = [
-          "big-parallel"
-          "kvm"
-        ];
-        system = "x86_64-linux";
-      };
     in
     {
-      options.dsqr.nix.enable = mkEnableOption "shared Nix configuration" // {
-        default = true;
+      options.dsqr.nix = {
+        enable = mkEnableOption "shared Nix configuration";
+
+        channel.enable = mkOption {
+          type = bool;
+          default = false;
+          description = "Whether to keep Nix channels enabled.";
+        };
+
+        distributedBuilds = mkOption {
+          type = bool;
+          default = false;
+          description = "Whether to enable distributed Nix builds.";
+        };
+
+        buildMachines = mkOption {
+          type = listOf (attrsOf anything);
+          default = [ ];
+          description = "Nix build machines.";
+        };
+
+        settings = mkOption {
+          type = attrsOf anything;
+          default = { };
+          description = "Nix daemon/client settings.";
+        };
+
+        systemPackages = mkOption {
+          type = listOf package;
+          default = with pkgs; [
+            nh
+            nix-index
+            nix-output-monitor
+          ];
+          description = "Packages installed alongside the shared Nix configuration.";
+        };
+
+        package = mkOption {
+          type = package;
+          default = pkgs.nixVersions.latest;
+          defaultText = "pkgs.nixVersions.latest";
+          description = "Nix package used on NixOS hosts managed by this module.";
+        };
+
+        registry.enable = mkEnableOption "flake registry entries for flake inputs" // {
+          default = true;
+        };
+
+        nixPath.enable = mkEnableOption "NIX_PATH entries for flake inputs" // {
+          default = true;
+        };
+
+        gc.enable = mkEnableOption "automatic Nix garbage collection" // {
+          default = managesNix;
+        };
+
+        optimise.enable = mkEnableOption "automatic Nix store optimisation" // {
+          default = managesNix;
+        };
       };
 
       config = mkIf cfg.enable {
-        environment.systemPackages = with pkgs; [
-          nh
-          nix-index
-          nix-output-monitor
-        ];
+        environment.systemPackages = cfg.systemPackages;
 
         nix = {
-          channel.enable = false;
+          channel.enable = cfg.channel.enable;
 
-          settings = rootNixSettings // {
-            builders-use-substitutes = true;
-          };
-          distributedBuilds = true;
-          buildMachines = builderMachines;
+          inherit (cfg) settings;
+          inherit (cfg) distributedBuilds;
+          inherit (cfg) buildMachines;
 
-          registry = mapAttrs (_: flake: { inherit flake; }) (registryMap // { default = inputs.nixpkgs; });
-
+          registry = mkIf cfg.registry.enable (
+            mapAttrs (_: flake: { inherit flake; }) (registryMap // { default = inputs.nixpkgs; })
+          );
+        }
+        // optionalAttrs cfg.nixPath.enable {
           nixPath = if isDarwinHost then concatStringsSep ":" registryPathEntries else registryPathEntries;
         }
-        // optionalAttrs managesNix {
+        // optionalAttrs (managesNix && cfg.gc.enable) {
           gc = {
             automatic = true;
             options = "--delete-older-than 3d";
             dates = "weekly";
             persistent = true;
           };
-
-          optimise.automatic = true;
-          package = pkgs.nixVersions.latest;
+        }
+        // optionalAttrs managesNix {
+          optimise.automatic = cfg.optimise.enable;
+          inherit (cfg) package;
         };
       };
     };

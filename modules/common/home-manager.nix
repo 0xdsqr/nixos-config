@@ -1,20 +1,11 @@
 { self, inputs, ... }:
 {
   flake.commonModules."home-manager" =
-    { lib, pkgs, ... }:
+    _:
     let
-      inherit (lib.modules) mkForce;
-
-      keys = import ./keys.nix;
-      homeDirectory = if pkgs.stdenv.hostPlatform.isDarwin then "/Users/dsqr" else "/home/dsqr";
-
       specialArgs = {
         inherit self inputs;
         inherit (inputs) agenix;
-      };
-
-      sharedKeysModule = {
-        _module.args = { inherit keys; };
       };
 
       sharedHomeDefaultsModule =
@@ -27,17 +18,9 @@
         };
     in
     {
-      home-manager.users.dsqr.home = {
-        homeDirectory = mkForce homeDirectory;
-        username = "dsqr";
-      };
-
       home-manager.backupFileExtension = "pre-home-manager";
       home-manager.extraSpecialArgs = specialArgs;
-      home-manager.sharedModules = [
-        sharedKeysModule
-        sharedHomeDefaultsModule
-      ];
+      home-manager.sharedModules = [ sharedHomeDefaultsModule ];
       home-manager.useGlobalPkgs = true;
       home-manager.useUserPackages = true;
     };
