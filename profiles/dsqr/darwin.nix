@@ -29,4 +29,10 @@ in
       obsidian.enable = mkDefault true;
     };
   };
+
+  home-manager.users.dsqr.dsqr.home.desktop.obsidian = {
+    enable = mkDefault true;
+
+    vaults.personal.path = mkDefault "Documents/Obsidian/Personal";
+  };
 }

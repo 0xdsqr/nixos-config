@@ -9,3 +9,36 @@
 
 This is my nixos-config. There are many like it, but this one is mine.
 </div>
+
+## Obsidian Vaults
+
+Obsidian is installed at the Darwin layer with the Homebrew cask. Vault bootstrapping is handled in Home Manager so app state stays mutable while shared defaults can be seeded with Nix.
+
+```nix
+home-manager.users.dsqr.dsqr.home.desktop.obsidian = {
+  enable = true;
+
+  vaults.personal = {
+    path = "Documents/Obsidian/Personal";
+    # force = true; # Overwrite the managed .obsidian files on every activation.
+  };
+
+  # Recommended community plugins to install manually first, then enable here:
+  # defaults.communityPlugins = [
+  #   "calendar"
+  #   "dataview"
+  #   "obsidian-git"
+  #   "omnisearch"
+  #   "periodic-notes"
+  #   "tasks"
+  #   "templater-obsidian"
+  # ];
+  #
+  # Plugin settings can be managed as extra .obsidian files once the plugin is installed:
+  # defaults.extraFiles."plugins/dataview/data.json" = builtins.toJSON {
+  #   enableInlineDataview = true;
+  # };
+};
+```
+
+By default the module creates common folders, seeds `app.json`, `appearance.json`, core plugin defaults, an empty community plugin list, `hotkeys.json`, and a small readable CSS snippet. Existing files are kept unless `force = true`.
