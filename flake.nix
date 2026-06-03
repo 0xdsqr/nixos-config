@@ -154,6 +154,7 @@
 
         imports = [
           inputs.home-manager.flakeModules.home-manager
+          ./checks
           ./packages
         ]
         ++ moduleImports
