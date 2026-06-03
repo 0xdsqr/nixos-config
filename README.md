@@ -10,27 +10,56 @@
 This is my nixos-config. There are many like it, but this one is mine.
 </div>
 
-## Quick Start
+## Getting Started
 
-Use the exported modules directly, or import all exported modules through your own host wrapper.
+Add the flake as an input:
 
 ```nix
 {
   inputs.nixos-config.url = "github:0xdsqr/nixos-config";
+}
+```
 
+Use one module, a few modules, or your own profile wrapper around them. Modules are exported by platform surface:
+
+| Surface | Export |
+| --- | --- |
+| Shared Nix modules | `commonModules` |
+| nix-darwin modules | `darwinModules` |
+| Home Manager modules | `homeModules` |
+| NixOS modules | `nixosModules` |
+| Packages and apps | `packages`, `apps` |
+
+## Darwin Host
+
+Use the helper if you want the same nix-darwin, Home Manager, agenix, and nix-homebrew wiring this repo uses:
+
+```nix
+{
   outputs =
     { nixos-config, ... }:
     {
       darwinConfigurations.my-mac = nixos-config.lib.darwinSystem {
         hostName = "my-mac";
+        hostMeta = nixos-config.lib.mkHostMeta {
+          class = "darwin";
+          path = ./.;
+          system = "aarch64-darwin";
+        };
+
         modules = [
           nixos-config.darwinModules.obsidian
+
           ({ ... }: {
             dsqr.darwin.desktop.obsidian.enable = true;
 
             home-manager.users.alice = {
-              imports = [ nixos-config.homeModules.obsidian ];
+              imports = [
+                nixos-config.homeModules.git
+                nixos-config.homeModules.obsidian
+              ];
 
+              dsqr.home.versionControl.enable = true;
               dsqr.home.desktop.obsidian = {
                 enable = true;
                 profile = "personal";
@@ -43,35 +72,95 @@ Use the exported modules directly, or import all exported modules through your o
 }
 ```
 
-For Home Manager only:
+## Home Manager Only
+
+Home Manager modules can be used without nix-darwin or NixOS:
 
 ```nix
-{ inputs, ... }:
 {
-  imports = [ inputs.nixos-config.homeModules.obsidian ];
+  outputs =
+    {
+      home-manager,
+      nixos-config,
+      nixpkgs,
+      ...
+    }:
+    {
+      homeConfigurations.alice = home-manager.lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages.aarch64-darwin;
 
-  dsqr.home.desktop.obsidian = {
-    enable = true;
-    profile = "personal";
-  };
+        modules = [
+          nixos-config.homeModules.git
+          nixos-config.homeModules.neovim
+          nixos-config.homeModules.obsidian
+
+          ({ ... }: {
+            home.username = "alice";
+            home.homeDirectory = "/Users/alice";
+
+            dsqr.home.versionControl.enable = true;
+            dsqr.home.neovim.enable = true;
+            dsqr.home.desktop.obsidian = {
+              enable = true;
+              profile = "personal";
+            };
+          })
+        ];
+      };
+    };
 }
 ```
 
-## Obsidian Module
+## NixOS Host
 
-The Darwin module installs the app through Homebrew. The Home Manager module seeds vault folders and config while preserving app-managed state.
+NixOS modules can be imported the same way:
 
-| Option | Default | Notes |
+```nix
+{
+  outputs =
+    { nixos-config, ... }:
+    {
+      nixosConfigurations.my-server = nixos-config.lib.nixosSystem {
+        hostName = "my-server";
+        hostMeta = nixos-config.lib.mkHostMeta {
+          class = "nixos";
+          path = ./.;
+          system = "x86_64-linux";
+        };
+
+        modules = [
+          nixos-config.nixosModules.openssh
+          nixos-config.nixosModules.tailscale
+
+          ({ ... }: {
+            dsqr.nixos.openssh.enable = true;
+            dsqr.nixos.tailscale.enable = true;
+          })
+        ];
+      };
+    };
+}
+```
+
+## Features
+
+Most modules are opt-in. Importing a module gives you its options; behavior usually starts when you set its `enable` option.
+
+| Area | Exports | Default | Notes |
 | --- | --- | --- |
-| `dsqr.darwin.desktop.obsidian.enable` | `false` | Installs the Obsidian cask on Darwin. |
-| `dsqr.darwin.desktop.obsidian.package` | `"obsidian"` | Homebrew cask name. |
-| `dsqr.home.desktop.obsidian.enable` | `false` | Enables vault bootstrapping. |
-| `profile` | `null` | Optional single vault: `"personal"`, `"stablecore"`, or `"work"`. |
-| `profilePath` | `null` | Overrides the selected profile path. |
-| `defaults.folders` | `Inbox`, `Daily`, `Projects`, `Areas`, `Resources`, `Archive`, `Templates`, `assets` | Folders created in each managed vault. |
-| `defaults.files` | Template notes | Files seeded relative to the vault root. |
-| `defaults.extraFiles` | Daily Notes and Templates plugin settings | Files seeded under `.obsidian`. |
-| `defaults.communityPlugins` | `[]` | Community plugins stay off until explicitly listed. |
-| `vaults.<name>.force` | `false` | Existing seeded files are kept unless force is enabled. |
+| Common Nix defaults | `commonModules.*` | Import only | Nix settings, nixpkgs policy, fonts, Home Manager integration, and shared package policy. |
+| Home shell and editor | `homeModules.git`, `neovim`, `nushell`, `starship`, `direnv`, `ssh`, `xdg` | Off unless enabled | Reusable Home Manager modules for CLI/dev setup. |
+| Home package groups | `homeModules.packages-*` | Off unless enabled | Containers, databases, debugging, Kubernetes, media, Node, shell utilities, and signing tools. |
+| Darwin desktop apps | `darwinModules.*`, `homeModules.*` | Off unless enabled | Ghostty, Hammerspoon, window manager, browser policy, Slack/Signal/Discord/Zoom, Lapdog, and Obsidian. |
+| Obsidian | `darwinModules.obsidian`, `homeModules.obsidian` | App off, vault bootstrap off | Darwin cask install plus optional Home Manager vault seeding. Community plugins remain off by default. |
+| NixOS services | `nixosModules.*` | Off unless enabled | OpenSSH, Tailscale, Restic, PostgreSQL, Redis, RustFS, kubeadm, monitoring, hardware reports, and installer helpers. |
+| Monitoring | `darwinModules.grafana-*`, `nixosModules.monitoring-*` | Off unless enabled | Grafana Alloy/Loki/Prometheus plumbing without private defaults baked into exported modules. |
+| Profiles | `profiles/*` | Explicit import only | Opinionated host/fleet composition such as `profiles/dsqr` and `profiles/mini-server`; not exported as generic modules. |
+| Apply tool | `packages.<system>.apply`, `apps.<system>.apply` | Available when built/run | Local helper for applying host configs from the flake. |
 
-No vault is created unless `dsqr.home.desktop.obsidian.enable = true` and either `profile` or `vaults` is set. Community plugins are not installed by Nix; install them in Obsidian first, then list their ids in `defaults.communityPlugins`.
+Explore the current exports:
+
+```sh
+nix flake show github:0xdsqr/nixos-config
+nix eval github:0xdsqr/nixos-config#homeModules --apply builtins.attrNames --json
+```
