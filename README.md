@@ -146,17 +146,17 @@ NixOS modules can be imported the same way:
 
 Most modules are opt-in. Importing a module gives you its options; behavior usually starts when you set its `enable` option.
 
-| Area | Exports | Default | Notes |
-| --- | --- | --- |
+| Feature | Surface | Default | What You Opt Into |
+| --- | --- | --- | --- |
 | Common Nix defaults | `commonModules.*` | Import only | Nix settings, nixpkgs policy, fonts, Home Manager integration, and shared package policy. |
-| Home shell and editor | `homeModules.git`, `neovim`, `nushell`, `starship`, `direnv`, `ssh`, `xdg` | Off unless enabled | Reusable Home Manager modules for CLI/dev setup. |
+| Home shell and editor | `homeModules.git`, `homeModules.neovim`, `homeModules.nushell`, `homeModules.starship`, `homeModules.direnv`, `homeModules.ssh`, `homeModules.xdg` | Off unless enabled | Reusable Home Manager modules for CLI and editor setup. |
 | Home package groups | `homeModules.packages-*` | Off unless enabled | Containers, databases, debugging, Kubernetes, media, Node, shell utilities, and signing tools. |
-| Darwin desktop apps | `darwinModules.*`, `homeModules.*` | Off unless enabled | Ghostty, Hammerspoon, window manager, browser policy, Slack/Signal/Discord/Zoom, Lapdog, and Obsidian. |
-| Obsidian | `darwinModules.obsidian`, `homeModules.obsidian` | App off, vault bootstrap off | Darwin cask install plus optional Home Manager vault seeding. Community plugins remain off by default. |
+| Darwin desktop apps | `darwinModules.*`, selected `homeModules.*` | Off unless enabled | Ghostty, Hammerspoon, window manager, browser policy, Slack, Signal, Discord, Zoom, Lapdog, and related app config. |
+| Obsidian | `darwinModules.obsidian`, `homeModules.obsidian` | App off, vault bootstrap off | Darwin cask install plus optional Home Manager vault seeding; community plugins stay off by default. |
 | NixOS services | `nixosModules.*` | Off unless enabled | OpenSSH, Tailscale, Restic, PostgreSQL, Redis, RustFS, kubeadm, monitoring, hardware reports, and installer helpers. |
-| Monitoring | `darwinModules.grafana-*`, `nixosModules.monitoring-*` | Off unless enabled | Grafana Alloy/Loki/Prometheus plumbing without private defaults baked into exported modules. |
-| Profiles | `profiles/*` | Explicit import only | Opinionated host/fleet composition such as `profiles/dsqr` and `profiles/mini-server`; not exported as generic modules. |
-| Apply tool | `packages.<system>.apply`, `apps.<system>.apply` | Available when built/run | Local helper for applying host configs from the flake. |
+| Monitoring | `darwinModules.grafana-*`, `nixosModules.monitoring-*` | Off unless enabled | Grafana, Alloy, Loki, and Prometheus plumbing without private defaults baked into exported modules. |
+| Profiles | `profiles/*` | Explicit import only | Opinionated host and fleet composition such as `profiles/dsqr` and `profiles/mini-server`; profiles are not generic module exports. |
+| Apply tool | `packages.<system>.apply`, `apps.<system>.apply` | Available when built or run | Local helper for applying host configs from the flake. |
 
 Explore the current exports:
 
