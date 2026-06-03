@@ -10,71 +10,68 @@
 This is my nixos-config. There are many like it, but this one is mine.
 </div>
 
-## Obsidian Vaults
+## Quick Start
 
-Obsidian is installed at the Darwin layer with the Homebrew cask. Vault bootstrapping is handled in Home Manager so app state stays mutable while shared defaults can be seeded with Nix.
+Use the exported modules directly, or import all exported modules through your own host wrapper.
 
 ```nix
-home-manager.users.dsqr.dsqr.home.desktop.obsidian = {
-  enable = true;
-  profile = "personal";
-  # profilePath = "Documents/Obsidian/Personal";
-  # vaults.personal.force = true; # Overwrite the managed .obsidian files on every activation.
+{
+  inputs.nixos-config.url = "github:0xdsqr/nixos-config";
 
-  # Recommended community plugins to install manually first, then enable here:
-  # defaults.communityPlugins = [
-  #   "calendar"
-  #   "dataview"
-  #   "obsidian-git"
-  #   "omnisearch"
-  #   "periodic-notes"
-  #   "tasks"
-  #   "templater-obsidian"
-  # ];
-  #
-  # Plugin settings can be managed as extra .obsidian files once the plugin is installed:
-  # defaults.extraFiles."plugins/dataview/data.json" = builtins.toJSON {
-  #   enableInlineDataview = true;
-  # };
-  #
-  # Vault files can also be seeded without touching .obsidian:
-  # defaults.files."Resources/Runbook.md" = ''
-  #   # Runbook
-  # '';
-};
+  outputs =
+    { nixos-config, ... }:
+    {
+      darwinConfigurations.my-mac = nixos-config.lib.darwinSystem {
+        hostName = "my-mac";
+        modules = [
+          nixos-config.darwinModules.obsidian
+          ({ ... }: {
+            dsqr.darwin.desktop.obsidian.enable = true;
+
+            home-manager.users.alice = {
+              imports = [ nixos-config.homeModules.obsidian ];
+
+              dsqr.home.desktop.obsidian = {
+                enable = true;
+                profile = "personal";
+              };
+            };
+          })
+        ];
+      };
+    };
+}
 ```
 
-Default vault shape:
+For Home Manager only:
 
-```text
-Personal/
-|-- Inbox/
-|-- Daily/
-|-- Projects/
-|   `-- Example Project.md
-|-- Areas/
-|   `-- Engineering.md
-|-- Resources/
-|   `-- Runbooks.md
-|-- Archive/
-|-- Templates/
-|   |-- Daily.md
-|   |-- Project.md
-|   |-- Area.md
-|   `-- Resource.md
-|-- assets/
-`-- .obsidian/
-    |-- app.json
-    |-- appearance.json
-    |-- core-plugins.json
-    |-- community-plugins.json
-    |-- daily-notes.json
-    |-- hotkeys.json
-    |-- templates.json
-    `-- snippets/
-        `-- dsqr-readable.css
+```nix
+{ inputs, ... }:
+{
+  imports = [ inputs.nixos-config.homeModules.obsidian ];
+
+  dsqr.home.desktop.obsidian = {
+    enable = true;
+    profile = "personal";
+  };
+}
 ```
 
-`Inbox/` is for quick capture, `Daily/` is the dated log, `Projects/` is finite outcomes, `Areas/` is ongoing responsibility, `Resources/` is reference material, `Archive/` is inactive material, `Templates/` holds reusable note shapes, and `assets/` keeps attachments out of the note flow.
+## Obsidian Module
 
-The module seeds the folders, template files, daily note/template plugin settings, `app.json`, `appearance.json`, core plugin defaults, an empty community plugin list, `hotkeys.json`, and a small readable CSS snippet. The example notes under `Projects/`, `Areas/`, and `Resources/` show where real notes belong; they are not created by default. Existing files are kept unless `force = true`.
+The Darwin module installs the app through Homebrew. The Home Manager module seeds vault folders and config while preserving app-managed state.
+
+| Option | Default | Notes |
+| --- | --- | --- |
+| `dsqr.darwin.desktop.obsidian.enable` | `false` | Installs the Obsidian cask on Darwin. |
+| `dsqr.darwin.desktop.obsidian.package` | `"obsidian"` | Homebrew cask name. |
+| `dsqr.home.desktop.obsidian.enable` | `false` | Enables vault bootstrapping. |
+| `profile` | `null` | Optional single vault: `"personal"`, `"stablecore"`, or `"work"`. |
+| `profilePath` | `null` | Overrides the selected profile path. |
+| `defaults.folders` | `Inbox`, `Daily`, `Projects`, `Areas`, `Resources`, `Archive`, `Templates`, `assets` | Folders created in each managed vault. |
+| `defaults.files` | Template notes | Files seeded relative to the vault root. |
+| `defaults.extraFiles` | Daily Notes and Templates plugin settings | Files seeded under `.obsidian`. |
+| `defaults.communityPlugins` | `[]` | Community plugins stay off until explicitly listed. |
+| `vaults.<name>.force` | `false` | Existing seeded files are kept unless force is enabled. |
+
+No vault is created unless `dsqr.home.desktop.obsidian.enable = true` and either `profile` or `vaults` is set. Community plugins are not installed by Nix; install them in Obsidian first, then list their ids in `defaults.communityPlugins`.

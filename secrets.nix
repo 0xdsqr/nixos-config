@@ -64,8 +64,6 @@ mkSecretsForHost "srv-lx-beacon" [
   "hosts/srv-lx-mailbox/stalwart-me.password.age"
   "hosts/srv-lx-mailbox/stalwart-hoo.password.age"
   "hosts/srv-lx-mailbox/stalwart-admin.password.age"
-  "hosts/srv-lx-mailbox/ses-smtp.username.age"
-  "hosts/srv-lx-mailbox/ses-smtp.password.age"
 ]
 // mkSecretsForHost "srv-lx-khaos" [
   "hosts/srv-lx-khaos/host.password.age"

@@ -106,24 +106,10 @@ let
         "if" = "is_local_domain('', rcpt_domain)";
         "then" = "'local'";
       }
-      { "else" = "'relay'"; }
+      { "else" = "'remote'"; }
     ];
 
     queue.route.local.type = "local";
-    queue.route.relay = {
-      type = "relay";
-      address = "email-smtp.us-east-1.amazonaws.com";
-      port = 587;
-      protocol = "smtp";
-      auth = {
-        username = "__SES_SMTP_USERNAME__";
-        secret = "__SES_SMTP_PASSWORD__";
-      };
-      tls = {
-        implicit = false;
-        "allow-invalid-certs" = false;
-      };
-    };
 
     directory.memory = {
       type = "memory";
@@ -168,8 +154,6 @@ let
 in
 {
   age.secrets.cloudflareAcmeEnv.file = ./cloudflare-acme.env.age;
-  age.secrets.sesSmtpPassword.file = ./ses-smtp.password.age;
-  age.secrets.sesSmtpUsername.file = ./ses-smtp.username.age;
   age.secrets.stalwartAdminSecret.file = ./stalwart-admin.secret.age;
   age.secrets.stalwartAdminPassword.file = ./stalwart-admin.password.age;
   age.secrets.stalwartMePassword.file = ./stalwart-me.password.age;
@@ -192,8 +176,6 @@ in
 
     credentials = {
       admin_secret = config.age.secrets.stalwartAdminSecret.path;
-      ses_smtp_password = config.age.secrets.sesSmtpPassword.path;
-      ses_smtp_username = config.age.secrets.sesSmtpUsername.path;
       mail_admin_password = config.age.secrets.stalwartAdminPassword.path;
       mail_me_password = config.age.secrets.stalwartMePassword.path;
       mail_hoo_password = config.age.secrets.stalwartHooPassword.path;
@@ -215,14 +197,6 @@ in
       config_text = config_text.replace(
           "__MAIL_ADMIN_PASSWORD__",
           Path("/run/credentials/stalwart.service/mail_admin_password").read_text().rstrip("\n"),
-      )
-      config_text = config_text.replace(
-          "__SES_SMTP_USERNAME__",
-          Path("/run/credentials/stalwart.service/ses_smtp_username").read_text().rstrip("\n"),
-      )
-      config_text = config_text.replace(
-          "__SES_SMTP_PASSWORD__",
-          Path("/run/credentials/stalwart.service/ses_smtp_password").read_text().rstrip("\n"),
       )
       config_text = config_text.replace(
           "__MAIL_ME_PASSWORD__",

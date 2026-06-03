@@ -17,6 +17,7 @@ let
     ++ [
       ../../profiles/dsqr/common.nix
       ../../profiles/dsqr/darwin.nix
+      ../../profiles/mini-server/darwin.nix
     ]
     ++ singleton (self.lib.mkHomeManagerSharedModule homeModules);
 in
