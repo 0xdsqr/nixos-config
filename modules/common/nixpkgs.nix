@@ -11,20 +11,20 @@
         (
           _: prev:
           let
-            claudeCodeVersion = "2.1.154";
+            claudeCodeVersion = "2.1.170";
             claudeCodePlatformKey = "${prev.stdenvNoCC.hostPlatform.node.platform}-${prev.stdenvNoCC.hostPlatform.node.arch}";
             claudeCodeChecksums = {
-              darwin-arm64 = "sha256-vJiBsQfXvhdDxkyLct1meY9dCUfbxI7Q13lkxHNmH9Q=";
-              darwin-x64 = "sha256-FgjZMmGHkgHc933TLcFz777qcVGH01Qv0Fr899W17E0=";
-              linux-arm64 = "sha256-n3Mt4nj3rcYdKf1bBV3a8brjuybXX+bgahJWAlZXd6g=";
-              linux-x64 = "sha256-Z/bKt+bBJAEPYqwY+AeLwJ4NtqW56K6HTp5zAzxFF5M=";
+              darwin-arm64 = "sha256-6QNkbYt6MYgqgOzSdWmifYrFezcIdF80lwljLIQRf98=";
+              darwin-x64 = "sha256-kU8jpwu+1dmuVn4+BLhiBu2ZcbNxvJuso/eciIW/3bQ=";
+              linux-arm64 = "sha256-G7nQMkQKdVMvfdTK+8aH8iCq8Wxj66F+GS377C8EvSU=";
+              linux-x64 = "sha256-hJ4AcnegRCqydXDT49bUN4dQeUZZDo3RlH5aObcIH54=";
             };
-            codexVersion = "0.134.0";
+            codexVersion = "0.139.0";
             codexSrc = prev.fetchFromGitHub {
               owner = "openai";
               repo = "codex";
               tag = "rust-v${codexVersion}";
-              hash = "sha256-eHe4bjUIvSK512ZTlFcOBqv5hhM+zfzkxcLfrzDA7L4=";
+              hash = "sha256-XjzlkBUkBey+P3tFLDYB3ae5oseUfW5tmzhLzqlqj2E=";
             };
           in
           {
@@ -44,9 +44,9 @@
                 version = codexVersion;
                 src = codexSrc;
                 sourceRoot = "${codexSrc.name}/codex-rs";
-                hash = "sha256-DjqTn6DWfOlwdQ387eWeT5fs6qIgaD2rAXjxNStKgrs=";
+                hash = "sha256-8mN4OTRJvt2mBYHQXZS55PSOChLqEIiXwPu2y+2MZ9o=";
               };
-              cargoHash = "sha256-DjqTn6DWfOlwdQ387eWeT5fs6qIgaD2rAXjxNStKgrs=";
+              cargoHash = "sha256-8mN4OTRJvt2mBYHQXZS55PSOChLqEIiXwPu2y+2MZ9o=";
             });
           }
         )
