@@ -95,11 +95,11 @@ in
     ssh_args+=(-i "$identity_file" -o IdentitiesOnly=yes)
   fi
 
-  if [[ "$remote" -eq 1 ]]; then
+    if [[ "$remote" -eq 1 ]]; then
     if [[ "$class" == "darwin" ]]; then
-      remote_cmd="cd \"$remote_root\"; sudo darwin-rebuild switch --flake .#$host"
+      remote_cmd="cd \"$remote_root\"; sudo darwin-rebuild switch --flake path:.#$host"
     else
-      remote_cmd="cd \"$remote_root\"; sudo nix --accept-flake-config run nixpkgs#nixos-rebuild -- switch --flake .#$host"
+      remote_cmd="cd \"$remote_root\"; sudo nix --accept-flake-config run nixpkgs#nixos-rebuild -- switch --flake path:.#$host"
     fi
 
     ${rsync}/bin/rsync \

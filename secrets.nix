@@ -1,5 +1,5 @@
 let
-  keys = import ./modules/common/keys.nix;
+  keys = import ./profiles/dsqr/keys.nix;
   inherit (keys) hosts;
   inherit (keys.groups) admins all;
 
@@ -64,6 +64,8 @@ mkSecretsForHost "srv-lx-beacon" [
   "hosts/srv-lx-mailbox/stalwart-me.password.age"
   "hosts/srv-lx-mailbox/stalwart-hoo.password.age"
   "hosts/srv-lx-mailbox/stalwart-admin.password.age"
+  "hosts/srv-lx-mailbox/stalwart-dkim-rsa.key.age"
+  "hosts/srv-lx-mailbox/stalwart-dkim-ed25519.key.age"
 ]
 // mkSecretsForHost "srv-lx-khaos" [
   "hosts/srv-lx-khaos/host.password.age"
@@ -71,6 +73,7 @@ mkSecretsForHost "srv-lx-beacon" [
   "hosts/srv-lx-khaos/rustfs.access-key.age"
   "hosts/srv-lx-khaos/rustfs.secret-key.age"
   "hosts/srv-lx-khaos/tailscale.auth-key.age"
+  "hosts/srv-lx-khaos/temporal/postgres.env.age"
 ]
 // mkSharedSecrets [
   "hosts/srv-lx-beacon/restic.password.age"

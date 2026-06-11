@@ -40,6 +40,7 @@ in
           modules
           ++ self.lib.collectNix {
             path = ./.;
+            recursive = true;
             exclude = path: path == ./default.nix;
           };
 

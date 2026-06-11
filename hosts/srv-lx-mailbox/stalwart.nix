@@ -135,7 +135,7 @@ let
         }
         {
           name = "admin";
-          class = "individual";
+          class = "admin";
           description = "Admin";
           secret = "__MAIL_ADMIN_PASSWORD__";
           email = [ "admin@dsqr.dev" ];
