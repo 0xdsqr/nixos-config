@@ -9,13 +9,22 @@
     let
       inherit (lib.lists) singleton;
       inherit (lib.modules) mkIf;
-      inherit (lib.options) mkEnableOption;
+      inherit (lib.options) mkEnableOption mkOption;
+      inherit (lib.types) str;
 
       cfg = config.dsqr.home.desktop.hammerspoon;
       inherit (pkgs.stdenv.hostPlatform) isDarwin;
     in
     {
-      options.dsqr.home.desktop.hammerspoon.enable = mkEnableOption "Hammerspoon home configuration";
+      options.dsqr.home.desktop.hammerspoon = {
+        enable = mkEnableOption "Hammerspoon home configuration";
+
+        browserApplication = mkOption {
+          type = str;
+          default = "Helium";
+          description = "macOS application name opened by Hammerspoon browser hotkeys.";
+        };
+      };
 
       config = mkIf cfg.enable {
         assertions = singleton {
@@ -36,7 +45,7 @@
             local super_shift = { "cmd", "ctrl", "shift" }
             local gap = 24
             local ghostty = "Ghostty"
-            local browser = "Helium"
+            local browser = ${builtins.toJSON cfg.browserApplication}
 
             local function placeGhostty()
               local app = hs.application.get(ghostty)

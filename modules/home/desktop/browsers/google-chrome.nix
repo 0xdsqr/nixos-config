@@ -8,7 +8,7 @@
     }:
     let
       inherit (lib.lists) singleton;
-      inherit (lib.modules) mkIf;
+      inherit (lib.modules) mkDefault mkIf;
       inherit (lib.options) mkEnableOption mkOption;
       inherit (lib.types) package;
 
@@ -25,6 +25,9 @@
         };
       };
 
-      config = mkIf cfg.enable { home.packages = singleton cfg.package; };
+      config = mkIf cfg.enable {
+        home.packages = singleton cfg.package;
+        dsqr.home.desktop.hammerspoon.browserApplication = mkDefault "Google Chrome";
+      };
     };
 }
