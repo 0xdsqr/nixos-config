@@ -1,7 +1,6 @@
 {
   flake.homeModules.hammerspoon =
     {
-      self,
       config,
       lib,
       pkgs,
@@ -9,13 +8,11 @@
     }:
     let
       inherit (lib.lists) singleton;
-      inherit (lib.meta) getExe;
       inherit (lib.modules) mkIf;
       inherit (lib.options) mkEnableOption;
 
       cfg = config.dsqr.home.desktop.hammerspoon;
       inherit (pkgs.stdenv.hostPlatform) isDarwin;
-      fastWorkspaceSwitch = getExe self.packages.${pkgs.stdenv.hostPlatform.system}.fast-workspace-switch;
     in
     {
       options.dsqr.home.desktop.hammerspoon.enable = mkEnableOption "Hammerspoon home configuration";
@@ -40,7 +37,6 @@
             local gap = 24
             local ghostty = "Ghostty"
             local browser = "Helium"
-            local space_task = nil
 
             local function placeGhostty()
               local app = hs.application.get(ghostty)
@@ -95,26 +91,33 @@
             local function changeSpaceBy(offset)
               if offset == 0 then return end
 
-              if space_task and space_task:isRunning() then
-                space_task:terminate()
+              local screen = hs.screen.mainScreen()
+              if not screen then return end
+
+              local spaces = hs.spaces.allSpaces()[screen:getUUID()]
+              local current_index = currentSpaceIndex()
+              if not current_index or not spaces then return end
+
+              local target_index = current_index + offset
+              if target_index < 1 or target_index > #spaces then return end
+
+              local target_space = spaces[target_index]
+              if target_space then
+                hs.spaces.gotoSpace(target_space)
               end
-
-              space_task = hs.task.new("${fastWorkspaceSwitch}", nil, {
-                offset > 0 and "right" or "left",
-                tostring(math.abs(offset)),
-              })
-
-              space_task:start()
             end
 
             local function gotoSpace(index)
-              local spaces = hs.spaces.allSpaces()[hs.screen.mainScreen():getUUID()]
+              local screen = hs.screen.mainScreen()
+              if not screen then return end
+
+              local spaces = hs.spaces.allSpaces()[screen:getUUID()]
               if not spaces then return end
 
-              local current_index = currentSpaceIndex()
-              if not current_index or not spaces[index] then return end
-
-              changeSpaceBy(index - current_index)
+              local target_space = spaces[index]
+              if target_space then
+                hs.spaces.gotoSpace(target_space)
+              end
             end
 
             local function centerFocusedWindow()
