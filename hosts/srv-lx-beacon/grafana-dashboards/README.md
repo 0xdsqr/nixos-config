@@ -2,6 +2,8 @@
 
 Dashboards in this tree are provisioned by `srv-lx-beacon` and grouped by folder from the file structure.
 
+Only add dashboards backed by metrics or logs that are already scraped into Beacon. Do not keep placeholder dashboards in this tree; add Argo CD, database, or app-specific boards when their native signals are present.
+
 Use one baseline dashboard per platform or service class for golden signals, then add workload-specific dashboards beside it when they need domain language. For databases, the baseline should answer:
 
 - Is the exporter up?

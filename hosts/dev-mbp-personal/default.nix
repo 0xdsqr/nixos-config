@@ -42,6 +42,8 @@ in
 
           desktop = {
             dock.enable = true;
+            fileExplorer.enable = true;
+            hygiene.enable = true;
             system.enable = true;
             windowManager.enable = true;
             maccy.enable = true;

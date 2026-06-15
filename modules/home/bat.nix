@@ -54,9 +54,13 @@
         xdg.configFile."bat/config" = {
           text = /* ini */ ''
             --style=numbers,changes,header
-            --theme=TwoDark
+            --theme=dsqr
             --pager="${getExe pkgs.less} --quit-if-one-screen --quit-on-intr --RAW-CONTROL-CHARS"
           '';
+        };
+
+        xdg.configFile."bat/themes/dsqr.tmTheme" = {
+          text = config.dsqr.theme.batTheme;
         };
       };
     };

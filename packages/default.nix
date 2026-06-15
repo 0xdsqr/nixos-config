@@ -7,10 +7,12 @@
         inherit (config.flake) hostDefinitions;
         repoRoot = ../.;
       };
+      fast-workspace-switch = pkgs.callPackage ./fast-workspace-switch { };
     in
     {
       packages = {
         inherit apply;
+        inherit fast-workspace-switch;
 
         default = apply;
       };

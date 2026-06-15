@@ -19,8 +19,8 @@
 
       config = mkIf cfg.enable {
         fonts.packages = [
-          pkgs.lexend
-          pkgs.nerd-fonts.jetbrains-mono
+          config.dsqr.theme.font.sans.package
+          config.dsqr.theme.font.mono.package
           pkgs.noto-fonts
           pkgs.noto-fonts-cjk-sans
           pkgs.noto-fonts-lgc-plus
