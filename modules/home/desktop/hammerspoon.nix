@@ -24,6 +24,12 @@
           default = "Helium";
           description = "macOS application name opened by Hammerspoon browser hotkeys.";
         };
+
+        slackApplication = mkOption {
+          type = str;
+          default = "Slack";
+          description = "macOS application name opened by the Hammerspoon Slack hotkey.";
+        };
       };
 
       config = mkIf cfg.enable {
@@ -46,6 +52,7 @@
             local gap = 24
             local ghostty = "Ghostty"
             local browser = ${builtins.toJSON cfg.browserApplication}
+            local slack = ${builtins.toJSON cfg.slackApplication}
 
             local function placeGhostty()
               local app = hs.application.get(ghostty)
@@ -236,6 +243,10 @@
               hs.application.launchOrFocus(browser)
             end
 
+            local function launchSlack()
+              hs.application.launchOrFocus(slack)
+            end
+
             local function launchBrowserTab()
               local app = hs.application.get(browser)
 
@@ -260,6 +271,7 @@
             hs.hotkey.bind(super_shift, "padenter", launchBrowser)
             hs.hotkey.bind(super_shift, "p", launchBrowserTab)
             hs.hotkey.bind(super, "w", launchBrowser)
+            hs.hotkey.bind(super_shift, "s", launchSlack)
             hs.hotkey.bind(super, "t", function() hs.application.launchOrFocus("Finder") end)
 
             hs.hotkey.bind(super, "h", function() focusPaperWindow("focus_left", true) end)
