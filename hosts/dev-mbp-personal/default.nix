@@ -52,7 +52,6 @@ in
             obs-studio.enable = true;
             statusClock.enable = true;
             communication.discord.enable = true;
-            communication.slack.enable = true;
           };
         };
 
