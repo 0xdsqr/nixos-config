@@ -273,7 +273,13 @@
       );
     in
     {
-      options.dsqr.darwin.desktop.windowManager.enable = mkEnableOption "desktop window-manager defaults";
+      options.dsqr.darwin.desktop.windowManager = {
+        enable = mkEnableOption "desktop window-manager defaults";
+
+        reduceMotion.enable = mkEnableOption "macOS Reduce Motion accessibility defaults" // {
+          default = true;
+        };
+      };
 
       config = mkIf cfg.enable {
         system.defaults.NSGlobalDomain = {
@@ -314,9 +320,11 @@
           KeyboardBacklight.KeyboardBacklightIdleDimTime = 60;
         };
         system.defaults.CustomSystemPreferences."com.apple.dock".workspaces-auto-swoosh = false;
-        system.defaults.CustomSystemPreferences."com.apple.Accessibility".ReduceMotionEnabled = 1;
+        system.defaults.CustomSystemPreferences."com.apple.Accessibility" = mkIf cfg.reduceMotion.enable {
+          ReduceMotionEnabled = 1;
+        };
         system.defaults.CustomUserPreferences."com.apple.symbolichotkeys".AppleSymbolicHotKeys = symbolicHotkeys;
-        system.defaults.universalaccess.reduceMotion = true;
+        system.defaults.universalaccess.reduceMotion = mkIf cfg.reduceMotion.enable true;
         system.defaults.WindowManager.AppWindowGroupingBehavior = false;
 
         system.activationScripts.script.text = mkAfter /* bash */ ''
