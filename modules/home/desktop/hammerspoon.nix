@@ -239,6 +239,10 @@
               hs.eventtap.keyStroke({ "cmd" }, "n", 0, app)
             end
 
+            local function captureSelectionToClipboard()
+              hs.task.new("/usr/sbin/screencapture", nil, { "-ic" }):start()
+            end
+
             hs.hotkey.bind(super, "return", launchGhostty)
             hs.hotkey.bind(super, "padenter", launchGhostty)
             hs.hotkey.bind(super, "n", launchNeovimTab)
@@ -296,15 +300,8 @@
             hs.hotkey.bind(super_alt, "f", paperAction("full_width"))
             hs.hotkey.bind(super, "o", closeFocusedWindow)
             hs.hotkey.bind(super, "r", hs.reload)
-            hs.hotkey.bind(super, "/", function()
-              hs.eventtap.keyStroke({ "cmd", "ctrl", "shift" }, "4")
-            end)
-            hs.hotkey.bind(super_shift, "/", function()
-              hs.task.new("/bin/zsh", nil, {
-                "-lc",
-                "tmp=$(mktemp /tmp/hammerspoon-shot-XXXXXX.png) && /usr/sbin/screencapture -i \"$tmp\" && osascript -e 'set the clipboard to (read (POSIX file \\\"'\"$tmp\"'\\\") as «class PNGf»)' && rm -f \"$tmp\"",
-              }):start()
-            end)
+            hs.hotkey.bind(super, "/", captureSelectionToClipboard)
+            hs.hotkey.bind(super_shift, "/", captureSelectionToClipboard)
 
             if Swipe then
               local current_id, threshold
