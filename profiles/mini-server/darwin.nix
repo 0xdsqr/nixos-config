@@ -48,10 +48,13 @@ in
 
     dsqr.darwin = {
       determinate.enable = true;
+      homebrew.enable = false;
 
       desktop = mkIf cfg.desktop.enable {
         dock.enable = false;
+        lapdog.enable = false;
         maccy.enable = false;
+        obsidian.enable = false;
         system.enable = false;
       };
 
@@ -62,6 +65,18 @@ in
           exo.enable = cfg.exo.enable;
         };
       };
+    };
+
+    dsqr.nix.settings = {
+      trusted-users = [
+        "root"
+        userName
+      ];
+      connect-timeout = 30;
+      download-attempts = 10;
+      http-connections = 4;
+      max-jobs = 2;
+      stalled-download-timeout = 300;
     };
 
     home-manager.users.${userName} =
@@ -83,11 +98,43 @@ in
 
         dsqr.home = {
           aws.enable = false;
+          bat.enable = false;
           claudeCode.enable = false;
+          codex.enable = false;
+          difftastic.enable = false;
+          hushlogin.enable = false;
           ollama.enable = false;
-          neovim.plugins.enable = false;
+          pi-bridge.enable = false;
+          versionControl = {
+            gh.enable = false;
+            git.signing.enable = false;
+            glab.enable = false;
+            gpg.enable = false;
+            lazygit.enable = false;
+          };
+          desktop = {
+            browsers.helium.enable = false;
+            codexbar.enable = false;
+            ghostty.enable = false;
+            hammerspoon.enable = false;
+            obsidian.enable = false;
+          };
+          neovim = {
+            initLua.enable = false;
+            packages.enable = false;
+            plugins.enable = false;
+          };
           nu.integrations.enable = false;
           opencode.enable = false;
+          packages = {
+            containers.enable = false;
+            databases.enable = false;
+            debugging.enable = false;
+            kubernetes.enable = false;
+            media.enable = false;
+            node.enable = false;
+            signing.enable = false;
+          };
         };
       };
 
