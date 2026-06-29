@@ -26,20 +26,89 @@ let
       ''
     ) hostDefinitions
   );
+
+  hostTargets = concatStringsSep "\n" (
+    mapAttrsToList (
+      hostName: hostMeta:
+      let
+        sshHost = hostMeta.sshHost or null;
+        target = if sshHost == null then hostName else sshHost;
+      in
+      /* bash */ ''
+        ${hostName})
+          printf '%s\n' ${escapeShellArg target}
+          ;;
+      ''
+    ) hostDefinitions
+  );
 in
 (writeShellScriptBin "apply" /* bash */ ''
   set -euo pipefail
 
   host=""
+  build_host=""
+  target_host_override=""
   remote=0
   remote_root="~/nixos-config"
   identity_file="''${APPLY_SSH_IDENTITY:-}"
+  ask_elevate_password=0
+
+  usage() {
+    cat <<'EOF'
+  usage: apply [options] <host>
+
+    apply <host>
+        Apply the local flake to the current machine.
+
+    apply --remote <host>
+        Sync this repo to the target host and apply there.
+
+    apply --build-host <host> <host>
+        Build on the given NixOS host, then activate the target host.
+
+  options:
+    --remote
+    --build-host <host>
+    --target-host <host>
+    --identity <path>
+    --remote-root <path>
+    --ask-elevate-password
+  EOF
+  }
+
+  resolve_target() {
+    local value="$1"
+    local user_prefix=""
+    local name="$value"
+
+    if [[ "$value" == *@* ]]; then
+      user_prefix="''${value%@*}@"
+      name="''${value#*@}"
+    fi
+
+    case "$name" in
+  ${hostTargets}
+      *)
+        printf '%s\n' "$name"
+        ;;
+    esac | while IFS= read -r resolved; do
+      printf '%s%s\n' "$user_prefix" "$resolved"
+    done
+  }
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
       --remote)
         remote=1
         shift
+        ;;
+      --build-host)
+        build_host="$2"
+        shift 2
+        ;;
+      --target-host)
+        target_host_override="$2"
+        shift 2
         ;;
       --identity)
         identity_file="$2"
@@ -49,13 +118,12 @@ in
         remote_root="$2"
         shift 2
         ;;
+      --ask-elevate-password|--ask-sudo-password)
+        ask_elevate_password=1
+        shift
+        ;;
       --help|-h)
-        cat <<'EOF'
-  usage: apply [--remote] [--identity <path>] [--remote-root <path>] <host>
-
-    apply <host>             Apply the local flake to the current machine.
-    apply --remote <host>    Sync this repo to the target host and apply there.
-  EOF
+        usage
         exit 0
         ;;
       --)
@@ -78,7 +146,7 @@ in
   done
 
   if [[ -z "$host" ]]; then
-    echo "usage: apply [--remote] [--identity <path>] [--remote-root <path>] <host>" >&2
+    usage >&2
     exit 1
   fi
 
@@ -90,12 +158,19 @@ in
       ;;
   esac
 
-  ssh_args=()
-  if [[ -n "$identity_file" ]]; then
-    ssh_args+=(-i "$identity_file" -o IdentitiesOnly=yes)
+  if [[ "$remote" -eq 1 && ( -n "$build_host" || -n "$target_host_override" ) ]]; then
+    echo "--remote cannot be combined with --build-host or --target-host" >&2
+    exit 1
   fi
 
-    if [[ "$remote" -eq 1 ]]; then
+  ssh_args=()
+  nix_sshopts="''${NIX_SSHOPTS:-}"
+  if [[ -n "$identity_file" ]]; then
+    ssh_args+=(-i "$identity_file" -o IdentitiesOnly=yes)
+    nix_sshopts+=" -i $identity_file -o IdentitiesOnly=yes"
+  fi
+
+  if [[ "$remote" -eq 1 ]]; then
     if [[ "$class" == "darwin" ]]; then
       remote_cmd="cd \"$remote_root\"; sudo darwin-rebuild switch --flake path:.#$host"
     else
@@ -112,6 +187,32 @@ in
       "$target:$remote_root/"
 
     exec ${openssh}/bin/ssh "''${ssh_args[@]}" "$target" "$remote_cmd"
+  fi
+
+  if [[ -n "$build_host" || -n "$target_host_override" ]]; then
+    if [[ "$class" == "darwin" ]]; then
+      echo "--build-host/--target-host deployments are only supported for NixOS hosts" >&2
+      exit 1
+    fi
+
+    rebuild_args=(
+      switch
+      --flake path:${escapeShellArg "${repoRoot}"}#"$host"
+      --target-host "$(resolve_target "''${target_host_override:-$target}")"
+      --elevate=sudo
+      --use-substitutes
+      --accept-flake-config
+    )
+
+    if [[ -n "$build_host" ]]; then
+      rebuild_args+=(--build-host "$(resolve_target "$build_host")")
+    fi
+
+    if [[ "$ask_elevate_password" -eq 1 ]]; then
+      rebuild_args+=(--ask-elevate-password)
+    fi
+
+    exec env NIX_SSHOPTS="$nix_sshopts" nix --accept-flake-config run nixpkgs#nixos-rebuild -- "''${rebuild_args[@]}"
   fi
 
   if [[ "$class" == "darwin" ]]; then

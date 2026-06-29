@@ -2,6 +2,7 @@
 let
   inherit (lib.attrsets) genAttrs;
 
+  fqdn = "grafana.home.arpa";
   port = 8000;
 in
 {
@@ -56,9 +57,12 @@ in
         ssl_mode = "disable";
       };
 
-      # server.domain    = fqdn;
-      server.http_addr = "0.0.0.0";
-      server.http_port = port;
+      server = {
+        domain = fqdn;
+        http_addr = "0.0.0.0";
+        http_port = port;
+        root_url = "https://${fqdn}/";
+      };
 
       users.default_theme = "system";
     };
@@ -69,7 +73,7 @@ in
       admin_user = "admin";
       secret_key = "$__file{${config.age.secrets.grafanaSecretKey.path}}";
 
-      # cookie_secure = true; # Re-enable once Grafana is served over HTTPS.
+      cookie_secure = true;
       disable_gravatar = true;
 
       # disable_initial_admin_creation = false;

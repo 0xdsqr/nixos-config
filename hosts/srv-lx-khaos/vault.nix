@@ -1,4 +1,7 @@
 { pkgs, ... }:
+let
+  apiAddr = "https://vault.home.arpa";
+in
 {
   services.vault = {
     enable = true;
@@ -7,7 +10,7 @@
     storageBackend = "raft";
     extraConfig = ''
       ui = true
-      api_addr = "http://10.10.30.107:8200"
+      api_addr = "${apiAddr}"
       cluster_addr = "http://10.10.30.107:8201"
       disable_mlock = true
     '';

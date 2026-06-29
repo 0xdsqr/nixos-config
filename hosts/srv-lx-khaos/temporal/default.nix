@@ -46,6 +46,7 @@ let
   ui = {
     bindAddress = "10.10.30.107";
     port = 8088;
+    publicOrigin = "https://temporal.home.arpa";
   };
 in
 {
@@ -60,8 +61,8 @@ in
       host = ui.bindAddress;
       inherit (ui) port;
       temporalGRPCAddress = "127.0.0.1:${toString frontend.grpcPort}";
-      corsAllowOrigins = [ "http://${ui.bindAddress}:${toString ui.port}" ];
-      cookieInsecure = true;
+      corsAllowOrigins = [ ui.publicOrigin ];
+      cookieInsecure = false;
       openFirewall = true;
     };
 

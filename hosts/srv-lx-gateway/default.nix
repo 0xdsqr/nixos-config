@@ -55,6 +55,17 @@ in
           proxmox.enable = true;
           tailscale.enable = true;
           user.enable = true;
+
+          caddy = {
+            enable = true;
+            routes = {
+              "grafana.home.arpa".upstream = "http://10.10.30.102:8000";
+              "prometheus.home.arpa".upstream = "http://10.10.30.102:9090";
+              "rustfs.home.arpa".upstream = "http://10.10.30.107:9001";
+              "temporal.home.arpa".upstream = "http://10.10.30.107:8088";
+              "vault.home.arpa".upstream = "http://10.10.30.107:8200";
+            };
+          };
         };
 
         home-manager.users.dsqr.dsqr.home = {
