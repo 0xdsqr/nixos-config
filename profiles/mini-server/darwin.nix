@@ -48,13 +48,10 @@ in
 
     dsqr.darwin = {
       determinate.enable = true;
-      homebrew.enable = false;
 
       desktop = mkIf cfg.desktop.enable {
         dock.enable = false;
-        lapdog.enable = false;
         maccy.enable = false;
-        obsidian.enable = false;
         system.enable = false;
       };
 
