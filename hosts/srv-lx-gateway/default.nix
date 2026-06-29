@@ -77,6 +77,8 @@ in
               pathRegexp = "^/v1/(pki_root|pki_int)/(issuer/[^/]+/(der|crl/der)|ocsp)$";
             };
             routes = {
+              "argocd.home.arpa".upstream = "http://10.10.30.200";
+              "exo.home.arpa".upstream = "http://100.120.240.73:52415";
               "grafana.home.arpa".upstream = "http://10.10.30.102:8000";
               "prometheus.home.arpa".upstream = "http://10.10.30.102:9090";
               "rustfs.home.arpa".upstream = "http://10.10.30.107:9001";
