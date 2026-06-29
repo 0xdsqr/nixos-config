@@ -39,7 +39,7 @@ in
       options.dsqr.darwin.security.certificates.homeRootCA.systemKeychain.enable =
         mkEnableOption "installing the DSQR Home Root CA into the macOS System keychain"
         // {
-          default = true;
+          default = false;
         };
 
       config = mkIf (cfg.enable && keychainCfg.enable) {
