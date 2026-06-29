@@ -148,6 +148,27 @@
         '';
       };
 
+      mkReverseProxy =
+        route:
+        let
+          hasHostHeader = route.hostHeader != null;
+          hasTransportConfig = route.tlsInsecureSkipVerify || route.tlsServerName != null;
+        in
+        if !hasHostHeader && !hasTransportConfig then
+          "reverse_proxy ${route.upstream}"
+        else
+          ''
+            reverse_proxy ${route.upstream} {
+              ${optionalString hasHostHeader "header_up Host ${route.hostHeader}"}
+              ${optionalString hasTransportConfig ''
+                transport http {
+                  ${optionalString (route.tlsServerName != null) "tls_server_name ${route.tlsServerName}"}
+                  ${optionalString route.tlsInsecureSkipVerify "tls_insecure_skip_verify"}
+                }
+              ''}
+            }
+          '';
+
       mkVirtualHost = _hostName: route: {
         extraConfig = ''
           ${optionalString route.tlsInternal routeTlsDirective}
@@ -155,7 +176,7 @@
 
           @internal remote_ip ${internalSourceRanges}
           handle @internal {
-            reverse_proxy ${route.upstream}
+            ${mkReverseProxy route}
           }
 
           respond 403
@@ -235,6 +256,26 @@
                 type = lines;
                 default = "";
                 description = "Extra Caddyfile directives appended to this virtual host.";
+              };
+
+              hostHeader = mkOption {
+                type = nullOr str;
+                default = null;
+                description = "Optional Host header sent to the upstream.";
+                example = "argocd.home.arpa";
+              };
+
+              tlsServerName = mkOption {
+                type = nullOr str;
+                default = null;
+                description = "Optional SNI server name used for HTTPS upstreams.";
+                example = "argocd.home.arpa";
+              };
+
+              tlsInsecureSkipVerify = mkOption {
+                type = bool;
+                default = false;
+                description = "Skip upstream TLS certificate verification for private HTTPS upstreams.";
               };
             };
           });
