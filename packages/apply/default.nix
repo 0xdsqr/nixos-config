@@ -66,6 +66,9 @@ in
     apply --build-host <host> <host>
         Build on the given NixOS host, then activate the target host.
 
+    apply --target-host <host> <darwin-host>
+        Build locally, copy the closure to the Darwin target host, then activate it.
+
   options:
     --remote
     --build-host <host>
@@ -195,8 +198,29 @@ in
 
   if [[ -n "$build_host" || -n "$target_host_override" ]]; then
     if [[ "$class" == "darwin" ]]; then
-      echo "--build-host/--target-host deployments are only supported for NixOS hosts" >&2
-      exit 1
+      if [[ -n "$build_host" ]]; then
+        echo "--build-host deployments are only supported for NixOS hosts" >&2
+        exit 1
+      fi
+
+      target_resolved="$(resolve_target "''${target_host_override:-$target}")"
+      system_config="$(
+        nix --accept-flake-config build \
+          --no-link \
+          --print-out-paths \
+          ${escapeShellArg "${repoRoot}"}#darwinConfigurations."$host".system
+      )"
+
+      env NIX_SSHOPTS="$nix_sshopts" nix copy --to "ssh-ng://$target_resolved" "$system_config"
+
+      remote_activation_script=$(printf 'system_config=%q\nsudo nix-env -p /nix/var/nix/profiles/system --set "$system_config"\nsudo "$system_config/activate"\n' "$system_config")
+      remote_cmd=$(printf '/bin/zsh -lc %q' "$remote_activation_script")
+      activation_ssh_args=("''${ssh_args[@]}")
+      if [[ "$ask_elevate_password" -eq 1 ]]; then
+        activation_ssh_args+=(-t)
+      fi
+
+      exec ${openssh}/bin/ssh "''${activation_ssh_args[@]}" "$target_resolved" "$remote_cmd"
     fi
 
     rebuild_args=(
