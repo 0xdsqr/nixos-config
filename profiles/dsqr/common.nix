@@ -110,4 +110,6 @@ in
     distributedBuilds = mkDefault true;
     settings = mkDefault (rootNixSettings // { builders-use-substitutes = true; });
   };
+
+  dsqr.security.certificates.homeRootCA.enable = mkDefault true;
 }
