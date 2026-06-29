@@ -58,6 +58,14 @@ in
 
           caddy = {
             enable = true;
+            allowedSourceRanges = [
+              "127.0.0.0/8"
+              "::1/128"
+              "10.10.10.0/24"
+              "10.10.20.0/24"
+              "10.10.60.100/32"
+              "100.64.0.0/10"
+            ];
             vaultPkiCertificate = {
               enable = true;
               useForRoutes = true;

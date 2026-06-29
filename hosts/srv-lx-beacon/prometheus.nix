@@ -15,8 +15,10 @@ _: {
 
   services.prometheus = {
     enable = true;
+    listenAddress = "10.10.30.102";
     port = 9090;
     retentionTime = "30d";
+    webExternalUrl = "https://prometheus.home.arpa/";
     extraFlags = [ "--web.enable-remote-write-receiver" ];
     globalConfig = {
       scrape_interval = "15s";

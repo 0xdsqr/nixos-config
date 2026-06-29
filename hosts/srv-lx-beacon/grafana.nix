@@ -48,6 +48,8 @@ in
     settings = {
       analytics.reporting_enabled = false;
 
+      "auth.anonymous".enabled = false;
+
       database = {
         type = "postgres";
         host = "10.10.30.107:5432";
@@ -61,10 +63,15 @@ in
         domain = fqdn;
         http_addr = "0.0.0.0";
         http_port = port;
+        enforce_domain = true;
         root_url = "https://${fqdn}/";
       };
 
-      users.default_theme = "system";
+      users = {
+        allow_org_create = false;
+        allow_sign_up = false;
+        default_theme = "system";
+      };
     };
 
     settings.security = {
@@ -74,6 +81,7 @@ in
       secret_key = "$__file{${config.age.secrets.grafanaSecretKey.path}}";
 
       cookie_secure = true;
+      cookie_samesite = "strict";
       disable_gravatar = true;
 
       # disable_initial_admin_creation = false;
