@@ -165,9 +165,13 @@ in
 
   ssh_args=()
   nix_sshopts="''${NIX_SSHOPTS:-}"
+  sudo_args=()
   if [[ -n "$identity_file" ]]; then
     ssh_args+=(-i "$identity_file" -o IdentitiesOnly=yes)
     nix_sshopts+=" -i $identity_file -o IdentitiesOnly=yes"
+  fi
+  if [[ -n "''${NIX_CONFIG:-}" ]]; then
+    sudo_args+=(--preserve-env=NIX_CONFIG)
   fi
 
   if [[ "$remote" -eq 1 ]]; then
@@ -216,10 +220,10 @@ in
   fi
 
   if [[ "$class" == "darwin" ]]; then
-    exec sudo darwin-rebuild switch --flake ${escapeShellArg "${repoRoot}"}#"$host"
+    exec sudo "''${sudo_args[@]}" darwin-rebuild switch --flake ${escapeShellArg "${repoRoot}"}#"$host"
   fi
 
-  exec sudo nix --accept-flake-config run nixpkgs#nixos-rebuild -- switch --flake path:${escapeShellArg "${repoRoot}"}#"$host"
+  exec sudo "''${sudo_args[@]}" nix --accept-flake-config run nixpkgs#nixos-rebuild -- switch --flake path:${escapeShellArg "${repoRoot}"}#"$host"
 '').overrideAttrs
   (oldAttrs: {
     meta = (oldAttrs.meta or { }) // {
