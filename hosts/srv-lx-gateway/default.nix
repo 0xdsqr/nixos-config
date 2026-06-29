@@ -58,6 +58,16 @@ in
 
           caddy = {
             enable = true;
+            vaultPkiCertificate = {
+              enable = true;
+              useForRoutes = true;
+              vaultAddr = "http://10.10.30.107:8200";
+              altNames = [ "home.arpa" ];
+            };
+            httpRoutes."vault.home.arpa" = {
+              upstream = "http://10.10.30.107:8200";
+              pathRegexp = "^/v1/(pki_root|pki_int)/(issuer/[^/]+/(der|crl/der)|ocsp)$";
+            };
             routes = {
               "grafana.home.arpa".upstream = "http://10.10.30.102:8000";
               "prometheus.home.arpa".upstream = "http://10.10.30.102:9090";

@@ -14,6 +14,9 @@ result-*
 /nix-result-*
 *.drv
 
+# Backup artifacts
+*.snap
+
 # Jujutsu
 .jj/
 
