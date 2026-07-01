@@ -11,20 +11,20 @@
         (
           _: prev:
           let
-            claudeCodeVersion = "2.1.170";
+            claudeCodeVersion = "2.1.197";
             claudeCodePlatformKey = "${prev.stdenvNoCC.hostPlatform.node.platform}-${prev.stdenvNoCC.hostPlatform.node.arch}";
             claudeCodeChecksums = {
-              darwin-arm64 = "sha256-6QNkbYt6MYgqgOzSdWmifYrFezcIdF80lwljLIQRf98=";
-              darwin-x64 = "sha256-kU8jpwu+1dmuVn4+BLhiBu2ZcbNxvJuso/eciIW/3bQ=";
-              linux-arm64 = "sha256-G7nQMkQKdVMvfdTK+8aH8iCq8Wxj66F+GS377C8EvSU=";
-              linux-x64 = "sha256-hJ4AcnegRCqydXDT49bUN4dQeUZZDo3RlH5aObcIH54=";
+              darwin-arm64 = "sha256-jMDE0eTrHco7DMkqsC7jUF3nZOAj+MkBdhwWe3IEH7g=";
+              darwin-x64 = "sha256-XopXzHqSN38HRPpMeRkc+T1LJsecuRmwekB1Ef7RviY=";
+              linux-arm64 = "sha256-+0hHPEZ8J2Fax5mnVPTvC2jDY+RZbO+7WcOBXVGgzIo=";
+              linux-x64 = "sha256-9U5py8ibLaYaQVcAr3/1KhR+hiUX1PGw7s92hEjPf4M=";
             };
-            codexVersion = "0.139.0";
+            codexVersion = "0.142.5";
             codexSrc = prev.fetchFromGitHub {
               owner = "openai";
               repo = "codex";
               tag = "rust-v${codexVersion}";
-              hash = "sha256-XjzlkBUkBey+P3tFLDYB3ae5oseUfW5tmzhLzqlqj2E=";
+              hash = "sha256-Ua1UVArTvjHcg3bPK1FYyShYiIUH3AOxtoUTvA4UZwU=";
             };
           in
           {
@@ -44,12 +44,12 @@
                 version = codexVersion;
                 src = codexSrc;
                 sourceRoot = "${codexSrc.name}/codex-rs";
-                hash = "sha256-8mN4OTRJvt2mBYHQXZS55PSOChLqEIiXwPu2y+2MZ9o=";
+                hash = "sha256-1gDiCB3Nf/0aIm+EoL3g9C0xbCi3cv6TfH5VytjJpOY=";
               };
-              cargoHash = "sha256-8mN4OTRJvt2mBYHQXZS55PSOChLqEIiXwPu2y+2MZ9o=";
+              cargoHash = "sha256-1gDiCB3Nf/0aIm+EoL3g9C0xbCi3cv6TfH5VytjJpOY=";
 
               # Upstream nixpkgs' postPatch strips `lto = "fat"` / `codegen-units = 1`
-              # from the release profile with --replace-fail. codex 0.139.0 already
+              # from the release profile with --replace-fail. codex 0.142.5 already
               # ships `lto = "thin"` and dropped codegen-units, so those hard fails
               # abort the build. Keep the load-bearing webrtc-sys link fix, but make
               # the profile tweaks tolerant so they no-op when the patterns are absent.
