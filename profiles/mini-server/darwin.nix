@@ -78,7 +78,7 @@ in
       download-attempts = 10;
       http-connections = 4;
       max-jobs = 2;
-      stalled-download-timeout = 300;
+      stalled-download-timeout = 900;
     };
 
     home-manager.users.${userName} =

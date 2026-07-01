@@ -29,13 +29,20 @@ let
   builderHost =
     if builtins.hasAttr builderHostName self.hostDefinitions then self.hostDefinitions.${builderHostName} else null;
 
-  rootNixSettings = removeAttrs (import (self + /flake.nix)).nixConfig (
-    [
-      "extra-substituters"
-      "extra-trusted-public-keys"
-    ]
-    ++ optional isDarwinHost "use-cgroups"
-  );
+  rootNixSettings =
+    removeAttrs (import (self + /flake.nix)).nixConfig (
+      [
+        "extra-substituters"
+        "extra-trusted-public-keys"
+      ]
+      ++ optional isDarwinHost "use-cgroups"
+    )
+    // lib.optionalAttrs isDarwinHost {
+      connect-timeout = 30;
+      download-attempts = 10;
+      http-connections = 4;
+      stalled-download-timeout = 900;
+    };
 
   builderMachines = optional (managesNix && builderHost != null && hostName != builderHostName) {
     hostName = if builderHost.sshHost == null then builderHostName else builderHost.sshHost;
