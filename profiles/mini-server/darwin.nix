@@ -65,6 +65,11 @@ in
     };
 
     dsqr.nix.settings = {
+      substituters = [
+        "https://cache.nixos.org/"
+        "https://exo.cachix.org"
+      ];
+      trusted-public-keys = [ "exo.cachix.org-1:okq7hl624TBeAR3kV+g39dUFSiaZgLRkLsFBCuJ2NZI=" ];
       trusted-users = [
         "root"
         userName

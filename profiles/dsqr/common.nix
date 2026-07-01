@@ -29,22 +29,13 @@ let
   builderHost =
     if builtins.hasAttr builderHostName self.hostDefinitions then self.hostDefinitions.${builderHostName} else null;
 
-  rootNixSettings =
-    removeAttrs (import (self + /flake.nix)).nixConfig (
-      [
-        "extra-substituters"
-        "extra-trusted-public-keys"
-      ]
-      ++ optional isDarwinHost "use-cgroups"
-    )
-    // {
-      substituters = [
-        "https://cache.nixos.org/"
-        "https://exo.cachix.org"
-      ];
-
-      trusted-public-keys = [ "exo.cachix.org-1:okq7hl624TBeAR3kV+g39dUFSiaZgLRkLsFBCuJ2NZI=" ];
-    };
+  rootNixSettings = removeAttrs (import (self + /flake.nix)).nixConfig (
+    [
+      "extra-substituters"
+      "extra-trusted-public-keys"
+    ]
+    ++ optional isDarwinHost "use-cgroups"
+  );
 
   builderMachines = optional (managesNix && builderHost != null && hostName != builderHostName) {
     hostName = if builderHost.sshHost == null then builderHostName else builderHost.sshHost;
@@ -108,7 +99,7 @@ in
     enable = mkDefault true;
     buildMachines = mkDefault builderMachines;
     distributedBuilds = mkDefault true;
-    settings = mkDefault (rootNixSettings // { builders-use-substitutes = true; });
+    settings = mapAttrs (_: mkDefault) (rootNixSettings // { builders-use-substitutes = true; });
   };
 
   dsqr.security.certificates.homeRootCA.enable = mkDefault true;
