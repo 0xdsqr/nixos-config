@@ -211,13 +211,33 @@ in
           ${escapeShellArg "${repoRoot}"}#darwinConfigurations."$host".system
       )"
 
-      env NIX_SSHOPTS="$nix_sshopts" nix copy --to "ssh-ng://$target_resolved" "$system_config"
+      if [[ "$ask_elevate_password" -eq 1 ]]; then
+        closure_file="$(mktemp "''${TMPDIR:-/tmp}/nixos-config-$host.closure.XXXXXX")"
+        remote_closure="/tmp/nixos-config-$host-$$.closure.nar"
+        cleanup_closure() {
+          rm -f "$closure_file"
+        }
+        trap cleanup_closure EXIT
 
-      remote_activation_script=$(printf 'system_config=%q\nsudo nix-env -p /nix/var/nix/profiles/system --set "$system_config"\nsudo "$system_config/activate"\n' "$system_config")
+        mapfile -t closure_paths < <(nix-store --query --requisites "$system_config")
+        nix-store --export "''${closure_paths[@]}" > "$closure_file"
+        ${openssh}/bin/scp "''${ssh_args[@]}" "$closure_file" "$target_resolved:$remote_closure"
+
+        remote_activation_script=$(printf 'set -euo pipefail\nsystem_config=%q\nclosure_file=%q\ncleanup() { rm -f "$closure_file"; }\ntrap cleanup EXIT\nsudo -v\nsudo /nix/var/nix/profiles/default/bin/nix-store --option require-sigs false --import < "$closure_file"\nsudo /nix/var/nix/profiles/default/bin/nix-env -p /nix/var/nix/profiles/system --set "$system_config"\nsudo "$system_config/activate"\n' "$system_config" "$remote_closure")
+      else
+        env NIX_SSHOPTS="$nix_sshopts" nix copy --to "ssh-ng://$target_resolved" "$system_config"
+        remote_activation_script=$(printf 'system_config=%q\nsudo nix-env -p /nix/var/nix/profiles/system --set "$system_config"\nsudo "$system_config/activate"\n' "$system_config")
+      fi
+
       remote_cmd=$(printf '/bin/zsh -lc %q' "$remote_activation_script")
       activation_ssh_args=("''${ssh_args[@]}")
       if [[ "$ask_elevate_password" -eq 1 ]]; then
         activation_ssh_args+=(-t)
+      fi
+
+      if [[ "$ask_elevate_password" -eq 1 ]]; then
+        ${openssh}/bin/ssh "''${activation_ssh_args[@]}" "$target_resolved" "$remote_cmd"
+        exit $?
       fi
 
       exec ${openssh}/bin/ssh "''${activation_ssh_args[@]}" "$target_resolved" "$remote_cmd"

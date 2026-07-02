@@ -39,8 +39,9 @@ let
     )
     // lib.optionalAttrs isDarwinHost {
       connect-timeout = 30;
-      download-attempts = 10;
-      http-connections = 4;
+      download-attempts = 20;
+      http-connections = 1;
+      http2 = false;
       stalled-download-timeout = 900;
     };
 
