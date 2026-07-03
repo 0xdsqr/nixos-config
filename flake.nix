@@ -58,6 +58,12 @@
       flake = false;
     };
 
+    datadog-pup = {
+      url = "github:datadog-labs/homebrew-pack";
+
+      flake = false;
+    };
+
     darwin = {
       url = "github:LnL7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";

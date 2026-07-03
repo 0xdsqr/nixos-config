@@ -21,6 +21,7 @@ let
     darwinModules = [
       "homebrew"
       "lapdog"
+      "pup"
       "obsidian"
       "sudo"
     ];

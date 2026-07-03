@@ -26,6 +26,7 @@ in
 
     desktop = {
       lapdog.enable = mkDefault true;
+      pup.enable = mkDefault true;
       obsidian.enable = mkDefault true;
     };
   };

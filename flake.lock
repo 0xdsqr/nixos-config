@@ -80,6 +80,22 @@
         "type": "github"
       }
     },
+    "datadog-pup": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1783093713,
+        "narHash": "sha256-d+AKQlvcLak4ZL9N88BhgeoWUP1Bg/Jxr6AW6obHce4=",
+        "owner": "datadog-labs",
+        "repo": "homebrew-pack",
+        "rev": "ef51b90e2fc5e30b769b75ce6aa42ea9c033b404",
+        "type": "github"
+      },
+      "original": {
+        "owner": "datadog-labs",
+        "repo": "homebrew-pack",
+        "type": "github"
+      }
+    },
     "determinate": {
       "inputs": {
         "determinate-nixd-aarch64-darwin": "determinate-nixd-aarch64-darwin",
@@ -610,6 +626,7 @@
         "agenix": "agenix",
         "darwin": "darwin",
         "datadog-lapdog": "datadog-lapdog",
+        "datadog-pup": "datadog-pup",
         "determinate": "determinate",
         "disko": "disko",
         "flake-parts": "flake-parts_2",
