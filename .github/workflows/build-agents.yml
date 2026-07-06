@@ -31,8 +31,14 @@ jobs:
             os: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/determinate-nix-action@v3.17.0
-      - uses: DeterminateSystems/flakehub-cache-action@v3.17.0
+      - name: Free disk space
+        if: matrix.system == 'x86_64-linux'
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force || true
+          df -h /
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/flakehub-cache-action@v3.20.0
       - name: Build and cache agent packages
         run: |
           packages=(claude-code codex)
