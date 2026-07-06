@@ -5,11 +5,11 @@
       (final: _: {
         codexbar = final.stdenvNoCC.mkDerivation rec {
           pname = "codexbar";
-          version = "0.24";
+          version = "0.40.0";
 
           src = final.fetchzip {
-            url = "https://github.com/steipete/CodexBar/releases/download/v${version}/CodexBar-${version}.zip";
-            hash = "sha256-hoLwMoNqvOilfU6xvWE/6OZEEtcvOlSmiCNNpUlgtLI=";
+            url = "https://github.com/steipete/CodexBar/releases/download/v${version}/CodexBar-macos-universal-${version}.zip";
+            hash = "sha256-1u8chR6uUfXl0YKTX9kEdMFX3npNMpVHDSWNPu1aAmY=";
             stripRoot = false;
           };
 
