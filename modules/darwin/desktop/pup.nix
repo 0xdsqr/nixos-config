@@ -53,9 +53,7 @@
       config = mkIf cfg.enable {
         homebrew.brews = singleton cfg.package;
         nix-homebrew.taps.${cfg.tapRepository} = inputs.datadog-pup;
-        environment.variables = optionalAttrs (cfg.site != null) {
-          DD_SITE = cfg.site;
-        };
+        environment.variables = optionalAttrs (cfg.site != null) { DD_SITE = cfg.site; };
       };
     };
 }
