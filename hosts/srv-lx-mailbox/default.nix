@@ -36,6 +36,7 @@ let
           "difftastic"
           "discord"
           "exo"
+          "google-chrome"
           "hammerspoon"
           "hushlogin"
           "ollama"
