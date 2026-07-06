@@ -1,0 +1,46 @@
+name: build agents
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - packages/**
+      - .github/workflows/build-agents.yml
+  workflow_dispatch: {}
+
+concurrency:
+  group: build-agents-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.system }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - system: x86_64-linux
+            os: ubuntu-latest
+          - system: aarch64-linux
+            os: ubuntu-24.04-arm
+          - system: aarch64-darwin
+            os: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/determinate-nix-action@v3.17.0
+      - uses: DeterminateSystems/flakehub-cache-action@v3.17.0
+      - name: Build and cache agent packages
+        run: |
+          packages=(claude-code codex)
+          if [ "${{ matrix.system }}" = "aarch64-darwin" ]; then
+            packages+=(codexbar)
+          fi
+          targets=()
+          for pkg in "${packages[@]}"; do
+            targets+=(".#packages.${{ matrix.system }}.$pkg")
+          done
+          nix build --accept-flake-config --print-out-paths "${targets[@]}"

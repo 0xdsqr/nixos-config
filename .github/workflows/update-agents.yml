@@ -1,0 +1,46 @@
+name: update agents
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: update-agents
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/determinate-nix-action@v3.17.0
+      - uses: DeterminateSystems/flakehub-cache-action@v3.17.0
+      - name: Bump pinned versions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./scripts/update-pins.sh all
+      - name: Commit and push
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git diff --quiet -- packages; then
+            echo "no version changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for pkg in claude-code codex codexbar; do
+            file="packages/$pkg/package.nix"
+            git diff --quiet -- "$file" && continue
+            version="$(sed -n 's/.*version = "\([^"]*\)".*/\1/p' "$file" | head -1)"
+            git add "$file"
+            git commit -m "chore($pkg): bump to $version"
+          done
+          git push
+          gh workflow run build-agents.yml --ref main
