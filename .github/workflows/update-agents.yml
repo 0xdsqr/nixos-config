@@ -25,7 +25,7 @@ jobs:
       - name: Bump pinned versions
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./scripts/update-pins.sh all
+        run: nix run .#update-pins -- all
       - name: Commit and push
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
