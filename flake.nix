@@ -150,6 +150,11 @@
           in
           builtins.match ".*/hosts/[^/]+/default\\.nix" pathString == null;
       };
+
+      packageImports = collectNix {
+        path = ./packages;
+        exclude = path: builtins.baseNameOf (toString path) == "package.nix";
+      };
     in
     flake-parts.lib.mkFlake { inherit inputs; } (
       { ... }:
@@ -163,8 +168,8 @@
         imports = [
           inputs.home-manager.flakeModules.home-manager
           ./checks
-          ./packages
         ]
+        ++ packageImports
         ++ moduleImports
         ++ hostImports;
 
