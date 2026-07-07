@@ -42,6 +42,22 @@ def parse-got [text: string] {
   | get h.0
 }
 
+# Latest commit sha on a repo's default branch.
+def gh-head [owner: string, repo: string] {
+  gh-json $"repos/($owner)/($repo)/commits/HEAD" | get sha
+}
+
+# fetchFromGitHub hash via nix-prefetch-github (on PATH via the package wrapper).
+def gh-prefetch [owner: string, repo: string, rev: string] {
+  ^nix-prefetch-github --rev $rev $owner $repo | from json | get hash
+}
+
+# Build an attr with a fake hash in place and recover the real one from the error.
+def build-got [attr: string] {
+  let res = (do { ^nix build $"(repo-root)#($attr)" --no-link } | complete)
+  parse-got ($res.stdout + $res.stderr)
+}
+
 # Hash a fetchzip source on any platform (matches the darwin-only package output).
 def fetchzip-hash [url: string] {
   let root = (repo-root)
@@ -107,18 +123,60 @@ def update-codexbar [] {
   replace-field $file "hash" (fetchzip-hash $url)
 }
 
+def update-pi [] {
+  let pkg = $"(repo-root)/packages/pi/package.nix"
+  let skills = $"(repo-root)/packages/pi/skills.nix"
+
+  let tag = (gh-json "repos/earendil-works/pi/releases/latest" | get tag_name)
+  let version = ($tag | str replace --regex '^v' '')
+  let cur = (nix-field $pkg "version")
+  if $version == $cur {
+    print $"pi-coding-agent up to date \(($cur)\)"
+  } else {
+    print $"pi-coding-agent ($cur) -> ($version)"
+    replace-field $pkg "version" $version
+    replace-field $pkg "hash" (gh-prefetch "earendil-works" "pi" $tag)
+    replace-field $pkg "npmDepsHash" $FAKE
+    replace-field $pkg "npmDepsHash" (build-got "pi")
+  }
+
+  let ps_rev = (gh-head "badlogic" "pi-skills")
+  if $ps_rev == (nix-field $skills "piSkillsRev") {
+    print "pi-skills up to date"
+  } else {
+    print $"pi-skills -> ($ps_rev)"
+    replace-field $skills "piSkillsRev" $ps_rev
+    replace-field $skills "piSkillsHash" (gh-prefetch "badlogic" "pi-skills" $ps_rev)
+    replace-field $skills "browserToolsNpmDepsHash" $FAKE
+    replace-field $skills "browserToolsNpmDepsHash" (build-got "pi-skill-browser-tools")
+    replace-field $skills "braveSearchNpmDepsHash" $FAKE
+    replace-field $skills "braveSearchNpmDepsHash" (build-got "pi-skill-brave-search")
+  }
+
+  let as_rev = (gh-head "anthropics" "skills")
+  if $as_rev == (nix-field $skills "anthropicSkillsRev") {
+    print "anthropic-skills up to date"
+  } else {
+    print $"anthropic-skills -> ($as_rev)"
+    replace-field $skills "anthropicSkillsRev" $as_rev
+    replace-field $skills "anthropicSkillsHash" (gh-prefetch "anthropics" "skills" $as_rev)
+  }
+}
+
 def main [pkg: string = "all"] {
   match $pkg {
     "claude-code" => { update-claude-code }
     "codex" => { update-codex }
     "codexbar" => { update-codexbar }
+    "pi" => { update-pi }
     "all" => {
       try { update-claude-code } catch {|e| print $"!! claude-code failed: ($e.msg)"}
       try { update-codex } catch {|e| print $"!! codex failed: ($e.msg)"}
       try { update-codexbar } catch {|e| print $"!! codexbar failed: ($e.msg)"}
+      try { update-pi } catch {|e| print $"!! pi failed: ($e.msg)"}
     }
     _ => {
-      print "usage: update-pins [claude-code|codex|codexbar|all]"
+      print "usage: update-pins [claude-code|codex|codexbar|pi|all]"
       exit 1
     }
   }

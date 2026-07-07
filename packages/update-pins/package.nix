@@ -1,8 +1,15 @@
 {
-  lib,
-  writeShellScriptBin,
+  writeShellApplication,
   nushell,
+  nix-prefetch-github,
 }:
-writeShellScriptBin "update-pins" ''
-  exec ${lib.getExe nushell} ${./update-pins.nu} "$@"
-''
+writeShellApplication {
+  name = "update-pins";
+  runtimeInputs = [
+    nushell
+    nix-prefetch-github
+  ];
+  text = ''
+    exec nu ${./update-pins.nu} "$@"
+  '';
+}
