@@ -107,8 +107,6 @@
       url = "github:gorhill/uBlock";
       flake = false;
     };
-
-    nix-pi.url = "github:0xdsqr/nix-pi";
   };
 
   outputs =
@@ -153,7 +151,7 @@
 
       packageImports = collectNix {
         path = ./packages;
-        exclude = path: builtins.baseNameOf (toString path) == "package.nix";
+        exclude = path: builtins.baseNameOf (toString path) != "default.nix";
       };
     in
     flake-parts.lib.mkFlake { inherit inputs; } (
