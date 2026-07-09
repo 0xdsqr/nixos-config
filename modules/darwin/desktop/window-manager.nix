@@ -324,7 +324,6 @@
           ReduceMotionEnabled = 1;
         };
         system.defaults.CustomUserPreferences."com.apple.symbolichotkeys".AppleSymbolicHotKeys = symbolicHotkeys;
-        system.defaults.universalaccess.reduceMotion = mkIf cfg.reduceMotion.enable true;
         system.defaults.WindowManager.AppWindowGroupingBehavior = false;
 
         system.activationScripts.script.text = mkAfter /* bash */ ''

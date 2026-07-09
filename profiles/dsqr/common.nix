@@ -38,6 +38,12 @@ let
       ++ optional isDarwinHost "use-cgroups"
     )
     // lib.optionalAttrs isDarwinHost {
+      substituters = [
+        "https://cache.nixos.org/"
+        "https://cache.flakehub.com"
+        "https://exo.cachix.org"
+      ];
+      trusted-public-keys = [ "exo.cachix.org-1:okq7hl624TBeAR3kV+g39dUFSiaZgLRkLsFBCuJ2NZI=" ];
       connect-timeout = 30;
       download-attempts = 20;
       http-connections = 1;
