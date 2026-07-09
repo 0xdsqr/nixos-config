@@ -42,8 +42,13 @@ jobs:
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
           sudo docker image prune --all --force || true
           df -h /
-      - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/flakehub-cache-action@v3.20.0
+      - uses: DeterminateSystems/determinate-nix-action@v3.21.5
+      - uses: DeterminateSystems/flakehub-cache-action@v3.21.5
+        with:
+          flakehub-flake-name: 0xdsqr/nixos-config
+          use-gha-cache: disabled
+      - name: Verify FlakeHub Cache auth
+        run: nix store ping --store https://cache.flakehub.com
       - name: Build and cache agent packages
         run: |
           packages=(claude-code codex pi pi-skills)
