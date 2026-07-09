@@ -1,10 +1,9 @@
-name: "Publish main to FlakeHub"
+name: "Publish every Git push to main to FlakeHub"
 
 on:
   push:
     branches:
       - "main"
-  workflow_dispatch:
 
 jobs:
   flakehub-publish:
@@ -19,7 +18,7 @@ jobs:
       - uses: "DeterminateSystems/determinate-nix-action@v3"
       - uses: "DeterminateSystems/flakehub-push@main"
         with:
-          visibility: "public"
           name: "0xdsqr/nixos-config"
           rolling: true
+          visibility: "public"
           include-output-paths: true
