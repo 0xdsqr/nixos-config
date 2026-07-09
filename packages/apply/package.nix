@@ -166,8 +166,8 @@ in
     exit 1
   fi
 
-  ssh_args=(-o ServerAliveInterval=15 -o ServerAliveCountMax=4)
-  nix_sshopts="''${NIX_SSHOPTS:-} -o ServerAliveInterval=15 -o ServerAliveCountMax=4"
+  ssh_args=(-o ServerAliveInterval=60 -o ServerAliveCountMax=20)
+  nix_sshopts="''${NIX_SSHOPTS:-} -o ServerAliveInterval=60 -o ServerAliveCountMax=20"
   sudo_args=()
   if [[ -n "$identity_file" ]]; then
     ssh_args+=(-i "$identity_file" -o IdentitiesOnly=yes)
@@ -224,7 +224,7 @@ in
         ${rsync}/bin/rsync \
           --compress \
           --partial \
-          --inplace \
+          --append-verify \
           --progress \
           -e "${openssh}/bin/ssh ''${ssh_args[*]}" \
           "$closure_file" \
