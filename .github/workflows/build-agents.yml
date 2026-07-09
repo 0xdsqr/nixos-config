@@ -47,6 +47,7 @@ jobs:
         with:
           flakehub-flake-name: 0xdsqr/nixos-config
           use-gha-cache: disabled
+      # Fail before expensive builds if FlakeHub auth/cache access regresses.
       - name: Verify FlakeHub Cache auth
         run: nix store ping --store https://cache.flakehub.com
       - name: Build and cache agent packages
