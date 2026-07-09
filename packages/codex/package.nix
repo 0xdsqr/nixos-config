@@ -4,16 +4,16 @@
   rustPlatform,
 }:
 let
-  version = "0.143.0";
+  version = "0.144.0";
 
   src = fetchFromGitHub {
     owner = "openai";
     repo = "codex";
     tag = "rust-v${version}";
-    hash = "sha256-4xJcE8/lFwp1r/J8z7HMb7A59WXkj3rtm9QDtjJfC04=";
+    hash = "sha256-GbLeECsju5jifeVah1xN4HFFHxOKtCj55gl/0ZULj+g=";
   };
 
-  cargoHash = "sha256-YUQYPo4joZwHlderRA4f5A/04+rI+R1jd7RsfA5+P1E=";
+  cargoHash = "sha256-S4dsZXfmKvJItL2XYKyxfhqdCMATEG6oPjrtVRwkuYc=";
 in
 codex.overrideAttrs (_: {
   inherit version src cargoHash;
