@@ -22,7 +22,7 @@ jobs:
         run: |
           set -euo pipefail
           sudo curl --fail --silent --show-error \
-            --unix-socket /var/run/determinate-nixd.socket \
+            --unix-socket /nix/var/determinate/determinate-nixd.socket \
             --header 'content-type: application/json' \
             --data '{"directives":"determinate_nixd::auth::github_action=trace"}' \
             http://localhost/admin/tracing/directives
