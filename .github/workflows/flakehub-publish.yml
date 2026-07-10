@@ -27,7 +27,7 @@ jobs:
             --data '{"directives":["determinate_nixd::auth::github_action=trace"]}' \
             http://localhost/admin/tracing/directives || true
           determinate-nixd login github-action || true
-          sudo journalctl -u determinate-nixd.service --no-pager --since '2 minutes ago' \
+          sudo journalctl -u nix-daemon.service --no-pager --since '2 minutes ago' \
             | grep -Ei 'github_action|response_text|requesting token|error response|authentication mechanism' || true
       - uses: "DeterminateSystems/flakehub-push@main"
         with:
