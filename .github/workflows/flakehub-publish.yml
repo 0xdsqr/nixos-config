@@ -9,6 +9,9 @@ on:
 jobs:
   flakehub-publish:
     runs-on: "ubuntu-latest"
+    env:
+      # Surface FlakeHub's OIDC exchange response while troubleshooting auth.
+      DETERMINATE_NIX_LOG: "determinate_nixd::auth::github_action=trace"
     permissions:
       id-token: "write"
       contents: "read"
