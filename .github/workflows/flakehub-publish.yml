@@ -9,9 +9,6 @@ on:
 jobs:
   flakehub-publish:
     runs-on: "ubuntu-latest"
-    env:
-      # Surface FlakeHub's OIDC exchange response while troubleshooting auth.
-      DETERMINATE_NIX_LOG: "determinate_nixd::auth::github_action=trace"
     permissions:
       id-token: "write"
       contents: "read"
@@ -20,6 +17,18 @@ jobs:
         with:
           persist-credentials: false
       - uses: "DeterminateSystems/determinate-nix-action@v3"
+      - name: "Diagnose FlakeHub OIDC exchange"
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo curl --fail --silent --show-error \
+            --unix-socket /var/run/determinate-nixd.socket \
+            --header 'content-type: application/json' \
+            --data '{"directives":"determinate_nixd::auth::github_action=trace"}' \
+            http://localhost/admin/tracing/directives
+          determinate-nixd login github-action || true
+          sudo journalctl -u determinate-nixd.service --no-pager --since '2 minutes ago' \
+            | grep -Ei 'github_action|response_text|requesting token|error response|authentication mechanism' || true
       - uses: "DeterminateSystems/flakehub-push@main"
         with:
           name: "0xdsqr/nixos-config"
