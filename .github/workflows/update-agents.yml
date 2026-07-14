@@ -21,14 +21,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/determinate-nix-action@v3.21.5
-      # Temporarily disabled while Determinate Systems rebinds this repository's
-      # FlakeHub identity. Builds continue normally without a binary cache.
-      # - uses: DeterminateSystems/flakehub-cache-action@v3.21.5
-      #   with:
-      #     flakehub-flake-name: 0xdsqr/nixos-config
-      #     use-gha-cache: disabled
-      # - name: Verify FlakeHub Cache auth
-      #   run: nix store ping --store https://cache.flakehub.com
+      - uses: DeterminateSystems/flakehub-cache-action@v3.21.5
+        with:
+          flakehub-flake-name: 0xdsqr/nixos-config
+          use-gha-cache: disabled
+      - name: Verify FlakeHub Cache auth
+        run: nix store ping --store https://cache.flakehub.com
       - name: Bump pinned versions
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

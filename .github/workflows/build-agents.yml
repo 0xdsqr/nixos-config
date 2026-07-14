@@ -43,15 +43,14 @@ jobs:
           sudo docker image prune --all --force || true
           df -h /
       - uses: DeterminateSystems/determinate-nix-action@v3.21.5
-      # Temporarily disabled while Determinate Systems rebinds this repository's
-      # FlakeHub identity. Builds continue normally without a binary cache.
-      # - uses: DeterminateSystems/flakehub-cache-action@v3.21.5
-      #   with:
-      #     flakehub-flake-name: 0xdsqr/nixos-config
-      #     use-gha-cache: disabled
-      # - name: Verify FlakeHub Cache auth
-      #   run: nix store ping --store https://cache.flakehub.com
-      - name: Build agent packages
+      - uses: DeterminateSystems/flakehub-cache-action@v3.21.5
+        with:
+          flakehub-flake-name: 0xdsqr/nixos-config
+          use-gha-cache: disabled
+      # Fail before expensive builds if FlakeHub auth/cache access regresses.
+      - name: Verify FlakeHub Cache auth
+        run: nix store ping --store https://cache.flakehub.com
+      - name: Build and cache agent packages
         run: |
           packages=(claude-code codex pi pi-skills)
           if [ "${{ matrix.system }}" = "aarch64-darwin" ]; then
