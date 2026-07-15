@@ -160,7 +160,7 @@ Most modules are opt-in. Importing a module gives you its options; behavior usua
 
 ### Apply a host configuration
 
-`apply` uses the flake-pinned Nix, `nixos-rebuild`, and `darwin-rebuild` tools. SSH host names are passed through unchanged so aliases keep their configured user, identity, proxy, and connection options.
+`apply` is a small policy wrapper around the flake-pinned Nix, `nh`, and `darwin-rebuild` tools. NixOS deployments use `nh` for remote builds, closure transfer, validation, and activation. SSH host names are passed through unchanged so aliases keep their configured user, identity, proxy, and connection options.
 
 ```sh
 # Apply the matching configuration to the current machine.
@@ -169,14 +169,14 @@ nix run .#apply -- srv-lx-k8s-master-01
 # Build on khaos and activate the Kubernetes control-plane host.
 nix run .#apply -- --build-host srv-lx-khaos srv-lx-k8s-master-01
 
-# Exercise the same remote-build path without activating it.
+# Exercise the complete remote-build path without activating the target.
 nix run .#apply -- --dry-run --build-host srv-lx-khaos srv-lx-k8s-master-01
 
 # Override an identity only when the SSH alias does not already provide one.
 nix run .#apply -- --identity ~/.ssh/dsqr_homelab_ed25519 --remote srv-lx-beacon
 ```
 
-Use `--ask-sudo-password` when remote activation cannot use passwordless sudo. Run `nix run .#apply -- --help` for the complete interface.
+Remote NixOS activation assumes passwordless sudo by default. Use `--ask-sudo-password` when the target requires an interactive sudo password. Run `nix run .#apply -- --help` for the complete interface.
 
 Explore the current exports:
 

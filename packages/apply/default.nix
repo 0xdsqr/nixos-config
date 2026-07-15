@@ -4,11 +4,11 @@
     { pkgs, system, ... }:
     let
       nix = inputs.determinate.inputs.nix.packages.${system}.default;
-      nixos-rebuild = pkgs.nixos-rebuild.override { inherit nix; };
       darwin-rebuild = if pkgs.stdenv.hostPlatform.isDarwin then inputs.darwin.packages.${system}.darwin-rebuild else null;
       packageArgs = {
-        inherit darwin-rebuild nix nixos-rebuild;
+        inherit darwin-rebuild nix;
         inherit (config.flake) hostDefinitions;
+        inherit (pkgs) nh;
       };
       apply = pkgs.callPackage ./package.nix packageArgs;
     in

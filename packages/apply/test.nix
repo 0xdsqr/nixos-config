@@ -30,15 +30,15 @@ let
     "nix-env"
     "nix-store"
   ];
-  fakeNixosRebuild = fakePackage [ "nixos-rebuild" ];
+  fakeNh = fakePackage [ "nh" ];
   fakeOpenSsh = fakePackage [ "ssh" ];
   fakeRsync = fakePackage [ "rsync" ];
 
   testApply = import ./package.nix {
     darwin-rebuild = null;
     inherit hostDefinitions lib writeShellApplication;
+    nh = fakeNh;
     nix = fakeNix;
-    nixos-rebuild = fakeNixosRebuild;
     openssh = fakeOpenSsh;
     repoRoot = "/repo";
     rsync = fakeRsync;
@@ -49,34 +49,49 @@ runCommandLocal "apply-cli-test" { } ''
 
   ${testApply}/bin/apply --build-host srv-lx-khaos srv-lx-k8s-master-01
   printf '%s\n' \
-    'COMMAND=nixos-rebuild' \
+    'COMMAND=nh' \
     'NIX_SSHOPTS=-o ServerAliveInterval=60 -o ServerAliveCountMax=20' \
+    'ARG=--elevation-strategy=passwordless' \
+    'ARG=os' \
     'ARG=switch' \
-    'ARG=--flake' \
-    'ARG=path:/repo#srv-lx-k8s-master-01' \
+    'ARG=path:/repo' \
+    'ARG=--hostname' \
+    'ARG=srv-lx-k8s-master-01' \
+    'ARG=--build-host' \
+    'ARG=srv-lx-khaos' \
+    'ARG=--use-substitutes' \
     'ARG=--target-host' \
     'ARG=srv-lx-k8s-master-01' \
-    'ARG=--sudo' \
-    'ARG=--no-reexec' \
-    'ARG=--use-substitutes' \
-    'ARG=--accept-flake-config' \
-    'ARG=--build-host' \
-    'ARG=srv-lx-khaos' > "$TMPDIR/expected.log"
+    'ARG=--accept-flake-config' > "$TMPDIR/expected.log"
   diff -u "$TMPDIR/expected.log" "$APPLY_TEST_LOG"
 
   : > "$APPLY_TEST_LOG"
   ${testApply}/bin/apply \
-    --target-host deploy@edge-alias \
     --build-host build@srv-lx-khaos \
     --identity "$TMPDIR/key file" \
+    --dry-run \
+    srv-lx-k8s-master-01
+  grep -Fx 'ARG=build@srv-lx-khaos' "$APPLY_TEST_LOG"
+  grep -Fx 'ARG=--dry' "$APPLY_TEST_LOG"
+  grep -F 'key\ file' "$APPLY_TEST_LOG"
+
+  : > "$APPLY_TEST_LOG"
+  ${testApply}/bin/apply \
+    --target-host deploy@edge-alias \
     --ask-sudo-password \
     --dry-run \
     srv-lx-k8s-master-01
   grep -Fx 'ARG=deploy@edge-alias' "$APPLY_TEST_LOG"
-  grep -Fx 'ARG=build@srv-lx-khaos' "$APPLY_TEST_LOG"
-  grep -Fx 'ARG=--ask-sudo-password' "$APPLY_TEST_LOG"
-  grep -Fx 'ARG=--no-reexec' "$APPLY_TEST_LOG"
-  grep -F 'key\ file' "$APPLY_TEST_LOG"
+  grep -Fx 'ARG=--dry' "$APPLY_TEST_LOG"
+  if grep -Fx 'ARG=--elevation-strategy=passwordless' "$APPLY_TEST_LOG"; then
+    echo 'prompted elevation must not force passwordless sudo' >&2
+    exit 1
+  fi
+
+  : > "$APPLY_TEST_LOG"
+  ${testApply}/bin/apply --remote --ask-sudo-password --dry-run srv-lx-k8s-master-01
+  grep -F -- '--ask-sudo-password' "$APPLY_TEST_LOG"
+  grep -F -- '--dry-run' "$APPLY_TEST_LOG"
 
   if ${testApply}/bin/apply --build-host; then
     echo 'missing option operands must fail' >&2
@@ -94,6 +109,5 @@ runCommandLocal "apply-cli-test" { } ''
     echo 'unsafe remote roots must fail' >&2
     exit 1
   fi
-
   touch "$out"
 ''

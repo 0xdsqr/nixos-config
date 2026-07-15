@@ -2,8 +2,8 @@
   darwin-rebuild ? null,
   hostDefinitions ? { },
   lib,
+  nh,
   nix,
-  nixos-rebuild,
   openssh,
   repoRoot ? ../..,
   rsync,
@@ -35,7 +35,7 @@ writeShellApplication {
 
   runtimeInputs = [
     nix
-    nixos-rebuild
+    nh
     openssh
     rsync
   ]
@@ -78,7 +78,7 @@ writeShellApplication {
       --identity <path>
       --remote-root <relative-or-absolute-path>
       --ask-sudo-password
-      --dry-run
+      --dry-run                Build and validate without activating.
       --help
 
     SSH destinations are passed to OpenSSH unchanged so Host aliases retain
@@ -130,11 +130,6 @@ writeShellApplication {
           ask_sudo_password=1
           shift
           ;;
-        --ask-elevate-password)
-          printf 'apply: warning: --ask-elevate-password is deprecated; use --ask-sudo-password\n' >&2
-          ask_sudo_password=1
-          shift
-          ;;
         --dry-run)
           dry_run=1
           shift
@@ -176,11 +171,9 @@ writeShellApplication {
     if (( remote == 0 && remote_root_set == 1 )); then
       die "--remote-root requires --remote"
     fi
-
     ssh_args=(-o ServerAliveInterval=60 -o ServerAliveCountMax=20)
     nix_sshopts="''${NIX_SSHOPTS:-}"
-    keepalive_options="-o ServerAliveInterval=60 -o ServerAliveCountMax=20"
-    nix_sshopts="''${nix_sshopts:+$nix_sshopts }$keepalive_options"
+    nix_sshopts="''${nix_sshopts:+$nix_sshopts }-o ServerAliveInterval=60 -o ServerAliveCountMax=20"
     sudo_args=()
 
     if [[ -n "$identity_file" ]]; then
@@ -193,7 +186,8 @@ writeShellApplication {
     fi
 
     if (( remote == 1 )); then
-      if [[ "$remote_root" == "~/"* ]]; then
+      tilde_prefix="$(printf '\176/')"
+      if [[ "''${remote_root:0:2}" == "$tilde_prefix" ]]; then
         remote_root="''${remote_root#~/}"
       fi
       if [[ -z "$remote_root" || "$remote_root" == "/" || "$remote_root" == "." || "$remote_root" == ".." || "$remote_root" == "~" ]]; then
@@ -203,11 +197,16 @@ writeShellApplication {
         die "remote root may contain only letters, digits, '.', '_', '/', and '-'"
       fi
 
-      remote_flags=""
-      if (( dry_run == 1 )); then
-        remote_flags=" --dry-run"
+      remote_apply_args=()
+      if (( ask_sudo_password == 1 )); then
+        remote_apply_args+=(--ask-sudo-password)
       fi
-      remote_cmd="cd -- $remote_root && exec nix --accept-flake-config run path:.#apply --$remote_flags $host"
+      if (( dry_run == 1 )); then
+        remote_apply_args+=(--dry-run)
+      fi
+      remote_apply_args+=("$host")
+      printf -v remote_apply_command ' %q' "''${remote_apply_args[@]}"
+      remote_cmd="cd -- $remote_root && exec nix --accept-flake-config run path:.#apply --$remote_apply_command"
 
       printf -v rsync_ssh '%q ' ${escapeShellArg "${openssh}/bin/ssh"} "''${ssh_args[@]}"
       ${rsync}/bin/rsync \
@@ -283,50 +282,46 @@ writeShellApplication {
         exec ${openssh}/bin/ssh "''${activation_ssh_args[@]}" "$target" "$remote_cmd"
       fi
 
-      action="switch"
-      if (( dry_run == 1 )); then
-        action="dry-run"
-      fi
-      target="''${target_host:-$host}"
-      rebuild_args=(
-        "$action"
-        --flake path:${escapeShellArg "${repoRoot}"}#"$host"
-        --target-host "$target"
-        --sudo
-        --no-reexec
-        --use-substitutes
-        --accept-flake-config
+      nh_args=(
+        os
+        switch
+        path:${escapeShellArg "${repoRoot}"}
+        --hostname "$host"
       )
 
       if [[ -n "$build_host" ]]; then
-        rebuild_args+=(--build-host "$build_host")
+        nh_args+=(--build-host "$build_host" --use-substitutes)
       fi
-      if (( ask_sudo_password == 1 )); then
-        rebuild_args+=(--ask-sudo-password)
+      nh_args+=(--target-host "''${target_host:-$host}")
+      if (( ask_sudo_password == 0 )); then
+        nh_args=(--elevation-strategy=passwordless "''${nh_args[@]}")
+      fi
+      nh_args+=(--accept-flake-config)
+      if (( dry_run == 1 )); then
+        nh_args+=(--dry)
       fi
 
-      exec env NIX_SSHOPTS="$nix_sshopts" ${nixos-rebuild}/bin/nixos-rebuild "''${rebuild_args[@]}"
+      exec env NIX_SSHOPTS="$nix_sshopts" ${nh}/bin/nh "''${nh_args[@]}"
     fi
 
     if [[ "$class" == "darwin" ]]; then
       if (( dry_run == 1 )); then
-        exec ${darwinRebuild} build --flake ${escapeShellArg "${repoRoot}"}#"$host"
+        exec ${nh}/bin/nh darwin switch path:${escapeShellArg "${repoRoot}"} --hostname "$host" --accept-flake-config --dry
       fi
       exec sudo "''${sudo_args[@]}" ${darwinRebuild} switch --flake ${escapeShellArg "${repoRoot}"}#"$host"
     fi
 
-    action="switch"
-    if (( dry_run == 1 )); then
-      action="dry-run"
-    fi
-    rebuild_args=(
-      "$action"
-      --flake path:${escapeShellArg "${repoRoot}"}#"$host"
-      --sudo
-      --no-reexec
+    nh_args=(
+      os
+      switch
+      path:${escapeShellArg "${repoRoot}"}
+      --hostname "$host"
       --accept-flake-config
     )
-    exec ${nixos-rebuild}/bin/nixos-rebuild "''${rebuild_args[@]}"
+    if (( dry_run == 1 )); then
+      nh_args+=(--dry)
+    fi
+    exec ${nh}/bin/nh "''${nh_args[@]}"
   '';
 
   meta = {
