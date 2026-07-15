@@ -1,285 +1,337 @@
 {
-  lib,
-  openssh,
-  rsync,
-  writeShellScriptBin,
+  darwin-rebuild ? null,
   hostDefinitions ? { },
+  lib,
+  nix,
+  nixos-rebuild,
+  openssh,
   repoRoot ? ../..,
+  rsync,
+  writeShellApplication,
 }:
 let
   inherit (lib.attrsets) mapAttrsToList;
+  inherit (lib.lists) optional;
   inherit (lib.strings) concatStringsSep escapeShellArg;
+
+  darwinRebuild = if darwin-rebuild == null then "darwin-rebuild" else "${darwin-rebuild}/bin/darwin-rebuild";
 
   hostCases = concatStringsSep "\n" (
     mapAttrsToList (
       hostName: hostMeta:
       let
         class = hostMeta.class or (throw "packages.apply: hostDefinitions.${hostName}.class is required");
-        sshHost = hostMeta.sshHost or null;
-        target = if sshHost == null then hostName else sshHost;
       in
       /* bash */ ''
-        ${hostName})
+        ${escapeShellArg hostName})
           class=${escapeShellArg class}
-          target=${escapeShellArg target}
-          ;;
-      ''
-    ) hostDefinitions
-  );
-
-  hostTargets = concatStringsSep "\n" (
-    mapAttrsToList (
-      hostName: hostMeta:
-      let
-        sshHost = hostMeta.sshHost or null;
-        target = if sshHost == null then hostName else sshHost;
-      in
-      /* bash */ ''
-        ${hostName})
-          printf '%s\n' ${escapeShellArg target}
           ;;
       ''
     ) hostDefinitions
   );
 in
-(writeShellScriptBin "apply" /* bash */ ''
-  set -euo pipefail
+writeShellApplication {
+  name = "apply";
 
-  host=""
-  build_host=""
-  target_host_override=""
-  remote=0
-  remote_root="~/nixos-config"
-  identity_file="''${APPLY_SSH_IDENTITY:-}"
-  ask_elevate_password=0
+  runtimeInputs = [
+    nix
+    nixos-rebuild
+    openssh
+    rsync
+  ]
+  ++ optional (darwin-rebuild != null) darwin-rebuild;
 
-  usage() {
-    cat <<'EOF'
-  usage: apply [options] <host>
+  text = /* bash */ ''
+    set -euo pipefail
 
-    apply <host>
-        Apply the local flake to the current machine.
+    host=""
+    build_host=""
+    target_host=""
+    remote=0
+    remote_root="nixos-config"
+    remote_root_set=0
+    identity_file="''${APPLY_SSH_IDENTITY:-}"
+    ask_sudo_password=0
+    dry_run=0
+    positionals=()
 
-    apply --remote <host>
-        Sync this repo to the target host and apply there.
+    usage() {
+      cat <<'EOF'
+    usage: apply [options] <configuration>
 
-    apply --build-host <host> <host>
-        Build on the given NixOS host, then activate the target host.
+      apply <configuration>
+          Apply the selected configuration to the current machine.
 
-    apply --target-host <host> <darwin-host>
-        Build locally, copy the closure to the Darwin target host, then activate it.
+      apply --remote <configuration>
+          Sync this repository to the selected host and apply it there.
 
-  options:
-    --remote
-    --build-host <host>
-    --target-host <host>
-    --identity <path>
-    --remote-root <path>
-    --ask-elevate-password
-  EOF
-  }
+      apply --build-host <ssh-host> <configuration>
+          Build a NixOS configuration on the SSH host, then activate its target.
 
-  resolve_target() {
-    local value="$1"
-    local user_prefix=""
-    local name="$value"
+      apply --target-host <ssh-host> <configuration>
+          Override the SSH activation target.
 
-    if [[ "$value" == *@* ]]; then
-      user_prefix="''${value%@*}@"
-      name="''${value#*@}"
-    fi
+    options:
+      --remote
+      --build-host <ssh-host>
+      --target-host <ssh-host>
+      --identity <path>
+      --remote-root <relative-or-absolute-path>
+      --ask-sudo-password
+      --dry-run
+      --help
 
-    case "$name" in
-  ${hostTargets}
-      *)
-        printf '%s\n' "$name"
-        ;;
-    esac | while IFS= read -r resolved; do
-      printf '%s%s\n' "$user_prefix" "$resolved"
-    done
-  }
+    SSH destinations are passed to OpenSSH unchanged so Host aliases retain
+    their configured User, IdentityFile, ProxyJump, and other connection settings.
+    EOF
+    }
 
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --remote)
-        remote=1
-        shift
-        ;;
-      --build-host)
-        build_host="$2"
-        shift 2
-        ;;
-      --target-host)
-        target_host_override="$2"
-        shift 2
-        ;;
-      --identity)
-        identity_file="$2"
-        shift 2
-        ;;
-      --remote-root)
-        remote_root="$2"
-        shift 2
-        ;;
-      --ask-elevate-password|--ask-sudo-password)
-        ask_elevate_password=1
-        shift
-        ;;
-      --help|-h)
-        usage
-        exit 0
-        ;;
-      --)
-        shift
-        break
-        ;;
-      -*)
-        echo "unknown flag: $1" >&2
-        exit 1
-        ;;
-      *)
-        if [[ -z "$host" ]]; then
-          host="$1"
+    die() {
+      printf 'apply: %s\n' "$*" >&2
+      exit 2
+    }
+
+    require_value() {
+      local option="$1"
+      local count="$2"
+      if (( count < 2 )); then
+        die "$option requires a value"
+      fi
+    }
+
+    while (( $# > 0 )); do
+      case "$1" in
+        --remote)
+          remote=1
           shift
-        else
+          ;;
+        --build-host)
+          require_value "$1" "$#"
+          build_host="$2"
+          shift 2
+          ;;
+        --target-host)
+          require_value "$1" "$#"
+          target_host="$2"
+          shift 2
+          ;;
+        --identity)
+          require_value "$1" "$#"
+          identity_file="$2"
+          shift 2
+          ;;
+        --remote-root)
+          require_value "$1" "$#"
+          remote_root="$2"
+          remote_root_set=1
+          shift 2
+          ;;
+        --ask-sudo-password)
+          ask_sudo_password=1
+          shift
+          ;;
+        --ask-elevate-password)
+          printf 'apply: warning: --ask-elevate-password is deprecated; use --ask-sudo-password\n' >&2
+          ask_sudo_password=1
+          shift
+          ;;
+        --dry-run)
+          dry_run=1
+          shift
+          ;;
+        --help|-h)
+          usage
+          exit 0
+          ;;
+        --)
+          shift
+          positionals+=("$@")
           break
-        fi
+          ;;
+        -*)
+          die "unknown option: $1"
+          ;;
+        *)
+          positionals+=("$1")
+          shift
+          ;;
+      esac
+    done
+
+    if (( ''${#positionals[@]} != 1 )); then
+      die "expected exactly one configuration; see --help"
+    fi
+    host="''${positionals[0]}"
+
+    case "$host" in
+    ${hostCases}
+      *)
+        die "unknown configuration: $host"
         ;;
     esac
-  done
 
-  if [[ -z "$host" ]]; then
-    usage >&2
-    exit 1
-  fi
-
-  case "$host" in
-  ${hostCases}
-    *)
-      echo "unknown host: $host" >&2
-      exit 1
-      ;;
-  esac
-
-  if [[ "$remote" -eq 1 && ( -n "$build_host" || -n "$target_host_override" ) ]]; then
-    echo "--remote cannot be combined with --build-host or --target-host" >&2
-    exit 1
-  fi
-
-  ssh_args=(-o ServerAliveInterval=60 -o ServerAliveCountMax=20)
-  nix_sshopts="''${NIX_SSHOPTS:-} -o ServerAliveInterval=60 -o ServerAliveCountMax=20"
-  sudo_args=()
-  if [[ -n "$identity_file" ]]; then
-    ssh_args+=(-i "$identity_file" -o IdentitiesOnly=yes)
-    nix_sshopts+=" -i $identity_file -o IdentitiesOnly=yes"
-  fi
-  if [[ -n "''${NIX_CONFIG:-}" ]]; then
-    sudo_args+=(--preserve-env=NIX_CONFIG)
-  fi
-
-  if [[ "$remote" -eq 1 ]]; then
-    if [[ "$class" == "darwin" ]]; then
-      remote_cmd="cd \"$remote_root\"; sudo darwin-rebuild switch --flake path:.#$host"
-    else
-      remote_cmd="cd \"$remote_root\"; sudo nix --accept-flake-config run nixpkgs#nixos-rebuild -- switch --flake path:.#$host"
+    if (( remote == 1 )) && [[ -n "$build_host" || -n "$target_host" ]]; then
+      die "--remote cannot be combined with --build-host or --target-host"
+    fi
+    if (( remote == 0 && remote_root_set == 1 )); then
+      die "--remote-root requires --remote"
     fi
 
-    ${rsync}/bin/rsync \
-      --archive \
-      --compress \
-      --delete \
-      --exclude .git \
-      -e "${openssh}/bin/ssh ''${ssh_args[*]}" \
-      ${escapeShellArg "${repoRoot}/"} \
-      "$target:$remote_root/"
+    ssh_args=(-o ServerAliveInterval=60 -o ServerAliveCountMax=20)
+    nix_sshopts="''${NIX_SSHOPTS:-}"
+    keepalive_options="-o ServerAliveInterval=60 -o ServerAliveCountMax=20"
+    nix_sshopts="''${nix_sshopts:+$nix_sshopts }$keepalive_options"
+    sudo_args=()
 
-    exec ${openssh}/bin/ssh "''${ssh_args[@]}" "$target" "$remote_cmd"
-  fi
+    if [[ -n "$identity_file" ]]; then
+      ssh_args+=(-i "$identity_file" -o IdentitiesOnly=yes)
+      printf -v quoted_identity '%q' "$identity_file"
+      nix_sshopts+=" -i $quoted_identity -o IdentitiesOnly=yes"
+    fi
+    if [[ -n "''${NIX_CONFIG:-}" ]]; then
+      sudo_args+=(--preserve-env=NIX_CONFIG)
+    fi
 
-  if [[ -n "$build_host" || -n "$target_host_override" ]]; then
-    if [[ "$class" == "darwin" ]]; then
-      if [[ -n "$build_host" ]]; then
-        echo "--build-host deployments are only supported for NixOS hosts" >&2
-        exit 1
+    if (( remote == 1 )); then
+      if [[ "$remote_root" == "~/"* ]]; then
+        remote_root="''${remote_root#~/}"
+      fi
+      if [[ -z "$remote_root" || "$remote_root" == "/" || "$remote_root" == "." || "$remote_root" == ".." || "$remote_root" == "~" ]]; then
+        die "refusing unsafe remote root: $remote_root"
+      fi
+      if [[ ! "$remote_root" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+        die "remote root may contain only letters, digits, '.', '_', '/', and '-'"
       fi
 
-      target_resolved="$(resolve_target "''${target_host_override:-$target}")"
-      system_config="$(
-        nix --accept-flake-config build \
-          --no-link \
-          --print-out-paths \
-          ${escapeShellArg "${repoRoot}"}#darwinConfigurations."$host".system
-      )"
-
-      if [[ "$ask_elevate_password" -eq 1 ]]; then
-        closure_file="$(mktemp "''${TMPDIR:-/tmp}/nixos-config-$host.closure.XXXXXX")"
-        remote_closure="/tmp/nixos-config-$host-$(basename "$system_config").closure.nar"
-        cleanup_closure() {
-          rm -f "$closure_file"
-        }
-        trap cleanup_closure EXIT
-
-        mapfile -t closure_paths < <(nix-store --query --requisites "$system_config")
-        nix-store --export "''${closure_paths[@]}" > "$closure_file"
-        ${rsync}/bin/rsync \
-          --compress \
-          --partial \
-          --append-verify \
-          --progress \
-          -e "${openssh}/bin/ssh ''${ssh_args[*]}" \
-          "$closure_file" \
-          "$target_resolved:$remote_closure"
-
-        remote_activation_script=$(printf 'set -euo pipefail\nsystem_config=%q\nclosure_file=%q\ncleanup() { rm -f "$closure_file"; }\ntrap cleanup EXIT\nsudo -v\nsudo /nix/var/nix/profiles/default/bin/nix-store --option require-sigs false --import < "$closure_file"\nsudo /nix/var/nix/profiles/default/bin/nix-env -p /nix/var/nix/profiles/system --set "$system_config"\nsudo "$system_config/activate"\n' "$system_config" "$remote_closure")
-      else
-        env NIX_SSHOPTS="$nix_sshopts" nix copy --to "ssh-ng://$target_resolved" "$system_config"
-        remote_activation_script=$(printf 'system_config=%q\nsudo nix-env -p /nix/var/nix/profiles/system --set "$system_config"\nsudo "$system_config/activate"\n' "$system_config")
+      remote_flags=""
+      if (( dry_run == 1 )); then
+        remote_flags=" --dry-run"
       fi
+      remote_cmd="cd -- $remote_root && exec nix --accept-flake-config run path:.#apply --$remote_flags $host"
 
-      remote_cmd=$(printf '/bin/zsh -lc %q' "$remote_activation_script")
+      printf -v rsync_ssh '%q ' ${escapeShellArg "${openssh}/bin/ssh"} "''${ssh_args[@]}"
+      ${rsync}/bin/rsync \
+        --archive \
+        --compress \
+        --delete \
+        --exclude .git \
+        -e "$rsync_ssh" \
+        ${escapeShellArg "${repoRoot}/"} \
+        "$host:$remote_root/"
+
       activation_ssh_args=("''${ssh_args[@]}")
-      if [[ "$ask_elevate_password" -eq 1 ]]; then
+      if (( ask_sudo_password == 1 )); then
         activation_ssh_args+=(-t)
       fi
+      exec ${openssh}/bin/ssh "''${activation_ssh_args[@]}" "$host" "$remote_cmd"
+    fi
 
-      if [[ "$ask_elevate_password" -eq 1 ]]; then
-        ${openssh}/bin/ssh "''${activation_ssh_args[@]}" "$target_resolved" "$remote_cmd"
-        exit $?
+    if [[ -n "$build_host" || -n "$target_host" ]]; then
+      if [[ "$class" == "darwin" ]]; then
+        if [[ -n "$build_host" ]]; then
+          die "--build-host is only supported for NixOS configurations"
+        fi
+
+        target="''${target_host:-$host}"
+        system_config="$(
+          ${nix}/bin/nix --accept-flake-config build \
+            --no-link \
+            --print-out-paths \
+            ${escapeShellArg "${repoRoot}"}#darwinConfigurations."$host".system
+        )"
+
+        if (( dry_run == 1 )); then
+          printf '%s\n' "$system_config"
+          exit 0
+        fi
+
+        if (( ask_sudo_password == 1 )); then
+          closure_file="$(mktemp "''${TMPDIR:-/tmp}/nixos-config-$host.closure.XXXXXX")"
+          remote_closure="/tmp/nixos-config-$host-$(basename "$system_config").closure.nar"
+          cleanup_closure() {
+            rm -f "$closure_file"
+          }
+          trap cleanup_closure EXIT
+
+          mapfile -t closure_paths < <(${nix}/bin/nix-store --query --requisites "$system_config")
+          ${nix}/bin/nix-store --export "''${closure_paths[@]}" > "$closure_file"
+          printf -v rsync_ssh '%q ' ${escapeShellArg "${openssh}/bin/ssh"} "''${ssh_args[@]}"
+          ${rsync}/bin/rsync \
+            --compress \
+            --partial \
+            --append-verify \
+            --progress \
+            -e "$rsync_ssh" \
+            "$closure_file" \
+            "$target:$remote_closure"
+
+          # Variables in this template intentionally expand on the remote host.
+          # shellcheck disable=SC2016
+          remote_activation_script=$(printf 'set -euo pipefail\nsystem_config=%q\nclosure_file=%q\ncleanup() { rm -f "$closure_file"; }\ntrap cleanup EXIT\nsudo -v\nsudo /nix/var/nix/profiles/default/bin/nix-store --option require-sigs false --import < "$closure_file"\nsudo /nix/var/nix/profiles/default/bin/nix-env -p /nix/var/nix/profiles/system --set "$system_config"\nsudo "$system_config/activate"\n' "$system_config" "$remote_closure")
+        else
+          env NIX_SSHOPTS="$nix_sshopts" ${nix}/bin/nix copy --to "ssh-ng://$target" "$system_config"
+          # Variables in this template intentionally expand on the remote host.
+          # shellcheck disable=SC2016
+          remote_activation_script=$(printf 'system_config=%q\nsudo nix-env -p /nix/var/nix/profiles/system --set "$system_config"\nsudo "$system_config/activate"\n' "$system_config")
+        fi
+
+        remote_cmd=$(printf '/bin/zsh -lc %q' "$remote_activation_script")
+        activation_ssh_args=("''${ssh_args[@]}")
+        if (( ask_sudo_password == 1 )); then
+          activation_ssh_args+=(-t)
+        fi
+        exec ${openssh}/bin/ssh "''${activation_ssh_args[@]}" "$target" "$remote_cmd"
       fi
 
-      exec ${openssh}/bin/ssh "''${activation_ssh_args[@]}" "$target_resolved" "$remote_cmd"
+      action="switch"
+      if (( dry_run == 1 )); then
+        action="dry-run"
+      fi
+      target="''${target_host:-$host}"
+      rebuild_args=(
+        "$action"
+        --flake path:${escapeShellArg "${repoRoot}"}#"$host"
+        --target-host "$target"
+        --sudo
+        --no-reexec
+        --use-substitutes
+        --accept-flake-config
+      )
+
+      if [[ -n "$build_host" ]]; then
+        rebuild_args+=(--build-host "$build_host")
+      fi
+      if (( ask_sudo_password == 1 )); then
+        rebuild_args+=(--ask-sudo-password)
+      fi
+
+      exec env NIX_SSHOPTS="$nix_sshopts" ${nixos-rebuild}/bin/nixos-rebuild "''${rebuild_args[@]}"
     fi
 
+    if [[ "$class" == "darwin" ]]; then
+      if (( dry_run == 1 )); then
+        exec ${darwinRebuild} build --flake ${escapeShellArg "${repoRoot}"}#"$host"
+      fi
+      exec sudo "''${sudo_args[@]}" ${darwinRebuild} switch --flake ${escapeShellArg "${repoRoot}"}#"$host"
+    fi
+
+    action="switch"
+    if (( dry_run == 1 )); then
+      action="dry-run"
+    fi
     rebuild_args=(
-      switch
+      "$action"
       --flake path:${escapeShellArg "${repoRoot}"}#"$host"
-      --target-host "$(resolve_target "''${target_host_override:-$target}")"
-      --elevate=sudo
-      --use-substitutes
+      --sudo
+      --no-reexec
       --accept-flake-config
     )
+    exec ${nixos-rebuild}/bin/nixos-rebuild "''${rebuild_args[@]}"
+  '';
 
-    if [[ -n "$build_host" ]]; then
-      rebuild_args+=(--build-host "$(resolve_target "$build_host")")
-    fi
-
-    if [[ "$ask_elevate_password" -eq 1 ]]; then
-      rebuild_args+=(--ask-elevate-password)
-    fi
-
-    exec env NIX_SSHOPTS="$nix_sshopts" nix --accept-flake-config run nixpkgs#nixos-rebuild -- "''${rebuild_args[@]}"
-  fi
-
-  if [[ "$class" == "darwin" ]]; then
-    exec sudo "''${sudo_args[@]}" darwin-rebuild switch --flake ${escapeShellArg "${repoRoot}"}#"$host"
-  fi
-
-  exec sudo "''${sudo_args[@]}" nix --accept-flake-config run nixpkgs#nixos-rebuild -- switch --flake path:${escapeShellArg "${repoRoot}"}#"$host"
-'').overrideAttrs
-  (oldAttrs: {
-    meta = (oldAttrs.meta or { }) // {
-      description = "Apply this flake to a local or remote nix-darwin or NixOS host";
-      mainProgram = "apply";
-      platforms = lib.platforms.unix;
-    };
-  })
+  meta = {
+    description = "Apply this flake to a local or remote nix-darwin or NixOS host";
+    mainProgram = "apply";
+    platforms = lib.platforms.unix;
+  };
+}

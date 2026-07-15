@@ -1,13 +1,22 @@
-{ config, ... }:
+{ config, inputs, ... }:
 {
   perSystem =
-    { pkgs, ... }:
+    { pkgs, system, ... }:
     let
-      apply = pkgs.callPackage ./package.nix { inherit (config.flake) hostDefinitions; };
+      nix = inputs.determinate.inputs.nix.packages.${system}.default;
+      nixos-rebuild = pkgs.nixos-rebuild.override { inherit nix; };
+      darwin-rebuild = if pkgs.stdenv.hostPlatform.isDarwin then inputs.darwin.packages.${system}.darwin-rebuild else null;
+      packageArgs = {
+        inherit darwin-rebuild nix nixos-rebuild;
+        inherit (config.flake) hostDefinitions;
+      };
+      apply = pkgs.callPackage ./package.nix packageArgs;
     in
     {
       packages.apply = apply;
       packages.default = apply;
+
+      checks.apply = pkgs.callPackage ./test.nix { inherit (config.flake) hostDefinitions; };
 
       apps.apply = {
         type = "app";
