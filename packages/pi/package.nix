@@ -9,9 +9,9 @@
   writableTmpDirAsHomeHook,
 }:
 let
-  version = "0.80.3";
-  hash = "sha256-wQTrWKsb2HCGwzSAFEk8NWSDpqxSY/lv1/R6ghcmbaA=";
-  npmDepsHash = "sha256-kiH6Gzbx6UM+OcZPfgxPRdOfImJR3OyqUXvmRcpKsxw=";
+  version = "0.80.9";
+  hash = "sha256-unJ9O0U8i88IAyFeCHWAaWzAYC0phq/v68OmSuUKtNo=";
+  npmDepsHash = "sha256-+5XhpECgmxebMmBQHVu+3Csd0lq9JiAW+5Cp5Xjzg3E=";
 in
 buildNpmPackage {
   pname = "pi-coding-agent";

@@ -41,12 +41,27 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          declare -A package_files=(
+            [claude-code]="packages/claude-code/package.nix"
+            [codex]="packages/codex/cli.nix"
+            [codexbar]="packages/codex/bar.nix"
+          )
           for pkg in claude-code codex codexbar; do
-            file="packages/$pkg/package.nix"
+            file="${package_files[$pkg]}"
             git diff --quiet -- "$file" && continue
             version="$(sed -n 's/.*version = "\([^"]*\)".*/\1/p' "$file" | head -1)"
             git add "$file"
             git commit -m "chore($pkg): bump to $version"
           done
+          if ! git diff --quiet -- packages/pi/package.nix; then
+            version="$(sed -n 's/.*version = "\([^"]*\)".*/\1/p' packages/pi/package.nix | head -1)"
+            git add packages/pi/package.nix
+            git commit -m "chore(pi): bump to $version"
+          fi
+          if ! git diff --quiet -- packages/pi/skills.nix; then
+            revision="$(sed -n 's/.*piSkillsRev = "\([^"]*\)".*/\1/p' packages/pi/skills.nix | head -1)"
+            git add packages/pi/skills.nix
+            git commit -m "chore(pi-skills): bump to ${revision:0:12}"
+          fi
           git push
           gh workflow run build-agents.yml --ref main

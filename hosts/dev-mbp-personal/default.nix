@@ -47,7 +47,6 @@ in
             system.enable = true;
             windowManager.enable = true;
             maccy.enable = true;
-            codex.enable = true;
             hammerspoon.enable = true;
             obs-studio.enable = true;
             statusClock.enable = true;

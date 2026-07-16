@@ -1,5 +1,5 @@
-# Bump the pinned versions/hashes of the agent packages in packages/*/package.nix.
-#   update-pins [claude-code|codex|codexbar|all]
+# Bump the pinned versions/hashes of the agent packages.
+#   update-pins [claude-code|codex|codexbar|pi|all]
 
 const FAKE = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 
@@ -84,7 +84,7 @@ def update-claude-code [] {
 }
 
 def update-codex [] {
-  let file = $"(repo-root)/packages/codex/package.nix"
+  let file = $"(repo-root)/packages/codex/cli.nix"
   let latest = (
     gh-json "repos/openai/codex/releases?per_page=30"
     | get tag_name
@@ -110,7 +110,7 @@ def update-codex [] {
 }
 
 def update-codexbar [] {
-  let file = $"(repo-root)/packages/codexbar/package.nix"
+  let file = $"(repo-root)/packages/codex/bar.nix"
   let latest = (gh-json "repos/steipete/CodexBar/releases/latest" | get tag_name | str replace --regex '^v' '')
   let current = (nix-field $file "version")
   if $latest == $current {
