@@ -12,8 +12,8 @@ let
 
   piSkillsRev = "90bb51cae36515a648515b633a81c0c6efc8c74d";
   piSkillsHash = "sha256-NcaMKdbADZhlnEMTl3pQON9WayBdCjFRHH+dBNOJ+mk=";
-  anthropicSkillsRev = "9d2f1ae187231d8199c64b5b762e1bdf2244733d";
-  anthropicSkillsHash = "sha256-U7Nt1xrFOSOEm4vuWmy4pVsEyvv+Hj4sv8yXOofmwAw=";
+  anthropicSkillsRev = "fa0fa64bdc967915dc8399e803be67759e1e62b8";
+  anthropicSkillsHash = "sha256-QZ+zJkyLd/42rxgtJEZSUOz9R75Tse6UXW7G0nOkFS8=";
   browserToolsNpmDepsHash = "sha256-CRCAVRYM6v7aPnj+F5pLGw7pYNdO3YSSFhGbxVAPW8A=";
   braveSearchNpmDepsHash = "sha256-E6EJKin0ATPlZp9MYxeg5S5kay0x+2J1zQnkTtBQwc0=";
 
