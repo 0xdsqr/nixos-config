@@ -5,7 +5,7 @@
   makeWrapper,
 }:
 let
-  version = "0.44.0";
+  version = "0.45.1";
 in
 stdenvNoCC.mkDerivation {
   pname = "codexbar";
@@ -13,7 +13,7 @@ stdenvNoCC.mkDerivation {
 
   src = fetchzip {
     url = "https://github.com/steipete/CodexBar/releases/download/v${version}/CodexBar-macos-universal-${version}.zip";
-    hash = "sha256-ARZ6Ae/ZPmcG3INJOA0GFlH/vO9s5YNGdnp1AUCJ4+A=";
+    hash = "sha256-jNJpC8fkuu1u0Ay/z02KSa91DI5ql7h3BxdCNz9Gc4Q=";
     stripRoot = false;
   };
 
