@@ -68,11 +68,12 @@ in
             vaultPkiCertificate = {
               enable = true;
               useForRoutes = true;
-              vaultAddr = "http://10.10.30.107:8200";
+              vaultAddr = "https://vault.service.home.arpa:8200";
               altNames = [ "home.arpa" ];
             };
             httpRoutes."vault.home.arpa" = {
-              upstream = "http://10.10.30.107:8200";
+              upstream = "https://10.10.30.107:8200";
+              tlsServerName = "vault.service.home.arpa";
               pathRegexp = "^/v1/(pki_root|pki_int)/(issuer/[^/]+/(der|crl/der)|ocsp)$";
             };
             routes = {
@@ -87,7 +88,10 @@ in
               "prometheus.home.arpa".upstream = "http://10.10.30.102:9090";
               "rustfs.home.arpa".upstream = "http://10.10.30.107:9001";
               "temporal.home.arpa".upstream = "http://10.10.30.107:8088";
-              "vault.home.arpa".upstream = "http://10.10.30.107:8200";
+              "vault.home.arpa" = {
+                upstream = "https://10.10.30.107:8200";
+                tlsServerName = "vault.service.home.arpa";
+              };
             };
           };
         };

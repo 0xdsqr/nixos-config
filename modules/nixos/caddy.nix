@@ -189,6 +189,17 @@
         let
           pathMatcher =
             if route.pathRegexp == null then "path ${concatStringsSep " " route.paths}" else "path_regexp ${route.pathRegexp}";
+          reverseProxy =
+            if route.tlsServerName == null then
+              "reverse_proxy ${route.upstream}"
+            else
+              ''
+                reverse_proxy ${route.upstream} {
+                  transport http {
+                    tls_server_name ${route.tlsServerName}
+                  }
+                }
+              '';
         in
         nameValuePair "http://${hostName}" {
           extraConfig = ''
@@ -199,7 +210,7 @@
 
             handle @internal {
               handle @httpRoutePath {
-                reverse_proxy ${route.upstream}
+                ${reverseProxy}
               }
 
               respond 404
@@ -307,6 +318,13 @@
                 default = null;
                 description = "Optional Caddy path_regexp matcher to expose over plain HTTP.";
                 example = "^/v1/pki_int/(issuer/[^/]+/(der|crl/der)|ocsp)$";
+              };
+
+              tlsServerName = mkOption {
+                type = nullOr str;
+                default = null;
+                description = "Optional SNI server name used for an HTTPS upstream.";
+                example = "vault.service.home.arpa";
               };
 
               extraConfig = mkOption {
