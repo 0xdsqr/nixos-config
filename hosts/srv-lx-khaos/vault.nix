@@ -18,8 +18,7 @@ let
     keyFile = "/var/lib/vault/tls/key.pem";
     renewBeforeSeconds = 7 * 24 * 60 * 60;
     ttl = "720h";
-    # Bootstrap only: Phase 2D.2 replaces this after the first listener certificate exists.
-    vaultAddr = "http://127.0.0.1:8200";
+    vaultAddr = "https://vault.service.home.arpa:8200";
   };
   renewListenerCertificate = pkgs.writeShellApplication {
     name = "vault-renew-listener-certificate";
@@ -28,6 +27,7 @@ let
       pkgs.curl
       pkgs.jq
       pkgs.openssl
+      pkgs.systemd
     ];
     text = ''
       set -euo pipefail
@@ -138,6 +138,7 @@ let
 
       install -o vault -g vault -m 0600 "$work_dir/key.pem" "$key_file"
       install -o vault -g vault -m 0644 "$work_dir/fullchain.pem" "$cert_file"
+      systemctl reload vault.service
       echo "Renewed Vault listener certificate for $common_name."
     '';
   };
@@ -154,6 +155,8 @@ in
     enable = true;
     package = pkgs.vault-bin;
     address = "0.0.0.0:8200";
+    tlsCertFile = listenerCertificate.certificateFile;
+    tlsKeyFile = listenerCertificate.keyFile;
     storageBackend = "raft";
     listenerExtraConfig = ''
       tls_min_version = "tls12"
@@ -169,7 +172,7 @@ in
     extraConfig = ''
       ui = true
       api_addr = "${apiAddr}"
-      cluster_addr = "http://10.10.30.107:8201"
+      cluster_addr = "https://vault.service.home.arpa:8201"
       disable_mlock = true
     '';
   };
