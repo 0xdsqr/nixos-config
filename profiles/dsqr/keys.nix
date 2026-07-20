@@ -10,6 +10,7 @@ let
     srv-lx-k8s-node-01 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHB7+jrInU41DpDuFMzvyYDgpOkE2duOjn8Hg93wAQ9L root@srv-lx-k8s-node-01";
     srv-lx-k8s-node-02 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILCoB+PBfoAJ60/vxDhBOaeUDIMWESfYyWgHgKNK9LGL root@srv-lx-k8s-node-02";
     srv-lx-khaos = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO96/hopscQBRbeWkv6CCcCNpe/5lwYt13c3bEWBDkyD root@srv-lx-khaos";
+    srv-lx-knox = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICXPwoxWYx0xNgSnAR30YX/GWr/aig06ALZT2qD1bufy root@srv-lx-knox";
     srv-lx-hoo = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILtAEOpQXb6gSsRJ7mEQ7vZ+toKwo/YCynFRFo4/PUcs root@srv-lx-hoo";
     srv-lx-mailbox = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDrwjdEz7mbg7E7BO6FqNG4S6eAcx73ktPhniXDwTGBu root@srv-lx-mailbox";
   };

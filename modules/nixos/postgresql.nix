@@ -81,6 +81,9 @@
         ) cfg.databases.${name}.extensions
       ) databaseNames;
       hostAuthRules = concatMapStringsSep "\n" (cidr: "host  all      all  ${cidr} ${cfg.hostAuthMethod}") cfg.allowedCIDRs;
+      extraHostAuthRules = concatMapStringsSep "\n" (
+        rule: "${rule.type}  ${rule.database}  ${rule.user}  ${rule.address}  ${rule.method}"
+      ) cfg.hostAuthenticationRules;
     in
     {
       options.dsqr.nixos.postgresql = {
@@ -195,6 +198,36 @@
           description = "Password auth method for TCP clients. Keep md5 until all role passwords are rotated to SCRAM.";
         };
 
+        hostAuthenticationRules = mkOption {
+          type = listOf (submodule {
+            options = {
+              type = mkOption {
+                type = enum [
+                  "host"
+                  "hostssl"
+                  "hostnossl"
+                ];
+                default = "host";
+              };
+
+              database = mkOption { type = str; };
+              user = mkOption { type = str; };
+              address = mkOption { type = str; };
+
+              method = mkOption {
+                type = enum [
+                  "md5"
+                  "scram-sha-256"
+                  "trust"
+                ];
+                default = "scram-sha-256";
+              };
+            };
+          });
+          default = [ ];
+          description = "Additional structured pg_hba host rules.";
+        };
+
         exporter.listenAddress = mkOption {
           type = str;
           default = "127.0.0.1";
@@ -239,6 +272,7 @@
 
             #     DATABASE USER ADDRESS AUTHENTICATION
             ${hostAuthRules}
+            ${extraHostAuthRules}
           '';
 
           ensureDatabases = unique (cfg.ensure ++ databaseNames);

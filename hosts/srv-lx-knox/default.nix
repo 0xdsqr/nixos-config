@@ -53,6 +53,7 @@ in
             package = pkgs.postgresql_18;
           };
           proxmox.enable = true;
+          tailscale.enable = true;
           user.enable = true;
         };
 
