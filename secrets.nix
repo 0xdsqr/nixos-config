@@ -74,6 +74,7 @@ mkSecretsForHost "srv-lx-beacon" [
   "hosts/srv-lx-khaos/rustfs.secret-key.age"
   "hosts/srv-lx-khaos/tailscale.auth-key.age"
   "hosts/srv-lx-khaos/temporal/postgres.env.age"
+  "hosts/srv-lx-khaos/vault-listener-pki.env.age"
 ]
 // mkSecretsForHost "srv-lx-knox" [
   "hosts/srv-lx-knox/postgresql-replication.pgpass.age"

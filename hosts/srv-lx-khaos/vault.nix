@@ -1,4 +1,9 @@
-{ lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   apiAddr = "https://vault.home.arpa";
   auditLog = "/var/log/vault/audit.log";
@@ -8,7 +13,7 @@ let
     certificateDirectory = "/var/lib/vault/tls";
     certificateFile = "/var/lib/vault/tls/fullchain.pem";
     commonName = "vault.service.home.arpa";
-    environmentFile = "/var/lib/vault/listener-pki.env";
+    environmentFile = config.age.secrets.vaultListenerPki.path;
     issuePath = "pki_int/issue/vault-listener";
     keyFile = "/var/lib/vault/tls/key.pem";
     renewBeforeSeconds = 7 * 24 * 60 * 60;
@@ -138,6 +143,13 @@ let
   };
 in
 {
+  age.secrets.vaultListenerPki = {
+    file = ./vault-listener-pki.env.age;
+    owner = "vault";
+    group = "vault";
+    mode = "0400";
+  };
+
   services.vault = {
     enable = true;
     package = pkgs.vault-bin;
