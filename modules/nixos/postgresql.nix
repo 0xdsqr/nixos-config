@@ -7,28 +7,79 @@
       ...
     }:
     let
-      inherit (lib.attrsets) genAttrs;
-      inherit (lib.lists) unique;
+      inherit (lib.attrsets) attrNames genAttrs mapAttrsToList;
+      inherit (lib.lists) optional unique;
       inherit (lib.meta) getExe;
-      inherit (lib.modules) mkForce mkIf mkOverride;
+      inherit (lib.modules)
+        mkAfter
+        mkForce
+        mkIf
+        mkOverride
+        ;
       inherit (lib.options) mkEnableOption mkOption;
-      inherit (lib.strings) concatMapStringsSep concatStringsSep;
+      inherit (lib.strings) concatMapStringsSep concatStringsSep escapeShellArg;
       inherit (lib.trivial) flip;
       inherit (lib.types)
+        attrsOf
+        bool
         enum
         listOf
         package
         str
+        submodule
         ;
       cfg = config.dsqr.nixos.postgresql;
       resticHosts = config.services.restic.hosts or [ ];
-      ensuredRoles = unique (
-        cfg.ensure
-        ++ [
-          "postgres"
-          "root"
-        ]
-      );
+      databaseNames = attrNames cfg.databases;
+      databaseOwners = mapAttrsToList (_: database: database.owner) cfg.databases;
+      legacyRoleNames = unique (cfg.ensure ++ optional (cfg.ensure != [ ]) "postgres" ++ optional (cfg.ensure != [ ]) "root");
+      catalogRoleNames = builtins.filter (
+        name: name != config.services.postgresql.superUser && !builtins.elem name legacyRoleNames
+      ) (unique (databaseOwners ++ attrNames cfg.roles));
+      defaultRoleClauses = {
+        login = true;
+        superuser = false;
+        createdb = false;
+        createrole = false;
+        replication = false;
+        bypassrls = false;
+      };
+      legacyUsers = flip map legacyRoleNames (name: {
+        inherit name;
+
+        ensureDBOwnership = builtins.elem name cfg.ensure;
+        ensureClauses = {
+          login = true;
+          superuser = name == "postgres" || name == "root";
+        };
+      });
+      catalogUsers = flip map catalogRoleNames (name: {
+        inherit name;
+        ensureClauses = cfg.roles.${name} or defaultRoleClauses;
+      });
+      quoteIdentifier = value: "\"${builtins.replaceStrings [ "\"" ] [ "\"\"" ] value}\"";
+      ownershipCommands = concatMapStringsSep "\n" (
+        name:
+        let
+          owner = cfg.databases.${name}.owner;
+          statement = "ALTER DATABASE ${quoteIdentifier name} OWNER TO ${quoteIdentifier owner};";
+        in
+        ''
+          ${cfg.package}/bin/psql --dbname=postgres --set=ON_ERROR_STOP=1 --command=${escapeShellArg statement}
+        ''
+      ) databaseNames;
+      extensionCommands = concatMapStringsSep "\n" (
+        name:
+        concatMapStringsSep "\n" (
+          extension:
+          let
+            statement = "CREATE EXTENSION IF NOT EXISTS ${quoteIdentifier extension};";
+          in
+          ''
+            ${cfg.package}/bin/psql --dbname=${escapeShellArg name} --set=ON_ERROR_STOP=1 --command=${escapeShellArg statement}
+          ''
+        ) cfg.databases.${name}.extensions
+      ) databaseNames;
       hostAuthRules = concatMapStringsSep "\n" (cidr: "host  all      all  ${cidr} ${cfg.hostAuthMethod}") cfg.allowedCIDRs;
     in
     {
@@ -52,7 +103,69 @@
         ensure = mkOption {
           type = listOf str;
           default = [ ];
-          description = "Databases and matching users to create automatically.";
+          description = "Legacy databases and matching users to create automatically.";
+        };
+
+        databases = mkOption {
+          type = attrsOf (
+            submodule (
+              { name, ... }: {
+                options = {
+                  owner = mkOption {
+                    type = str;
+                    default = name;
+                    description = "Role that owns the database.";
+                  };
+
+                  extensions = mkOption {
+                    type = listOf str;
+                    default = [ ];
+                    description = "Extensions to create when they are available in the PostgreSQL package.";
+                  };
+                };
+              }
+            )
+          );
+          default = { };
+          description = "Databases, owners, and extensions to reconcile.";
+        };
+
+        roles = mkOption {
+          type = attrsOf (submodule {
+            options = {
+              login = mkOption {
+                type = bool;
+                default = true;
+              };
+
+              superuser = mkOption {
+                type = bool;
+                default = false;
+              };
+
+              createdb = mkOption {
+                type = bool;
+                default = false;
+              };
+
+              createrole = mkOption {
+                type = bool;
+                default = false;
+              };
+
+              replication = mkOption {
+                type = bool;
+                default = false;
+              };
+
+              bypassrls = mkOption {
+                type = bool;
+                default = false;
+              };
+            };
+          });
+          default = { };
+          description = "Role overrides and roles that do not own a database.";
         };
 
         listenAddresses = mkOption {
@@ -128,23 +241,19 @@
             ${hostAuthRules}
           '';
 
-          ensureDatabases = cfg.ensure;
-          ensureUsers = flip map ensuredRoles (name: {
-            inherit name;
-
-            ensureDBOwnership = builtins.elem name cfg.ensure;
-
-            ensureClauses = {
-              login = true;
-              superuser = name == "postgres" || name == "root";
-            };
-          });
+          ensureDatabases = unique (cfg.ensure ++ databaseNames);
+          ensureUsers = legacyUsers ++ catalogUsers;
 
           initdbArgs = [
             "--locale=C"
             "--encoding=UTF8"
           ];
         };
+
+        systemd.services.postgresql-setup.script = mkAfter ''
+          ${ownershipCommands}
+          ${extensionCommands}
+        '';
       };
     };
 }

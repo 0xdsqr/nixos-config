@@ -1,6 +1,11 @@
 {
   flake.nixosModules.openssh =
-    { config, lib, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     let
       inherit (lib.modules) mkIf;
       inherit (lib.options) mkEnableOption;
@@ -11,6 +16,8 @@
       options.dsqr.nixos.openssh.enable = mkEnableOption "Enable the shared OpenSSH server baseline";
 
       config = mkIf cfg.enable {
+        environment.systemPackages = [ pkgs.ghostty.terminfo ];
+
         services.openssh = {
           enable = true;
           settings = {
