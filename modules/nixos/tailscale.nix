@@ -39,6 +39,16 @@
         systemd.services.tailscaled.serviceConfig.Environment = mkIf config.networking.nftables.enable [
           "TS_DEBUG_FIREWALL_MODE=nftables"
         ];
+
+        # The upstream autoconnect helper waits for the daemon's BackendState to
+        # become Running. During a switch that also restarts networking, the
+        # control-plane handshake can exceed systemd's 90-second default even
+        # though the node is already authenticated and recovers normally.
+        systemd.services.tailscaled-autoconnect = {
+          after = [ "network-online.target" ];
+          wants = [ "network-online.target" ];
+          serviceConfig.TimeoutStartSec = "5min";
+        };
       };
     };
 }
