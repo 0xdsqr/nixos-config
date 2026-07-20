@@ -32,8 +32,7 @@ in
     inherit hostName;
 
     modules = singleton (
-      { ... }:
-      {
+      { ... }: {
         imports = modules;
 
         dsqr.darwin = {

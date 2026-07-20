@@ -34,8 +34,7 @@ in
     inherit hostName;
 
     modules = singleton (
-      { ... }:
-      {
+      { ... }: {
         imports =
           modules
           ++ self.lib.collectNix {
@@ -103,8 +102,7 @@ in
     hostName = "srv-lx-beacon-installer";
 
     modules = singleton (
-      { ... }:
-      {
+      { ... }: {
         imports = installerModules;
 
         dsqr.nixos.installer = {

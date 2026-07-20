@@ -83,64 +83,62 @@ in
       stalled-download-timeout = 900;
     };
 
-    home-manager.users.${userName} =
-      { lib, ... }:
-      {
-        home.activation.ensureExoLogDirectory = mkIf cfg.exo.enable (
-          lib.hm.dag.entryAfter [ "writeBoundary" ] /* bash */ ''
-            mkdir -p "$HOME/Library/Logs/exo"
-            touch "$HOME/Library/Logs/exo/exo.log"
-          ''
-        );
+    home-manager.users.${userName} = { lib, ... }: {
+      home.activation.ensureExoLogDirectory = mkIf cfg.exo.enable (
+        lib.hm.dag.entryAfter [ "writeBoundary" ] /* bash */ ''
+          mkdir -p "$HOME/Library/Logs/exo"
+          touch "$HOME/Library/Logs/exo/exo.log"
+        ''
+      );
 
-        launchd.agents.exo.config = mkIf cfg.exo.enable {
-          StandardErrorPath = "${userHome}/Library/Logs/exo/exo.log";
-          StandardOutPath = "${userHome}/Library/Logs/exo/exo.log";
+      launchd.agents.exo.config = mkIf cfg.exo.enable {
+        StandardErrorPath = "${userHome}/Library/Logs/exo/exo.log";
+        StandardOutPath = "${userHome}/Library/Logs/exo/exo.log";
+      };
+
+      services.exo.enable = cfg.exo.enable;
+
+      dsqr.home = {
+        aws.enable = false;
+        bat.enable = false;
+        claudeCode.enable = false;
+        codex.enable = false;
+        difftastic.enable = false;
+        hushlogin.enable = false;
+        ollama.enable = false;
+        pi-bridge.enable = false;
+        versionControl = {
+          gh.enable = false;
+          git.signing.enable = false;
+          glab.enable = false;
+          gpg.enable = false;
+          lazygit.enable = false;
         };
-
-        services.exo.enable = cfg.exo.enable;
-
-        dsqr.home = {
-          aws.enable = false;
-          bat.enable = false;
-          claudeCode.enable = false;
-          codex.enable = false;
-          difftastic.enable = false;
-          hushlogin.enable = false;
-          ollama.enable = false;
-          pi-bridge.enable = false;
-          versionControl = {
-            gh.enable = false;
-            git.signing.enable = false;
-            glab.enable = false;
-            gpg.enable = false;
-            lazygit.enable = false;
-          };
-          desktop = {
-            browsers.helium.enable = false;
-            codexbar.enable = false;
-            ghostty.enable = false;
-            hammerspoon.enable = false;
-            obsidian.enable = false;
-          };
-          neovim = {
-            initLua.enable = false;
-            packages.enable = false;
-            plugins.enable = false;
-          };
-          nu.integrations.enable = false;
-          opencode.enable = false;
-          packages = {
-            containers.enable = false;
-            databases.enable = false;
-            debugging.enable = false;
-            kubernetes.enable = false;
-            media.enable = false;
-            node.enable = false;
-            signing.enable = false;
-          };
+        desktop = {
+          browsers.helium.enable = false;
+          codexbar.enable = false;
+          ghostty.enable = false;
+          hammerspoon.enable = false;
+          obsidian.enable = false;
+        };
+        neovim = {
+          initLua.enable = false;
+          packages.enable = false;
+          plugins.enable = false;
+        };
+        nu.integrations.enable = false;
+        opencode.enable = false;
+        packages = {
+          containers.enable = false;
+          databases.enable = false;
+          debugging.enable = false;
+          kubernetes.enable = false;
+          media.enable = false;
+          node.enable = false;
+          signing.enable = false;
         };
       };
+    };
 
     networking = {
       inherit hostName;

@@ -1,4 +1,4 @@
-/* lua */ ''
+{ nixpkgsPath }: /* lua */ ''
   vim.g.mapleader = " "
   vim.g.maplocalleader = " "
 
@@ -17,14 +17,14 @@
   vim.api.nvim_create_autocmd("LspAttach", {
     group = vim.api.nvim_create_augroup("UserLspConfig", { clear = true }),
     callback = function(ev)
-      local telescope_builtin = require("telescope.builtin")
+      local has_telescope, telescope_builtin = pcall(require, "telescope.builtin")
       local opts = { buffer = ev.buf, noremap = true, silent = true }
 
-      vim.keymap.set("n", "gd", telescope_builtin.lsp_definitions, vim.tbl_extend("force", opts, { desc = "Go to definition" }))
+      vim.keymap.set("n", "gd", has_telescope and telescope_builtin.lsp_definitions or vim.lsp.buf.definition, vim.tbl_extend("force", opts, { desc = "Go to definition" }))
       vim.keymap.set("n", "gD", vim.lsp.buf.declaration, vim.tbl_extend("force", opts, { desc = "Go to declaration" }))
-      vim.keymap.set("n", "gr", telescope_builtin.lsp_references, vim.tbl_extend("force", opts, { desc = "Find references" }))
-      vim.keymap.set("n", "gi", telescope_builtin.lsp_implementations, vim.tbl_extend("force", opts, { desc = "Go to implementation" }))
-      vim.keymap.set("n", "gy", telescope_builtin.lsp_type_definitions, vim.tbl_extend("force", opts, { desc = "Go to type definition" }))
+      vim.keymap.set("n", "gr", has_telescope and telescope_builtin.lsp_references or vim.lsp.buf.references, vim.tbl_extend("force", opts, { desc = "Find references" }))
+      vim.keymap.set("n", "gi", has_telescope and telescope_builtin.lsp_implementations or vim.lsp.buf.implementation, vim.tbl_extend("force", opts, { desc = "Go to implementation" }))
+      vim.keymap.set("n", "gy", has_telescope and telescope_builtin.lsp_type_definitions or vim.lsp.buf.type_definition, vim.tbl_extend("force", opts, { desc = "Go to type definition" }))
 
       vim.keymap.set("n", "K", vim.lsp.buf.hover, vim.tbl_extend("force", opts, { desc = "Hover documentation" }))
       vim.keymap.set("i", "<C-k>", vim.lsp.buf.signature_help, vim.tbl_extend("force", opts, { desc = "Signature help" }))
@@ -32,8 +32,12 @@
       vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, vim.tbl_extend("force", opts, { desc = "Rename symbol" }))
       vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, vim.tbl_extend("force", opts, { desc = "Code action" }))
 
-      vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, vim.tbl_extend("force", opts, { desc = "Previous diagnostic" }))
-      vim.keymap.set("n", "]d", vim.diagnostic.goto_next, vim.tbl_extend("force", opts, { desc = "Next diagnostic" }))
+      vim.keymap.set("n", "[d", function()
+        vim.diagnostic.jump({ count = -1, float = true })
+      end, vim.tbl_extend("force", opts, { desc = "Previous diagnostic" }))
+      vim.keymap.set("n", "]d", function()
+        vim.diagnostic.jump({ count = 1, float = true })
+      end, vim.tbl_extend("force", opts, { desc = "Next diagnostic" }))
       vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, vim.tbl_extend("force", opts, { desc = "Show diagnostic" }))
       vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, vim.tbl_extend("force", opts, { desc = "Diagnostics to loclist" }))
     end,
@@ -91,23 +95,56 @@
     end,
   })
 
+  local function package_project_root(markers, dependencies)
+    return function(bufnr, on_dir)
+      local path = vim.api.nvim_buf_get_name(bufnr)
+      local start = path == "" and vim.fn.getcwd() or vim.fs.dirname(path)
+      local marker = vim.fs.find(markers, { path = start, upward = true })[1]
+
+      if marker then
+        on_dir(vim.fs.dirname(marker))
+        return
+      end
+
+      local package_json = vim.fs.find("package.json", { path = start, upward = true })[1]
+      if not package_json then
+        return
+      end
+
+      local ok, package = pcall(vim.json.decode, table.concat(vim.fn.readfile(package_json), "\n"))
+      if not ok or type(package) ~= "table" then
+        return
+      end
+
+      for _, section_name in ipairs({ "dependencies", "devDependencies", "peerDependencies" }) do
+        local section = package[section_name] or {}
+        for _, dependency in ipairs(dependencies) do
+          if section[dependency] then
+            on_dir(vim.fs.dirname(package_json))
+            return
+          end
+        end
+      end
+    end
+  end
+
   vim.lsp.config.ts_ls = {
     cmd = { "typescript-language-server", "--stdio" },
     filetypes = { "typescript", "typescriptreact", "javascript", "javascriptreact" },
-    root_markers = { "tsconfig.json", "jsconfig.json", "package.json", ".git" },
+    root_dir = package_project_root({ "tsconfig.json", "jsconfig.json" }, { "typescript" }),
+    workspace_required = true,
   }
 
   vim.lsp.config.svelte = {
     cmd = { "svelte-language-server", "--stdio" },
     filetypes = { "svelte" },
-    root_markers = {
+    root_dir = package_project_root({
       "svelte.config.js",
       "svelte.config.cjs",
       "svelte.config.mjs",
       "svelte.config.ts",
-      "package.json",
-      ".git",
-    },
+    }, { "svelte", "@sveltejs/kit" }),
+    workspace_required = true,
   }
 
   vim.lsp.config.tailwindcss = {
@@ -123,30 +160,27 @@
       "typescriptreact",
       "svelte",
     },
-    root_markers = {
+    root_dir = package_project_root({
       "tailwind.config.js",
       "tailwind.config.cjs",
       "tailwind.config.mjs",
       "tailwind.config.ts",
-      "postcss.config.js",
-      "postcss.config.cjs",
-      "postcss.config.mjs",
-      "postcss.config.ts",
-      "package.json",
-      ".git",
-    },
+    }, { "tailwindcss" }),
+    workspace_required = true,
   }
 
   vim.lsp.config.biome = {
     cmd = { "biome", "lsp-proxy" },
     filetypes = { "typescript", "typescriptreact", "javascript", "javascriptreact", "json", "jsonc" },
-    root_markers = { "biome.json", "biome.jsonc", "package.json", ".git" },
+    root_dir = package_project_root({ "biome.json", "biome.jsonc" }, { "@biomejs/biome" }),
+    workspace_required = true,
   }
 
   vim.lsp.config.gopls = {
     cmd = { "gopls" },
     filetypes = { "go", "gomod", "gowork", "gotmpl" },
-    root_markers = { "go.mod", "go.work", ".git" },
+    root_markers = { "go.work", "go.mod" },
+    workspace_required = true,
     settings = {
       gopls = {
         analyses = {
@@ -161,7 +195,8 @@
   vim.lsp.config.pyright = {
     cmd = { "pyright-langserver", "--stdio" },
     filetypes = { "python" },
-    root_markers = { "pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", "Pipfile", "pyrightconfig.json", ".git" },
+    root_markers = { "pyrightconfig.json", "pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", "Pipfile" },
+    workspace_required = true,
     settings = {
       python = {
         analysis = {
@@ -172,15 +207,32 @@
     },
   }
 
-  vim.lsp.config.nil_ls = {
-    cmd = { "nil" },
+  vim.lsp.config.nixd = {
+    cmd = { "nixd" },
     filetypes = { "nix" },
-    root_markers = { "flake.nix", "default.nix", "shell.nix", ".git" },
+    root_markers = { "flake.nix", "default.nix", "shell.nix" },
     settings = {
-      ["nil"] = {
-        formatting = {
-          command = { "nix", "fmt", "--", "-" },
+      nixd = {
+        nixpkgs = {
+          expr = "import ${nixpkgsPath} { }",
         },
+        formatting = {
+          command = { "nixfmt" },
+        },
+      },
+    },
+  }
+
+  vim.lsp.config.lua_ls = {
+    cmd = { "lua-language-server" },
+    filetypes = { "lua" },
+    root_markers = { { ".luarc.json", ".luarc.jsonc" }, ".git" },
+    settings = {
+      Lua = {
+        runtime = { version = "LuaJIT" },
+        workspace = { checkThirdParty = false },
+        telemetry = { enable = false },
+        diagnostics = { globals = { "vim" } },
       },
     },
   }
@@ -188,13 +240,15 @@
   vim.lsp.config.jdtls = {
     cmd = { "jdt-language-server" },
     filetypes = { "java" },
-    root_markers = { "pom.xml", "build.gradle", "build.gradle.kts", ".git" },
+    root_markers = { "pom.xml", "build.gradle", "build.gradle.kts" },
+    workspace_required = true,
   }
 
   vim.lsp.config.kotlin_language_server = {
     cmd = { "kotlin-language-server" },
     filetypes = { "kotlin" },
-    root_markers = { "settings.gradle", "settings.gradle.kts", "build.gradle", "build.gradle.kts", ".git" },
+    root_markers = { "settings.gradle", "settings.gradle.kts", "build.gradle", "build.gradle.kts" },
+    workspace_required = true,
   }
 
   vim.lsp.config.bashls = {
@@ -206,7 +260,8 @@
   vim.lsp.config.rust_analyzer = {
     cmd = { "rust-analyzer" },
     filetypes = { "rust" },
-    root_markers = { "Cargo.toml", "rust-project.json", ".git" },
+    root_markers = { "Cargo.toml", "rust-project.json" },
+    workspace_required = true,
     settings = {
       ["rust-analyzer"] = {
         cargo = {
@@ -255,7 +310,8 @@
   vim.lsp.enable("biome")
   vim.lsp.enable("gopls")
   vim.lsp.enable("pyright")
-  vim.lsp.enable("nil_ls")
+  vim.lsp.enable("nixd")
+  vim.lsp.enable("lua_ls")
   vim.lsp.enable("jdtls")
   vim.lsp.enable("kotlin_language_server")
   vim.lsp.enable("bashls")
@@ -279,7 +335,9 @@
 
   vim.opt.swapfile = false
   vim.opt.backup = false
-  vim.opt.undodir = os.getenv("HOME") .. "/.vim/undodir"
+  local undo_dir = vim.fn.stdpath("state") .. "/undo"
+  vim.fn.mkdir(undo_dir, "p")
+  vim.opt.undodir = undo_dir
   vim.opt.undofile = true
 
   vim.opt.hlsearch = false
@@ -328,18 +386,39 @@
   vim.keymap.set("n", "<leader>w", ":w<CR>", { desc = "Save file" })
 
   vim.keymap.set("n", "<leader>nf", function()
-    vim.fn.jobstart("treefmt", {
-      cwd = vim.fn.getcwd(),
-      on_exit = function(_, code)
-        if code == 0 then
-          vim.notify("treefmt: formatted", vim.log.levels.INFO)
-          vim.cmd("checktime")
-        else
-          vim.notify("treefmt: failed", vim.log.levels.ERROR)
-        end
-      end,
-    })
-  end, { desc = "Format project with treefmt" })
+    local path = vim.api.nvim_buf_get_name(0)
+    if path == "" then
+      path = vim.fn.getcwd()
+    else
+      path = vim.fs.dirname(path)
+    end
+
+    local treefmt_config = vim.fs.find({ "treefmt.toml", ".treefmt.toml" }, { path = path, upward = true })[1]
+    local flake = vim.fs.find("flake.nix", { path = path, upward = true })[1]
+    local command
+    local root
+
+    if treefmt_config then
+      command = { "treefmt" }
+      root = vim.fs.dirname(treefmt_config)
+    elseif flake then
+      command = { "nix", "fmt" }
+      root = vim.fs.dirname(flake)
+    else
+      vim.notify("No treefmt config or flake.nix found", vim.log.levels.WARN)
+      return
+    end
+
+    vim.system(command, { cwd = root, text = true }, vim.schedule_wrap(function(result)
+      if result.code == 0 then
+        vim.notify(table.concat(command, " ") .. ": formatted", vim.log.levels.INFO)
+        vim.cmd("checktime")
+      else
+        local detail = result.stderr ~= "" and result.stderr or "exit code " .. result.code
+        vim.notify(table.concat(command, " ") .. ": " .. vim.trim(detail), vim.log.levels.ERROR)
+      end
+    end))
+  end, { desc = "Format project" })
 
   vim.keymap.set("n", "<Esc>", ":nohlsearch<CR>", { silent = true })
 

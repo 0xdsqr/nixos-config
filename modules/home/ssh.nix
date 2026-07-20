@@ -17,41 +17,39 @@
 
       cfg = config.dsqr.home.ssh;
 
-      hostOptions =
-        { name, ... }:
-        {
-          options = {
-            hostName = mkOption {
-              type = str;
-              default = name;
-              description = "SSH HostName value.";
-            };
+      hostOptions = { name, ... }: {
+        options = {
+          hostName = mkOption {
+            type = str;
+            default = name;
+            description = "SSH HostName value.";
+          };
 
-            user = mkOption {
-              type = nullOr str;
-              default = null;
-              description = "SSH User value.";
-            };
+          user = mkOption {
+            type = nullOr str;
+            default = null;
+            description = "SSH User value.";
+          };
 
-            identityFile = mkOption {
-              type = nullOr str;
-              default = null;
-              description = "SSH IdentityFile value.";
-            };
+          identityFile = mkOption {
+            type = nullOr str;
+            default = null;
+            description = "SSH IdentityFile value.";
+          };
 
-            strictHostKeyChecking = mkOption {
-              type = nullOr str;
-              default = null;
-              description = "SSH StrictHostKeyChecking value.";
-            };
+          strictHostKeyChecking = mkOption {
+            type = nullOr str;
+            default = null;
+            description = "SSH StrictHostKeyChecking value.";
+          };
 
-            extraConfig = mkOption {
-              type = lines;
-              default = "";
-              description = "Extra lines appended to this SSH host block.";
-            };
+          extraConfig = mkOption {
+            type = lines;
+            default = "";
+            description = "Extra lines appended to this SSH host block.";
           };
         };
+      };
 
       renderHost =
         defaults: name: host:

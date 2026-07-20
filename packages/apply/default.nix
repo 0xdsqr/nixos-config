@@ -1,5 +1,4 @@
-{ config, inputs, ... }:
-{
+{ config, inputs, ... }: {
   perSystem =
     { pkgs, system, ... }:
     let

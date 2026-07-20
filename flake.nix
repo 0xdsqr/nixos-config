@@ -71,11 +71,6 @@
 
     determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/3";
 
-    neovim-nightly-overlay = {
-      url = "github:nix-community/neovim-nightly-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     rustfs = {
       url = "github:rustfs/rustfs-flake";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -155,8 +150,7 @@
       };
     in
     flake-parts.lib.mkFlake { inherit inputs; } (
-      { ... }:
-      {
+      { ... }: {
         systems = [
           "x86_64-linux"
           "aarch64-linux"
@@ -192,7 +186,6 @@
             devShells.default = pkgs.mkShellNoCC {
               packages = with pkgs; [
                 deadnix
-                nil
                 nixd
                 statix
                 treefmtEval.config.build.wrapper

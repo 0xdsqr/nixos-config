@@ -207,8 +207,7 @@
       snippetFileName = name: if hasSuffix ".css" name then name else "${name}.css";
 
       vaultType = submodule (
-        { name, ... }:
-        {
+        { name, ... }: {
           options = {
             enable = mkEnableOption "this Obsidian vault" // {
               default = true;

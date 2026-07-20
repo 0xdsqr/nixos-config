@@ -34,8 +34,7 @@ in
     inherit hostName;
 
     modules = singleton (
-      { ... }:
-      {
+      { ... }: {
         imports = modules ++ [
           ./cloudflared.nix
           ./disk.nix
@@ -127,8 +126,7 @@ in
     hostName = "srv-lx-gateway-installer";
 
     modules = singleton (
-      { ... }:
-      {
+      { ... }: {
         imports = installerModules;
 
         dsqr.nixos.installer = {

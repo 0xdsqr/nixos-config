@@ -34,8 +34,7 @@ in
     inherit hostName;
 
     modules = singleton (
-      { config, ... }:
-      {
+      { config, ... }: {
         imports =
           modules
           ++ self.lib.collectNix {
@@ -108,8 +107,7 @@ in
     hostName = "srv-lx-hoo-installer";
 
     modules = singleton (
-      { ... }:
-      {
+      { ... }: {
         imports = installerModules;
 
         dsqr.nixos.installer = {
