@@ -34,8 +34,7 @@ in
     inherit hostName;
 
     modules = singleton (
-      { ... }:
-      {
+      { ... }: {
         imports =
           modules
           ++ self.lib.collectNix {
@@ -113,8 +112,7 @@ in
     hostName = "srv-lx-k8s-master-01-installer";
 
     modules = singleton (
-      { ... }:
-      {
+      { ... }: {
         imports = installerModules;
 
         dsqr.nixos.installer = {

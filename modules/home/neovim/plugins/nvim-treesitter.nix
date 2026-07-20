@@ -35,15 +35,21 @@ singleton {
   plugin = treesitterWithGrammars;
   type = "lua";
   config = /* lua */ ''
-    require('nvim-treesitter').setup({
-      auto_install = false,
-      highlight = {
-        enable = true,
-        additional_vim_regex_highlighting = false,
+    require('nvim-treesitter').setup({})
+
+    vim.api.nvim_create_autocmd('FileType', {
+      group = vim.api.nvim_create_augroup('UserTreesitter', { clear = true }),
+      pattern = {
+        'bash', 'c', 'css', 'dockerfile', 'go', 'gomod', 'gosum', 'html',
+        'java', 'javascript', 'json', 'json5', 'kotlin', 'lua', 'markdown',
+        'nix', 'python', 'rust', 'svelte', 'toml', 'typescript', 'typescriptreact',
+        'vim', 'vimdoc', 'yaml',
       },
-      indent = {
-        enable = true,
-      },
+      callback = function(event)
+        if pcall(vim.treesitter.start, event.buf) then
+          vim.bo[event.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+        end
+      end,
     })
   '';
 }

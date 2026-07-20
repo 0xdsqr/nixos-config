@@ -1,5 +1,4 @@
-{ self, inputs, ... }:
-{
+{ self, inputs, ... }: {
   flake.commonModules."home-manager" =
     _:
     let

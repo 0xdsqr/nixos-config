@@ -15,6 +15,9 @@
       resticHosts = config.services.restic.hosts or [ ];
     in
     {
+      # nixpkgs now ships a RustFS module with a different interface. This
+      # wrapper intentionally uses rustfs-flake's module and package together.
+      disabledModules = [ "services/web-servers/rustfs.nix" ];
       imports = [ inputs.rustfs.nixosModules.rustfs ];
 
       options.dsqr.nixos.rustfs = {

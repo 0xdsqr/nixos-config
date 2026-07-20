@@ -1,4 +1,1 @@
-{ inputs, ... }:
-{
-  flake.nixosModules.disko = inputs.disko.nixosModules.disko;
-}
+{ inputs, ... }: { flake.nixosModules.disko = inputs.disko.nixosModules.disko; }

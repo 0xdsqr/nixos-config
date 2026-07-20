@@ -6,45 +6,6 @@ let
   # host directory is now named "hoo".
   cloudflareGatewayId = "mimizuku";
   legacyReferenceDir = "/home/dsqr/vanilla-legacy";
-  baseWorkspaceDocNames = [
-    "AGENTS.md"
-    "SOUL.md"
-    "TOOLS.md"
-  ];
-  optionalWorkspaceDocNames = [
-    "IDENTITY.md"
-    "USER.md"
-    "LORE.md"
-    "HEARTBEAT.md"
-    "PROMPTING-EXAMPLES.md"
-    "MEMORY.md"
-    "BOOTSTRAP.md"
-  ];
-  mkWorkspaceDocsActivation =
-    {
-      workspaceDir,
-      docDir,
-      extraDocNames ? [ ],
-    }:
-    let
-      docNames = builtins.filter (docName: builtins.pathExists (docDir + "/${docName}")) (
-        baseWorkspaceDocNames ++ optionalWorkspaceDocNames ++ extraDocNames
-      );
-      seedCommands = builtins.concatStringsSep "\n" (
-        map (docName: ''
-          target="$HOME/${workspaceDir}/${docName}"
-          if [ ! -e "$target" ] || [ -L "$target" ]; then
-            rm -f "$target"
-            mkdir -p "$(dirname "$target")"
-            cp ${docDir + "/${docName}"} "$target"
-            chmod u+rw "$target"
-          fi
-        '') docNames
-      );
-    in
-    ''
-      ${seedCommands}
-    '';
   commonInstanceConfig = {
     agents.defaults.model = {
       primary = "openai/gpt-5.5";
@@ -143,136 +104,121 @@ in
 
   home-manager.users.dsqr.imports = [
     nix-openclaw.homeManagerModules.openclaw
-    (
-      { config, lib, ... }:
-      {
-        programs.openclaw = {
-          # nix-openclaw's bundled toolchain also ships curl, which collides
-          # with the normal curl package already present in this environment.
-          excludeTools = [ "curl" ];
+    ({ config, lib, ... }: {
+      programs.openclaw = {
+        # nix-openclaw's bundled toolchain also ships curl, which collides
+        # with the normal curl package already present in this environment.
+        excludeTools = [ "curl" ];
 
-          # Avoid user profile PATH collisions when plugin binaries overlap with
-          # tools that the base OpenClaw package already exposes.
-          exposePluginPackages = false;
+        # Avoid user profile PATH collisions when plugin binaries overlap with
+        # tools that the base OpenClaw package already exposes.
+        exposePluginPackages = false;
 
-          # We want different persona docs per instance, so we do not use the
-          # current global `programs.openclaw.documents` option here.
-          documents = null;
+        # Keep workspace documentation unmanaged by this repository.
+        documents = null;
 
-          bundledPlugins = {
-            summarize.enable = true;
-            sag.enable = true;
-          };
+        bundledPlugins = {
+          summarize.enable = true;
+          sag.enable = true;
+        };
 
-          instances.hoo = {
-            enable = true;
-            gatewayPort = 18789;
+        instances.hoo = {
+          enable = true;
+          gatewayPort = 18789;
 
-            config = lib.recursiveUpdate commonInstanceConfig {
-              channels.discord = {
-                enabled = true;
-                token = "\${DISCORD_HOO_TOKEN}";
-                allowFrom = [ "618575437995442197" ];
-                groupPolicy = "allowlist";
-                guilds."1465602840713101598" = {
-                  requireMention = true;
-                  users = [ "618575437995442197" ];
-                  channels = {
-                    "*" = {
-                      enabled = false;
-                      requireMention = true;
-                    };
-                    "1496697794285539348" = {
-                      enabled = true;
-                      requireMention = false;
-                    };
+          config = lib.recursiveUpdate commonInstanceConfig {
+            channels.discord = {
+              enabled = true;
+              token = "\${DISCORD_HOO_TOKEN}";
+              allowFrom = [ "618575437995442197" ];
+              groupPolicy = "allowlist";
+              guilds."1465602840713101598" = {
+                requireMention = true;
+                users = [ "618575437995442197" ];
+                channels = {
+                  "*" = {
+                    enabled = false;
+                    requireMention = true;
+                  };
+                  "1496697794285539348" = {
+                    enabled = true;
+                    requireMention = false;
                   };
                 };
               };
             };
           };
+        };
 
-          instances.vanilla = {
-            enable = true;
-            gatewayPort = 18790;
+        instances.vanilla = {
+          enable = true;
+          gatewayPort = 18790;
 
-            config = lib.recursiveUpdate commonInstanceConfig {
-              channels.discord = {
-                enabled = true;
-                token = "\${DISCORD_VANILLA_TOKEN}";
-                allowFrom = [
+          config = lib.recursiveUpdate commonInstanceConfig {
+            channels.discord = {
+              enabled = true;
+              token = "\${DISCORD_VANILLA_TOKEN}";
+              allowFrom = [
+                "618575437995442197"
+                "980636531565949019"
+              ];
+              groupPolicy = "allowlist";
+              guilds."1465602840713101598" = {
+                requireMention = true;
+                users = [
                   "618575437995442197"
                   "980636531565949019"
                 ];
-                groupPolicy = "allowlist";
-                guilds."1465602840713101598" = {
-                  requireMention = true;
-                  users = [
-                    "618575437995442197"
-                    "980636531565949019"
-                  ];
-                  channels = {
-                    "*" = {
-                      enabled = false;
-                      requireMention = true;
-                    };
-                    "1465807038587076700" = {
-                      enabled = true;
-                      requireMention = false;
-                    };
+                channels = {
+                  "*" = {
+                    enabled = false;
+                    requireMention = true;
+                  };
+                  "1465807038587076700" = {
+                    enabled = true;
+                    requireMention = false;
                   };
                 };
               };
             };
           };
         };
+      };
 
-        systemd.user.services.openclaw-gateway-hoo = lib.mkIf (config.programs.openclaw.instances.hoo.enable or false) {
-          Unit = {
-            After = [ "network-online.target" ];
-            Wants = [ "network-online.target" ];
-          };
-
-          Install = {
-            WantedBy = [ "default.target" ];
-          };
-
-          Service.EnvironmentFile = [ openclawEnvFile ];
+      systemd.user.services.openclaw-gateway-hoo = lib.mkIf (config.programs.openclaw.instances.hoo.enable or false) {
+        Unit = {
+          After = [ "network-online.target" ];
+          Wants = [ "network-online.target" ];
         };
 
-        systemd.user.services.openclaw-gateway-vanilla = lib.mkIf (config.programs.openclaw.instances.vanilla.enable or false) {
-          Unit = {
-            After = [ "network-online.target" ];
-            Wants = [ "network-online.target" ];
-          };
-
-          Install = {
-            WantedBy = [ "default.target" ];
-          };
-
-          Service.EnvironmentFile = [ openclawEnvFile ];
+        Install = {
+          WantedBy = [ "default.target" ];
         };
 
-        home.file = {
-          ".openclaw-hoo/openclaw.json".force = true;
-          ".openclaw-vanilla/openclaw.json".force = true;
-          ".openclaw-vanilla/workspace/reference/legacy" = {
-            source = config.lib.file.mkOutOfStoreSymlink legacyReferenceDir;
-            force = true;
-          };
+        Service.EnvironmentFile = [ openclawEnvFile ];
+      };
+
+      systemd.user.services.openclaw-gateway-vanilla = lib.mkIf (config.programs.openclaw.instances.vanilla.enable or false) {
+        Unit = {
+          After = [ "network-online.target" ];
+          Wants = [ "network-online.target" ];
         };
 
-        home.activation = {
-          openclaw-hoo-workspace-docs = lib.hm.dag.entryAfter [ "linkGeneration" ] (mkWorkspaceDocsActivation {
-            workspaceDir = ".openclaw-hoo/workspace";
-            docDir = ./documents/noctua;
-          });
-          openclaw-vanilla-workspace-docs = lib.hm.dag.entryAfter [ "linkGeneration" ] (mkWorkspaceDocsActivation {
-            workspaceDir = ".openclaw-vanilla/workspace";
-            docDir = ./documents/vanilla;
-          });
+        Install = {
+          WantedBy = [ "default.target" ];
         };
-      }
-    )
+
+        Service.EnvironmentFile = [ openclawEnvFile ];
+      };
+
+      home.file = {
+        ".openclaw-hoo/openclaw.json".force = true;
+        ".openclaw-vanilla/openclaw.json".force = true;
+        ".openclaw-vanilla/workspace/reference/legacy" = {
+          source = config.lib.file.mkOutOfStoreSymlink legacyReferenceDir;
+          force = true;
+        };
+      };
+    })
   ];
 }

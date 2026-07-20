@@ -67,8 +67,7 @@
         skills = mkOption {
           type = attrsOf (
             submodule (
-              { name, ... }:
-              {
+              { name, ... }: {
                 options = {
                   enable = mkOption {
                     type = bool;

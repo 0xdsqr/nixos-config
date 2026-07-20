@@ -1,7 +1,8 @@
-{ pkgs }:
-with pkgs;
+{ pkgs }: with pkgs;
 [
   git
+  fd
+  ripgrep
   typescript
   typescript-language-server
   svelte-language-server
@@ -14,8 +15,9 @@ with pkgs;
   python3
   pyright
   ruff
-  nil
+  nixd
   nixfmt
+  lua-language-server
   jdt-language-server
   google-java-format
   kotlin-language-server

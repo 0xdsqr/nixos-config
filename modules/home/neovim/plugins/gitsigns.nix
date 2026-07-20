@@ -18,8 +18,20 @@ singleton {
         local gs = package.loaded.gitsigns
         local opts = { buffer = bufnr }
 
-        vim.keymap.set('n', ']c', gs.next_hunk, opts)
-        vim.keymap.set('n', '[c', gs.prev_hunk, opts)
+        vim.keymap.set('n', ']c', function()
+          if vim.wo.diff then
+            vim.cmd.normal({ ']c', bang = true })
+          else
+            gs.nav_hunk('next')
+          end
+        end, vim.tbl_extend('force', opts, { desc = 'Next git hunk' }))
+        vim.keymap.set('n', '[c', function()
+          if vim.wo.diff then
+            vim.cmd.normal({ '[c', bang = true })
+          else
+            gs.nav_hunk('prev')
+          end
+        end, vim.tbl_extend('force', opts, { desc = 'Previous git hunk' }))
         vim.keymap.set('n', '<leader>hs', gs.stage_hunk, opts)
         vim.keymap.set('n', '<leader>hr', gs.reset_hunk, opts)
         vim.keymap.set('n', '<leader>hp', gs.preview_hunk, opts)

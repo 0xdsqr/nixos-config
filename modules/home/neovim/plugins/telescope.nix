@@ -1,4 +1,8 @@
-{ lib, pkgs }:
+{
+  lib,
+  pkgs,
+  enableFzf ? true,
+}:
 let
   inherit (lib.lists) singleton;
 in
@@ -14,7 +18,7 @@ singleton {
         file_ignore_patterns = { "node_modules", ".git/", "dist/", "build/" },
       },
     })
-    telescope.load_extension('fzf')
+    ${lib.optionalString enableFzf "telescope.load_extension('fzf')"}
 
     vim.keymap.set('n', '<leader>pf', builtin.find_files, { desc = "Find files" })
     vim.keymap.set('n', '<leader>pg', builtin.live_grep, { desc = "Live grep" })

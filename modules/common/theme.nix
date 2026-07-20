@@ -1,5 +1,4 @@
-{ self, ... }:
-{
+{ self, ... }: {
   flake.commonModules.theme =
     { lib, pkgs, ... }:
     let

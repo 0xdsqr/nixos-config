@@ -1,7 +1,6 @@
 {
   flake.homeModules.neovim =
     {
-      inputs,
       lib,
       pkgs,
       config,
@@ -15,19 +14,10 @@
 
       cfg = config.dsqr.home.neovim;
 
-      stablePkgs = import inputs.nixpkgs {
-        inherit (pkgs.stdenv.hostPlatform) system;
-        inherit (pkgs) config;
-      };
-
       pluginSpecs = {
         blinkCmp = {
           file = ./plugins/blink-cmp.nix;
           label = "blink-cmp";
-        };
-        comment = {
-          file = ./plugins/comment.nix;
-          label = "comment";
         };
         conform = {
           file = ./plugins/conform.nix;
@@ -80,18 +70,16 @@
         telescope = {
           file = ./plugins/telescope.nix;
           label = "telescope";
+          extraArgs.enableFzf = cfg.plugins.telescopeFzfNative.enable;
         };
         telescopeFzfNative = {
           file = ./plugins/telescope-fzf-native.nix;
           label = "telescope-fzf-native";
+          condition = cfg.plugins.telescope.enable;
         };
         tokyonight = {
           file = ./plugins/tokyonight.nix;
           label = "tokyonight";
-        };
-        vimSvelte = {
-          file = ./plugins/vim-svelte.nix;
-          label = "vim-svelte";
         };
         whichKey = {
           file = ./plugins/which-key.nix;
@@ -99,11 +87,15 @@
         };
       };
 
-      enabledPluginSpecs = builtins.attrValues (filterAttrs (name: _: cfg.plugins.${name}.enable) pluginSpecs);
+      enabledPluginSpecs = builtins.attrValues (
+        filterAttrs (name: spec: cfg.plugins.${name}.enable && (spec.condition or true)) pluginSpecs
+      );
 
       selectedPlugins =
         if cfg.plugins.enable then
-          builtins.concatLists (builtins.map (spec: import spec.file { inherit lib pkgs; }) enabledPluginSpecs)
+          builtins.concatLists (
+            builtins.map (spec: import spec.file ({ inherit lib pkgs; } // (spec.extraArgs or { }))) enabledPluginSpecs
+          )
         else
           [ ];
     in
@@ -115,7 +107,7 @@
 
         package = mkOption {
           type = package;
-          default = stablePkgs.neovim-unwrapped;
+          default = pkgs.neovim-unwrapped;
           description = "Neovim package to install and configure.";
         };
 
@@ -140,6 +132,17 @@
       };
 
       config = mkIf cfg.enable {
+        assertions = [
+          {
+            assertion = !cfg.plugins.enable || !cfg.plugins.telescope.enable || cfg.plugins.plenary.enable;
+            message = "dsqr.home.neovim.plugins.telescope requires plenary.";
+          }
+          {
+            assertion = !cfg.plugins.enable || !cfg.plugins.harpoon.enable || cfg.plugins.plenary.enable;
+            message = "dsqr.home.neovim.plugins.harpoon requires plenary.";
+          }
+        ];
+
         home.sessionVariables.EDITOR = "nvim";
         home.sessionVariables.VISUAL = "nvim";
 
@@ -153,7 +156,7 @@
         programs.neovim.withRuby = false;
         programs.neovim.extraPackages = mkIf cfg.packages.enable (import ./packages.nix { inherit pkgs; });
         programs.neovim.plugins = selectedPlugins;
-        programs.neovim.initLua = if cfg.initLua.enable then import ./init-lua.nix else "";
+        programs.neovim.initLua = if cfg.initLua.enable then import ./init-lua.nix { nixpkgsPath = pkgs.path; } else "";
       };
     };
 }

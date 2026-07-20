@@ -1,4 +1,9 @@
-{ lib, self, ... }:
+{
+  inputs,
+  lib,
+  self,
+  ...
+}:
 let
   inherit (lib.attrsets)
     attrNames
@@ -8,7 +13,7 @@ let
     mapAttrsToList
     ;
   inherit (lib.lists) filter sort;
-  inherit (lib.strings) concatStringsSep;
+  inherit (lib.strings) concatStringsSep hasInfix;
 
   requiredExports = {
     commonModules = [
@@ -86,6 +91,38 @@ in
   perSystem =
     { pkgs, system, ... }:
     let
+      mkNeovimHome =
+        extraModule:
+        inputs.home-manager.lib.homeManagerConfiguration {
+          inherit pkgs;
+          modules = [
+            self.homeModules.neovim
+            {
+              home.username = "neovim-smoke";
+              home.homeDirectory = "/tmp/neovim-smoke";
+              home.stateVersion = "25.11";
+            }
+            extraModule
+          ];
+        };
+
+      neovimHome = mkNeovimHome { };
+      neovimConfig = neovimHome.config.programs.neovim;
+      neovimInit = pkgs.writeText "neovim-smoke-init.lua" neovimConfig.initLua;
+      neovimPack = neovimHome.config.xdg.dataFile."nvim/site/pack/hm".source;
+      neovimSmoke = ./neovim-smoke.lua;
+
+      telescopeDisabledHome = mkNeovimHome { dsqr.home.neovim.plugins.telescope.enable = false; };
+      telescopeDisabledPluginNames = builtins.map (
+        entry: (entry.plugin or entry).pname
+      ) telescopeDisabledHome.config.programs.neovim.plugins;
+      unexpectedTelescopePlugins = filter (hasInfix "telescope") telescopeDisabledPluginNames;
+      neovimToggleSummary =
+        if unexpectedTelescopePlugins == [ ] then
+          telescopeDisabledPluginNames
+        else
+          builtins.throw "Disabling telescope left plugin(s) enabled: ${concatStringsSep ", " unexpectedTelescopePlugins}";
+
       hostEvalSummary = {
         hostDefinitions = hostDefinitionSummary;
 
@@ -111,6 +148,33 @@ in
           mkdir -p "$out"
           printf '%s\n' "$summary" > "$out/hosts.json"
         '';
+
+        neovim-smoke =
+          pkgs.runCommandLocal "nixos-config-neovim-smoke-${system}" { toggleSummary = builtins.toJSON neovimToggleSummary; }
+            ''
+              export HOME="$TMPDIR/home"
+              export NVIM_SMOKE_REPO=${self}
+              export XDG_CACHE_HOME="$TMPDIR/cache"
+              export XDG_CONFIG_HOME="$TMPDIR/config"
+              export XDG_DATA_HOME="$TMPDIR/data"
+              export XDG_RUNTIME_DIR="$TMPDIR/runtime"
+              export XDG_STATE_HOME="$TMPDIR/state"
+
+              mkdir -p \
+                "$HOME" \
+                "$XDG_CACHE_HOME" \
+                "$XDG_CONFIG_HOME" \
+                "$XDG_DATA_HOME/nvim/site/pack" \
+                "$XDG_RUNTIME_DIR" \
+                "$XDG_STATE_HOME"
+              ln -s ${neovimPack} "$XDG_DATA_HOME/nvim/site/pack/hm"
+
+              ${neovimConfig.finalPackage}/bin/nvim --headless -u ${neovimInit} -l ${neovimSmoke}
+
+              mkdir -p "$out"
+              ${neovimConfig.finalPackage}/bin/nvim --version > "$out/version.txt"
+              printf '%s\n' "$toggleSummary" > "$out/telescope-disabled-plugins.json"
+            '';
       };
     };
 }

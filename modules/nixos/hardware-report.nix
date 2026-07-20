@@ -1,5 +1,4 @@
-{ inputs, ... }:
-{
+{ inputs, ... }: {
   flake.nixosModules.hardware-report =
     { lib, ... }:
     let
