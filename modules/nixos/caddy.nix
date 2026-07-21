@@ -316,14 +316,14 @@
                 type = nullOr str;
                 default = null;
                 description = "Optional Host header sent to the upstream.";
-                example = "argocd.home.arpa";
+                example = "argocd.hub-a.home.arpa";
               };
 
               tlsServerName = mkOption {
                 type = nullOr str;
                 default = null;
                 description = "Optional SNI server name used for HTTPS upstreams.";
-                example = "argocd.home.arpa";
+                example = "argocd.hub-a.home.arpa";
               };
 
               tlsInsecureSkipVerify = mkOption {

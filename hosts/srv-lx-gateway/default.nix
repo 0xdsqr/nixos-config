@@ -72,7 +72,6 @@ in
               issuePath = "pki_int/issue/gateway-caddy-home-arpa";
               commonName = "argocd.hub-a.home.arpa";
               altNames = [
-                "argocd.home.arpa"
                 "exo.home.arpa"
                 "grafana.home.arpa"
                 "prometheus.home.arpa"
@@ -87,11 +86,6 @@ in
               pathRegexp = "^/v1/(pki_root|pki_int)/(issuer/[^/]+/(der|crl/der)|ocsp)$";
             };
             routes = {
-              "argocd.home.arpa" = {
-                upstream = "https://10.10.30.200";
-                hostHeader = "argocd.home.arpa";
-                tlsServerName = "argocd.home.arpa";
-              };
               "argocd.hub-a.home.arpa" = {
                 upstream = "https://10.10.30.200";
                 hostHeader = "argocd.hub-a.home.arpa";
