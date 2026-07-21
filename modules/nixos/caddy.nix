@@ -56,12 +56,34 @@
           cert_dir='${vaultPkiCfg.certDirectory}'
           cert_file='${vaultPkiCfg.certFile}'
           key_file='${vaultPkiCfg.keyFile}'
+          request_fingerprint_file="$cert_dir/request.sha256"
           common_name='${vaultPkiCfg.commonName}'
           alt_names='${vaultPkiAltNames}'
           ttl='${vaultPkiCfg.ttl}'
           renew_before_seconds='${toString vaultPkiCfg.renewBeforeSeconds}'
 
-          if [ -s "$cert_file" ] && [ -s "$key_file" ] && openssl x509 -checkend "$renew_before_seconds" -noout -in "$cert_file" >/dev/null; then
+          request_fingerprint="$(
+            printf '%s\0' "$vault_addr" "$auth_path" "$issue_path" "$common_name" "$alt_names" "$ttl" \
+              | sha256sum \
+              | cut -d ' ' -f 1
+          )"
+
+          certificate_covers_requested_names() {
+            openssl x509 -checkhost "$common_name" -noout -in "$cert_file" >/dev/null || return 1
+
+            if [ -n "$alt_names" ]; then
+              while IFS= read -r alt_name; do
+                openssl x509 -checkhost "$alt_name" -noout -in "$cert_file" >/dev/null || return 1
+              done < <(printf '%s' "$alt_names" | tr ',' '\n')
+            fi
+          }
+
+          if [ -s "$cert_file" ] \
+            && [ -s "$key_file" ] \
+            && [ -s "$request_fingerprint_file" ] \
+            && [ "$(<"$request_fingerprint_file")" = "$request_fingerprint" ] \
+            && openssl x509 -checkend "$renew_before_seconds" -noout -in "$cert_file" >/dev/null \
+            && certificate_covers_requested_names; then
             echo "Caddy Vault PKI certificate is still valid."
             exit 0
           fi
@@ -137,10 +159,17 @@
 
           chmod 0600 "$work_dir/key.pem"
           chmod 0644 "$work_dir/fullchain.pem"
-          openssl x509 -in "$work_dir/fullchain.pem" -noout -subject -issuer -dates >/dev/null
+          openssl x509 -checkhost "$common_name" -noout -in "$work_dir/fullchain.pem" >/dev/null
+          if [ -n "$alt_names" ]; then
+            while IFS= read -r alt_name; do
+              openssl x509 -checkhost "$alt_name" -noout -in "$work_dir/fullchain.pem" >/dev/null
+            done < <(printf '%s' "$alt_names" | tr ',' '\n')
+          fi
+          printf '%s\n' "$request_fingerprint" > "$work_dir/request.sha256"
 
           install -o caddy -g caddy -m 0640 "$work_dir/key.pem" "$key_file"
           install -o caddy -g caddy -m 0644 "$work_dir/fullchain.pem" "$cert_file"
+          install -o caddy -g caddy -m 0644 "$work_dir/request.sha256" "$request_fingerprint_file"
 
           if systemctl -q is-active caddy.service; then
             systemctl reload caddy.service || systemctl restart caddy.service
@@ -355,7 +384,7 @@
         };
 
         vaultPkiCertificate = {
-          enable = mkEnableOption "Renew a Caddy wildcard certificate from Vault PKI";
+          enable = mkEnableOption "Renew a Caddy certificate from Vault PKI";
 
           useForRoutes = mkOption {
             type = bool;

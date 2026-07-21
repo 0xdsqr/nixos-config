@@ -69,7 +69,17 @@ in
               enable = true;
               useForRoutes = true;
               vaultAddr = "https://vault.service.home.arpa:8200";
-              altNames = [ "home.arpa" ];
+              issuePath = "pki_int/issue/gateway-caddy-home-arpa";
+              commonName = "argocd.hub-a.home.arpa";
+              altNames = [
+                "argocd.home.arpa"
+                "exo.home.arpa"
+                "grafana.home.arpa"
+                "prometheus.home.arpa"
+                "rustfs.home.arpa"
+                "temporal.home.arpa"
+                "vault.home.arpa"
+              ];
             };
             httpRoutes."vault.home.arpa" = {
               upstream = "https://10.10.30.107:8200";
@@ -81,7 +91,11 @@ in
                 upstream = "https://10.10.30.200";
                 hostHeader = "argocd.home.arpa";
                 tlsServerName = "argocd.home.arpa";
-                tlsInsecureSkipVerify = true;
+              };
+              "argocd.hub-a.home.arpa" = {
+                upstream = "https://10.10.30.200";
+                hostHeader = "argocd.hub-a.home.arpa";
+                tlsServerName = "argocd.hub-a.home.arpa";
               };
               "exo.home.arpa".upstream = "http://100.120.240.73:52415";
               "grafana.home.arpa".upstream = "http://10.10.30.102:8000";
