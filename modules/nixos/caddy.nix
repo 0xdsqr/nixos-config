@@ -109,6 +109,8 @@
           cleanup() {
             if [ -n "$token" ]; then
               curl -fsS \
+                --connect-timeout 5 \
+                --max-time 10 \
                 --request POST \
                 --header "X-Vault-Token: $token" \
                 "$vault_addr/v1/auth/token/revoke-self" >/dev/null || true
@@ -127,13 +129,18 @@
               '{ role_id: $role_id, secret_id: $secret_id }'
           )"
 
-          login_response="$(
+          if ! login_response="$(
             curl -fsS \
+              --connect-timeout 10 \
+              --max-time 30 \
               --request POST \
               --header 'Content-Type: application/json' \
               --data "$login_payload" \
               "$vault_addr/v1/$auth_path"
-          )"
+          )"; then
+            echo "Vault AppRole login failed for $auth_path." >&2
+            exit 1
+          fi
           token="$(printf '%s' "$login_response" | jq -er '.auth.client_token')"
 
           issue_payload="$(
@@ -144,14 +151,19 @@
               '{ common_name: $common_name, ttl: $ttl } + (if $alt_names == "" then {} else { alt_names: $alt_names } end)'
           )"
 
-          issue_response="$(
+          if ! issue_response="$(
             curl -fsS \
+              --connect-timeout 10 \
+              --max-time 30 \
               --request POST \
               --header "X-Vault-Token: $token" \
               --header 'Content-Type: application/json' \
               --data "$issue_payload" \
               "$vault_addr/v1/$issue_path"
-          )"
+          )"; then
+            echo "Vault PKI issuance failed for $issue_path." >&2
+            exit 1
+          fi
 
           work_dir="$(mktemp -d "$cert_dir/.renew.XXXXXX")"
           printf '%s' "$issue_response" | jq -er '.data.private_key' > "$work_dir/key.pem"
@@ -172,7 +184,9 @@
           install -o caddy -g caddy -m 0644 "$work_dir/request.sha256" "$request_fingerprint_file"
 
           if systemctl -q is-active caddy.service; then
-            systemctl reload caddy.service || systemctl restart caddy.service
+            # This service is ordered before Caddy. Waiting synchronously for a Caddy
+            # reload here creates a systemd job cycle, so queue it after this unit exits.
+            systemctl reload --no-block caddy.service
           fi
         '';
       };
