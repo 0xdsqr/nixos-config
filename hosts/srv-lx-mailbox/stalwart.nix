@@ -140,13 +140,6 @@ let
           secret = "__MAIL_ADMIN_PASSWORD__";
           email = [ "admin@dsqr.dev" ];
         }
-        {
-          name = "hoo";
-          class = "individual";
-          description = "Hoo";
-          secret = "__MAIL_HOO_PASSWORD__";
-          email = [ "hoo@dsqr.dev" ];
-        }
       ];
     };
   };
@@ -157,7 +150,6 @@ in
   age.secrets.stalwartAdminSecret.file = ./stalwart-admin.secret.age;
   age.secrets.stalwartAdminPassword.file = ./stalwart-admin.password.age;
   age.secrets.stalwartMePassword.file = ./stalwart-me.password.age;
-  age.secrets.stalwartHooPassword.file = ./stalwart-hoo.password.age;
 
   security.acme = {
     acceptTerms = true;
@@ -178,7 +170,6 @@ in
       admin_secret = config.age.secrets.stalwartAdminSecret.path;
       mail_admin_password = config.age.secrets.stalwartAdminPassword.path;
       mail_me_password = config.age.secrets.stalwartMePassword.path;
-      mail_hoo_password = config.age.secrets.stalwartHooPassword.path;
     };
 
     settings = stalwartSettings;
@@ -201,10 +192,6 @@ in
       config_text = config_text.replace(
           "__MAIL_ME_PASSWORD__",
           Path("/run/credentials/stalwart.service/mail_me_password").read_text().rstrip("\n"),
-      )
-      config_text = config_text.replace(
-          "__MAIL_HOO_PASSWORD__",
-          Path("/run/credentials/stalwart.service/mail_hoo_password").read_text().rstrip("\n"),
       )
       config_path.write_text(config_text)
       PY

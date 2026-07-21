@@ -50,19 +50,12 @@ mkSecretsForHost "srv-lx-beacon" [
   "hosts/srv-lx-k8s-node-02/host.password.age"
   "hosts/srv-lx-k8s-node-02/tailscale.auth-key.age"
 ]
-// mkSecretsForHost "srv-lx-hoo" [
-  "hosts/srv-lx-hoo/host.password.age"
-  "hosts/srv-lx-hoo/github.deploy-key.age"
-  "hosts/srv-lx-hoo/openclaw/openclaw.env.age"
-  "hosts/srv-lx-hoo/tailscale.auth-key.age"
-]
 // mkSecretsForHost "srv-lx-mailbox" [
   "hosts/srv-lx-mailbox/host.password.age"
   "hosts/srv-lx-mailbox/tailscale.auth-key.age"
   "hosts/srv-lx-mailbox/cloudflare-acme.env.age"
   "hosts/srv-lx-mailbox/stalwart-admin.secret.age"
   "hosts/srv-lx-mailbox/stalwart-me.password.age"
-  "hosts/srv-lx-mailbox/stalwart-hoo.password.age"
   "hosts/srv-lx-mailbox/stalwart-admin.password.age"
   "hosts/srv-lx-mailbox/stalwart-dkim-rsa.key.age"
   "hosts/srv-lx-mailbox/stalwart-dkim-ed25519.key.age"
