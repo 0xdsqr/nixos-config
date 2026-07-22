@@ -28,8 +28,12 @@ codex.overrideAttrs (_: {
   # Upstream's postPatch strips `lto`/`codegen-units` with --replace-fail; recent
   # codex dropped those, so keep the webrtc-sys link fix but make the tweaks no-op.
   postPatch = ''
-    substituteInPlace $cargoDepsCopy/*/webrtc-sys-*/build.rs \
-      --replace-fail "cargo:rustc-link-lib=static=webrtc" "cargo:rustc-link-lib=dylib=webrtc"
+    for webrtcBuildScript in $cargoDepsCopy/*/webrtc-sys-*/build.rs; do
+      if [ -f "$webrtcBuildScript" ]; then
+        substituteInPlace "$webrtcBuildScript" \
+          --replace-fail "cargo:rustc-link-lib=static=webrtc" "cargo:rustc-link-lib=dylib=webrtc"
+      fi
+    done
     substituteInPlace Cargo.toml \
       --replace-quiet 'lto = "fat"' "" \
       --replace-quiet 'codegen-units = 1' ""

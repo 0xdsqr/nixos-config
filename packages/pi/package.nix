@@ -1,6 +1,7 @@
 {
   lib,
   buildNpmPackage,
+  fetchurl,
   fetchFromGitHub,
   makeBinaryWrapper,
   nodejs_22,
@@ -11,7 +12,14 @@
 let
   version = "0.81.1";
   hash = "sha256-xo3uoR7HceOCL3wqoMcacOe8WXP1o7ReAXne5t6Hgao=";
+  modelDataHash = "sha256-x53MD5DU370ZdNoz36P+OWZjGVpoM5sfVcEU2/ckDy8=";
   npmDepsHash = "sha256-8TrTDYpgobFRVXalfBoLkKV/DZlzUMYoyWgYXW9tIlo=";
+
+  # Upstream generates this data before publishing and excludes it from git.
+  modelData = fetchurl {
+    url = "https://registry.npmjs.org/@earendil-works/pi-ai/-/pi-ai-${version}.tgz";
+    hash = modelDataHash;
+  };
 in
 buildNpmPackage {
   pname = "pi-coding-agent";
@@ -33,6 +41,14 @@ buildNpmPackage {
   npmRebuildFlags = [ "--ignore-scripts" ];
 
   nativeBuildInputs = [ makeBinaryWrapper ];
+
+  preBuild = ''
+    mkdir -p packages/ai/src/providers
+    tar -xzf ${modelData} \
+      --strip-components=3 \
+      -C packages/ai/src/providers \
+      package/dist/providers/data
+  '';
 
   buildPhase = ''
     runHook preBuild

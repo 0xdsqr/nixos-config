@@ -136,6 +136,9 @@ def update-pi [] {
     print $"pi-coding-agent ($cur) -> ($version)"
     replace-field $pkg "version" $version
     replace-field $pkg "hash" (gh-prefetch "earendil-works" "pi" $tag)
+    let model_data_url = $"https://registry.npmjs.org/@earendil-works/pi-ai/-/pi-ai-($version).tgz"
+    let model_data_hash = (^nix store prefetch-file --json $model_data_url | from json | get hash)
+    replace-field $pkg "modelDataHash" $model_data_hash
     replace-field $pkg "npmDepsHash" $FAKE
     replace-field $pkg "npmDepsHash" (build-got "pi")
   }
