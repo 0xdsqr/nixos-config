@@ -2,7 +2,7 @@ name: build agents
 
 on:
   push:
-    branches: [main]
+    branches: [master]
     paths:
       - packages/**
       - .github/workflows/build-agents.yml

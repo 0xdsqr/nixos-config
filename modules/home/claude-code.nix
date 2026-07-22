@@ -93,7 +93,7 @@
 
         Based on the above changes:
 
-        1. Create a new branch if on `main`.
+        1. Create a new branch if on `master`.
         2. Create a single commit.
         3. Verify the outgoing commit message has no Claude or AI attribution.
         4. Push the branch to origin.

@@ -64,4 +64,4 @@ jobs:
             git commit -m "chore(pi-skills): bump to ${revision:0:12}"
           fi
           git push
-          gh workflow run build-agents.yml --ref main
+          gh workflow run build-agents.yml --ref master
