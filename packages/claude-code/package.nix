@@ -4,14 +4,14 @@
   stdenvNoCC,
 }:
 let
-  version = "2.1.216";
+  version = "2.1.217";
 
   platformKey = "${stdenvNoCC.hostPlatform.node.platform}-${stdenvNoCC.hostPlatform.node.arch}";
   checksums = {
-    darwin-arm64 = "sha256-0BtJIQ1y7L4neiZl0QS6zM3fLSIYW+mURtKSng7fxI0=";
-    darwin-x64 = "sha256-4XzcUUN716gM4CRNJQRfVo1nshLupP+BuD7pD4Zm5C8=";
-    linux-arm64 = "sha256-njpq7MUWT2B+EYOuogksfXcF0UblBKYgffKRd2mWqOo=";
-    linux-x64 = "sha256-dN7KRSILgIDsdasJm9WlmA5BorWHmEagCPsRXUNt4IU=";
+    darwin-arm64 = "sha256-WEDHd/1HEV6conbhZVY8bhIefH4rTYZZjgAl+Mw33lY=";
+    darwin-x64 = "sha256-g4em/UTt/UDX50xf3DJwoV9eaxtYx8b+5WDnDT0ZQ9o=";
+    linux-arm64 = "sha256-QMU1B6xmnB1Dg2bBl2DCL1J0igblDg/A41PSy3NCVZc=";
+    linux-x64 = "sha256-JjD8XcbbYbwD+GuV2vR3ZuXtW2GHP3u3z+p2TFrFqbo=";
   };
 in
 claude-code.overrideAttrs (_: {
