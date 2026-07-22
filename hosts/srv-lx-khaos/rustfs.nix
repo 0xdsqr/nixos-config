@@ -1,8 +1,4 @@
-{
-  inputs,
-  pkgs,
-  ...
-}:
+{ inputs, pkgs, ... }:
 let
   version = "1.0.0-beta.10";
   package = inputs.rustfs.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs (_: {
