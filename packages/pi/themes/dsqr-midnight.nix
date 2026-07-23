@@ -16,7 +16,7 @@
     muted = "#8589aa";
     dim = "#656985";
 
-    mauve = "#b69df1";
+    mauve = "#c8a2d0";
     lavender = "#aeb8ee";
     pink = "#dfa6d5";
     red = "#e17d8e";

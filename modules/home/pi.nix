@@ -12,6 +12,7 @@
       inherit (lib.modules) mkIf;
 
       cfg = config.programs.pi;
+      agentDirectory = "${config.xdg.configHome}/pi/agent";
       enabledThemes = filterAttrs (name: _: cfg.themes.${name}.enable) (import ../../packages/pi/themes);
       themeFiles = mapAttrs' (
         name: _: nameValuePair "pi/agent/themes/${name}.json" { source = "${cfg.package}/share/pi/themes/${name}.json"; }
@@ -22,7 +23,8 @@
 
       config = mkIf cfg.enable {
         home.packages = singleton cfg.package;
-        home.sessionVariables.PI_CODING_AGENT_DIR = "${config.xdg.configHome}/pi/agent";
+        home.sessionVariables.PI_CODING_AGENT_DIR = agentDirectory;
+        programs.nushell.environmentVariables.PI_CODING_AGENT_DIR = agentDirectory;
 
         xdg.configFile = themeFiles;
       };
