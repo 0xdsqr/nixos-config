@@ -36,14 +36,6 @@ _: {
     autovacuum_vacuum_insert_scale_factor = 0.05;
     autovacuum_analyze_scale_factor = 0.02;
 
-    # Replication
-    wal_level = "replica";
-    max_wal_senders = 10;
-    max_replication_slots = 10;
-    wal_keep_size = "2 GB";
-    max_slot_wal_keep_size = "16 GB"; # Per replication slot
-    hot_standby = "on";
-
     # Checkpoints and WAL
     checkpoint_timeout = "15 min";
     checkpoint_completion_target = 0.9;

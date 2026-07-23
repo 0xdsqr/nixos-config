@@ -65,13 +65,6 @@ _: {
         address = "10.10.30.107/32";
         method = "scram-sha-256";
       }
-      {
-        type = "hostssl";
-        database = "replication";
-        user = "knox_replication";
-        address = "10.10.30.107/32";
-        method = "scram-sha-256";
-      }
     ];
   };
 
