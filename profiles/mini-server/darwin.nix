@@ -101,6 +101,24 @@ in
     home-manager.users.${userName} = { lib, ... }: {
       home.packages = lib.optional cfg.exo.enable pkgs.exo;
 
+      home.activation.retireLegacyExoAgent = mkIf cfg.exo.enable (
+        lib.hm.dag.entryBefore [ "setupLaunchAgents" ] /* bash */ ''
+          legacy_agent="$HOME/Library/LaunchAgents/org.nix-community.home.exo.plist"
+          legacy_backup="$legacy_agent.before-system-exo"
+
+          if [[ -f "$legacy_agent" ]] \
+            && [[ "$(/usr/bin/plutil -extract Label raw -o - "$legacy_agent" 2>/dev/null || true)" == "org.nix-community.home.exo" ]]; then
+            /bin/launchctl bootout "gui/$UID/org.nix-community.home.exo" >/dev/null 2>&1 || true
+
+            if [[ -e "$legacy_backup" ]]; then
+              run rm -f "$legacy_agent"
+            else
+              run mv "$legacy_agent" "$legacy_backup"
+            fi
+          fi
+        ''
+      );
+
       dsqr.home = {
         aws.enable = false;
         bat.enable = false;
