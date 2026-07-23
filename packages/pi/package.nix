@@ -24,6 +24,13 @@ let
       inherit path;
     }) themeFiles
   );
+  extensionDefinitions = import ./extensions;
+  extensions = linkFarm "pi-extensions-${version}" (
+    lib.mapAttrsToList (name: definition: {
+      inherit name;
+      path = definition.source;
+    }) extensionDefinitions
+  );
 
   # Upstream generates this data before publishing and excludes it from git.
   modelData = fetchurl {
@@ -53,6 +60,8 @@ buildNpmPackage {
   nativeBuildInputs = [ makeBinaryWrapper ];
 
   preBuild = ''
+    node --experimental-strip-types --test ${./extensions/web-tools}/test/*.test.ts
+
     mkdir -p packages/ai/src/providers
     tar -xzf ${modelData} \
       --strip-components=3 \
@@ -77,6 +86,9 @@ buildNpmPackage {
     mkdir -p "$out/share/pi/themes"
     cp -r ${themes}/. "$out/share/pi/themes/"
 
+    mkdir -p "$out/share/pi/extensions"
+    cp -r ${extensions}/. "$out/share/pi/extensions/"
+
     for src in packages/ai packages/agent packages/tui; do
       pkg="$(node -e "console.log(JSON.parse(require('fs').readFileSync('$src/package.json', 'utf8')).name)")"
       target="$nm/$pkg"
@@ -100,7 +112,14 @@ buildNpmPackage {
   versionCheckProgram = "${placeholder "out"}/bin/pi";
   versionCheckProgramArg = "--version";
 
-  passthru = { inherit themeFiles themes; };
+  passthru = {
+    inherit
+      extensionDefinitions
+      extensions
+      themeFiles
+      themes
+      ;
+  };
 
   meta = {
     description = "Coding agent CLI with read, bash, edit, write tools and session management";
