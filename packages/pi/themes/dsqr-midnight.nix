@@ -4,31 +4,31 @@
   name = "dsqr-midnight";
 
   vars = {
-    base = "#171520";
-    mantle = "#1d1a2a";
-    surface0 = "#272337";
-    surface1 = "#352f49";
-    surface2 = "#49415f";
-    selection = "#3c3157";
+    base = "#18151e";
+    mantle = "#211d2a";
+    surface0 = "#2a2535";
+    surface1 = "#373044";
+    surface2 = "#4a4058";
+    selection = "#463654";
 
-    text = "#c8cbed";
-    subtext = "#a9acd0";
-    muted = "#8589aa";
-    dim = "#656985";
+    text = "#ded7e8";
+    subtext = "#b5aec4";
+    muted = "#8f879d";
+    dim = "#6d6678";
 
     mauve = "#c8a2d0";
-    lavender = "#aeb8ee";
-    pink = "#dfa6d5";
-    red = "#e17d8e";
-    peach = "#e6a17f";
-    yellow = "#dcc38a";
-    green = "#9bca8c";
-    teal = "#83c7bd";
-    cyan = "#82c5d8";
-    blue = "#82a5e8";
+    lavender = "#b9b6df";
+    pink = "#d3a1bd";
+    red = "#d98894";
+    peach = "#daa17e";
+    yellow = "#d7bd85";
+    green = "#9fbd8b";
+    teal = "#8ab9aa";
+    cyan = "#87b7c4";
+    blue = "#91a8d0";
 
-    toolSuccessBg = "#1b2728";
-    toolErrorBg = "#2a1c28";
+    toolSuccessBg = "#242130";
+    toolErrorBg = "#2c2029";
   };
 
   colors = {
@@ -42,7 +42,7 @@
     muted = "muted";
     dim = "dim";
     text = "text";
-    thinkingText = "subtext";
+    thinkingText = "muted";
 
     selectedBg = "selection";
     userMessageBg = "surface0";
@@ -53,7 +53,7 @@
     toolPendingBg = "mantle";
     toolSuccessBg = "toolSuccessBg";
     toolErrorBg = "toolErrorBg";
-    toolTitle = "blue";
+    toolTitle = "lavender";
     toolOutput = "subtext";
 
     mdHeading = "mauve";
@@ -93,8 +93,8 @@
   };
 
   export = {
-    pageBg = "#111019";
-    cardBg = "#1d1a2a";
-    infoBg = "#272337";
+    pageBg = "#121017";
+    cardBg = "#211d2a";
+    infoBg = "#2a2535";
   };
 }
