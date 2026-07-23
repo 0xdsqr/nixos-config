@@ -22,6 +22,7 @@
       cfg = config.dsqr.darwin.desktop.tailscale;
       hasAuthKey = cfg.authKeyAgeFile != null && builtins.pathExists cfg.authKeyAgeFile;
       authKeyPath = if hasAuthKey then config.age.secrets.tailscaleAuthKey.path else "/dev/null";
+      authKeyGeneration = if hasAuthKey then builtins.hashFile "sha256" cfg.authKeyAgeFile else "";
 
       autoconnect = pkgs.writeShellApplication {
         name = "tailscaled-autoconnect";
@@ -44,7 +45,8 @@
               NeedsLogin|NoState)
                 if tailscale up \
                   --auth-key=${lib.escapeShellArg "file:${authKeyPath}"} \
-                  --hostname=${lib.escapeShellArg hostName}; then
+                  --hostname=${lib.escapeShellArg hostName} \
+                  --timeout=30s; then
                   exit 0
                 fi
                 ;;
@@ -114,6 +116,7 @@
               Label = "com.tailscale.tailscaled-autoconnect";
               RunAtLoad = true;
               KeepAlive.SuccessfulExit = false;
+              EnvironmentVariables.TAILSCALE_AUTH_KEY_GENERATION = authKeyGeneration;
               ProcessType = "Background";
               StandardErrorPath = "/var/log/tailscaled-autoconnect.log";
               StandardOutPath = "/var/log/tailscaled-autoconnect.log";
