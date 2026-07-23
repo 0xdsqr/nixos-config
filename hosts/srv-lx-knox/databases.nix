@@ -10,7 +10,6 @@ _: {
     fidara = { };
     grafana = { };
     tastingswithtay = { };
-    "tcg-price-guide" = { };
     temporal = { };
 
     temporal_visibility = {
