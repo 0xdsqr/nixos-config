@@ -113,6 +113,7 @@
             serviceConfig = {
               Label = "com.tailscale.tailscaled-autoconnect";
               RunAtLoad = true;
+              KeepAlive.SuccessfulExit = false;
               ProcessType = "Background";
               StandardErrorPath = "/var/log/tailscaled-autoconnect.log";
               StandardOutPath = "/var/log/tailscaled-autoconnect.log";
