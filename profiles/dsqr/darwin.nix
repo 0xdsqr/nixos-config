@@ -1,6 +1,17 @@
-{ lib, ... }:
+{
+  hostMeta ? null,
+  lib,
+  ...
+}:
 let
   inherit (lib.modules) mkDefault;
+
+  existingHostSecret =
+    name:
+    let
+      path = if hostMeta == null then null else hostMeta.path + "/${name}";
+    in
+    if path != null && builtins.pathExists path then path else null;
 in
 {
   dsqr.darwin = {
@@ -27,6 +38,7 @@ in
     desktop = {
       lapdog.enable = mkDefault true;
       obsidian.enable = mkDefault true;
+      tailscale.authKeyAgeFile = mkDefault (existingHostSecret "tailscale.auth-key.age");
     };
   };
 

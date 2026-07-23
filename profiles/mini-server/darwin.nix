@@ -5,7 +5,7 @@
   ...
 }:
 let
-  inherit (lib.modules) mkIf;
+  inherit (lib.modules) mkIf mkMerge;
   inherit (lib.options) mkEnableOption;
 
   cfg = config.dsqr.darwin.profiles.miniServer;
@@ -47,13 +47,25 @@ in
     ];
 
     dsqr.darwin = {
+      bat.enable = false;
       determinate.enable = true;
+      homebrew.enable = false;
+      packages.screen.enable = false;
 
-      desktop = mkIf cfg.desktop.enable {
-        dock.enable = false;
-        maccy.enable = false;
-        system.enable = false;
-      };
+      desktop = mkMerge [
+        { tailscale.mode = "daemon"; }
+
+        (mkIf cfg.desktop.enable {
+          browsers.helium.policy.enable = false;
+          dock.enable = false;
+          docker.enable = false;
+          lapdog.enable = false;
+          maccy.enable = false;
+          obsidian.enable = false;
+          spotify.enable = false;
+          system.enable = false;
+        })
+      ];
 
       grafana = mkIf cfg.monitoring.enable {
         alloy.enable = true;
