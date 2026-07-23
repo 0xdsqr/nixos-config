@@ -2,6 +2,7 @@
   config,
   hostName,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -12,6 +13,8 @@ let
   userCfg = config.dsqr.darwin.personal.user;
   userName = if userCfg.name == null then "primary-user-unset" else userCfg.name;
   userHome = if userCfg.home == null then "/Users/${userName}" else userCfg.home;
+  exoLogDirectory = "${userHome}/Library/Logs/exo";
+  exoLogPath = "${exoLogDirectory}/exo.log";
 in
 {
   options.dsqr.darwin.profiles.miniServer = {
@@ -96,19 +99,7 @@ in
     };
 
     home-manager.users.${userName} = { lib, ... }: {
-      home.activation.ensureExoLogDirectory = mkIf cfg.exo.enable (
-        lib.hm.dag.entryAfter [ "writeBoundary" ] /* bash */ ''
-          mkdir -p "$HOME/Library/Logs/exo"
-          touch "$HOME/Library/Logs/exo/exo.log"
-        ''
-      );
-
-      launchd.agents.exo.config = mkIf cfg.exo.enable {
-        StandardErrorPath = "${userHome}/Library/Logs/exo/exo.log";
-        StandardOutPath = "${userHome}/Library/Logs/exo/exo.log";
-      };
-
-      services.exo.enable = cfg.exo.enable;
+      home.packages = lib.optional cfg.exo.enable pkgs.exo;
 
       dsqr.home = {
         aws.enable = false;
@@ -149,6 +140,33 @@ in
           node.enable = false;
           signing.enable = false;
         };
+      };
+    };
+
+    system.activationScripts.preActivation.text = mkIf cfg.exo.enable /* bash */ ''
+      /usr/bin/install -d -m 0755 -o ${lib.escapeShellArg userName} -g staff ${lib.escapeShellArg exoLogDirectory}
+      /usr/bin/touch ${lib.escapeShellArg exoLogPath}
+      /usr/sbin/chown ${lib.escapeShellArg "${userName}:staff"} ${lib.escapeShellArg exoLogPath}
+    '';
+
+    launchd.daemons.exo = mkIf cfg.exo.enable {
+      serviceConfig = {
+        UserName = userName;
+        ProgramArguments = [ (lib.getExe pkgs.exo) ];
+        EnvironmentVariables = {
+          HOME = userHome;
+          LOGNAME = userName;
+          USER = userName;
+        };
+        KeepAlive = {
+          Crashed = true;
+          SuccessfulExit = false;
+        };
+        ProcessType = "Background";
+        RunAtLoad = true;
+        WorkingDirectory = userHome;
+        StandardErrorPath = exoLogPath;
+        StandardOutPath = exoLogPath;
       };
     };
 
