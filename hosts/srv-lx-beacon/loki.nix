@@ -103,6 +103,11 @@ _: {
         };
       };
 
+      memberlist = {
+        advertise_addr = "127.0.0.1";
+        bind_addr = [ "127.0.0.1" ];
+      };
+
       schema_config.configs = [
         {
           from = "2024-01-01";

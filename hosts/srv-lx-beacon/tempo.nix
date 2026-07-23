@@ -25,14 +25,23 @@ in
   services.tempo = {
     enable = true;
     settings = {
+      target = "all";
+
       server = {
         http_listen_port = httpPort;
         grpc_listen_port = grpcPort;
       };
 
+      backend_scheduler.local_work_path = "/var/lib/tempo/backend-scheduler";
+
       distributor.receivers.otlp.protocols = {
         grpc.endpoint = "0.0.0.0:${toString otlpGrpcPort}";
         http.endpoint = "0.0.0.0:${toString otlpHttpPort}";
+      };
+
+      live_store = {
+        shutdown_marker_dir = "/var/lib/tempo/live-store/shutdown-marker";
+        wal.path = "/var/lib/tempo/live-store/traces";
       };
 
       storage.trace = {
