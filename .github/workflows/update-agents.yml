@@ -58,10 +58,5 @@ jobs:
             git add packages/pi/package.nix
             git commit -m "chore(pi): bump to $version"
           fi
-          if ! git diff --quiet -- packages/pi/skills.nix; then
-            revision="$(sed -n 's/.*piSkillsRev = "\([^"]*\)".*/\1/p' packages/pi/skills.nix | head -1)"
-            git add packages/pi/skills.nix
-            git commit -m "chore(pi-skills): bump to ${revision:0:12}"
-          fi
           git push
           gh workflow run build-agents.yml --ref master

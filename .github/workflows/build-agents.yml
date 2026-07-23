@@ -52,7 +52,7 @@ jobs:
         run: nix store ping --store https://cache.flakehub.com
       - name: Build and cache agent packages
         run: |
-          packages=(claude-code codex pi pi-skills)
+          packages=(claude-code codex pi)
           if [ "${{ matrix.system }}" = "aarch64-darwin" ]; then
             packages+=(codexbar)
           fi

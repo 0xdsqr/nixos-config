@@ -42,11 +42,6 @@ def parse-got [text: string] {
   | get h.0
 }
 
-# Latest commit sha on a repo's default branch.
-def gh-head [owner: string, repo: string] {
-  gh-json $"repos/($owner)/($repo)/commits/HEAD" | get sha
-}
-
 # fetchFromGitHub hash via nix-prefetch-github (on PATH via the package wrapper).
 def gh-prefetch [owner: string, repo: string, rev: string] {
   ^nix-prefetch-github --rev $rev $owner $repo | from json | get hash
@@ -125,7 +120,6 @@ def update-codexbar [] {
 
 def update-pi [] {
   let pkg = $"(repo-root)/packages/pi/package.nix"
-  let skills = $"(repo-root)/packages/pi/skills.nix"
 
   let tag = (gh-json "repos/earendil-works/pi/releases/latest" | get tag_name)
   let version = ($tag | str replace --regex '^v' '')
@@ -141,28 +135,6 @@ def update-pi [] {
     replace-field $pkg "modelDataHash" $model_data_hash
     replace-field $pkg "npmDepsHash" $FAKE
     replace-field $pkg "npmDepsHash" (build-got "pi")
-  }
-
-  let ps_rev = (gh-head "badlogic" "pi-skills")
-  if $ps_rev == (nix-field $skills "piSkillsRev") {
-    print "pi-skills up to date"
-  } else {
-    print $"pi-skills -> ($ps_rev)"
-    replace-field $skills "piSkillsRev" $ps_rev
-    replace-field $skills "piSkillsHash" (gh-prefetch "badlogic" "pi-skills" $ps_rev)
-    replace-field $skills "browserToolsNpmDepsHash" $FAKE
-    replace-field $skills "browserToolsNpmDepsHash" (build-got "pi-skill-browser-tools")
-    replace-field $skills "braveSearchNpmDepsHash" $FAKE
-    replace-field $skills "braveSearchNpmDepsHash" (build-got "pi-skill-brave-search")
-  }
-
-  let as_rev = (gh-head "anthropics" "skills")
-  if $as_rev == (nix-field $skills "anthropicSkillsRev") {
-    print "anthropic-skills up to date"
-  } else {
-    print $"anthropic-skills -> ($as_rev)"
-    replace-field $skills "anthropicSkillsRev" $as_rev
-    replace-field $skills "anthropicSkillsHash" (gh-prefetch "anthropics" "skills" $as_rev)
   }
 }
 

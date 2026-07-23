@@ -49,7 +49,6 @@ let
           "packages-signing"
           "opencode"
           "pi"
-          "pi-bridge"
           "signal"
           "thunderbird"
           "web-browser"

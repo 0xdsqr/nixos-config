@@ -127,7 +127,6 @@ in
         difftastic.enable = false;
         hushlogin.enable = false;
         ollama.enable = false;
-        pi-bridge.enable = false;
         versionControl = {
           gh.enable = false;
           git.signing.enable = false;

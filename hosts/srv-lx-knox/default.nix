@@ -84,7 +84,6 @@ in
             };
             nu.enable = true;
             opencode.enable = false;
-            pi-bridge.enable = false;
             ssh.enable = true;
             starship.enable = true;
             tailscale.enable = false;
@@ -148,7 +147,6 @@ in
             neovim.enable = false;
             nu.enable = false;
             opencode.enable = false;
-            pi-bridge.enable = false;
             ssh.enable = false;
             starship.enable = false;
             tailscale.enable = false;
