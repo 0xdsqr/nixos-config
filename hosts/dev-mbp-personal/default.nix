@@ -60,7 +60,10 @@ in
         ];
 
         home-manager.users.dsqr = {
-          programs.pi.enable = true;
+          programs.pi = {
+            enable = true;
+            themes.dsqr-midnight.enable = true;
+          };
 
           dsqr.home = {
             aws.config = {

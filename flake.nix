@@ -146,7 +146,12 @@
 
       packageImports = collectNix {
         path = ./packages;
-        exclude = path: builtins.baseNameOf (toString path) != "default.nix";
+        exclude =
+          path:
+          let
+            pathString = toString path;
+          in
+          builtins.match ".*/packages/[^/]+/default\\.nix" pathString == null;
       };
     in
     flake-parts.lib.mkFlake { inherit inputs; } (
