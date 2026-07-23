@@ -30,7 +30,7 @@
           pkgs.jq
         ];
         text = ''
-          for attempt in {1..60}; do
+          for _ in {1..60}; do
             backend_state="$(
               tailscale status --json 2>/dev/null \
                 | jq --raw-output '.BackendState // empty' 2>/dev/null \
