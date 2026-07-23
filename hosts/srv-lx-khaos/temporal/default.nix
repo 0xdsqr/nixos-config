@@ -4,13 +4,13 @@ let
   broadcastAddress = "127.0.0.1";
 
   postgres = {
-    host = "127.0.0.1";
+    host = "postgres.service.home.arpa";
     port = 5432;
     user = "temporal";
     database = "temporal";
     visibilityDatabase = "temporal_visibility";
     pluginName = "postgres12";
-    sslMode = "disable";
+    caFile = "/etc/ssl/certs/ca-certificates.crt";
     passwordEnvVar = "TEMPORAL_POSTGRES_PASSWORD";
   };
 
@@ -89,8 +89,11 @@ in
               maxConns: 20
               maxIdleConns: 20
               maxConnLifetime: "1h"
-              connectAttributes:
-                sslmode: "${postgres.sslMode}"
+              tls:
+                enabled: true
+                caFile: "${postgres.caFile}"
+                enableHostVerification: true
+                serverName: "${postgres.host}"
           postgres-visibility:
             sql:
               pluginName: "${postgres.pluginName}"
@@ -102,8 +105,11 @@ in
               maxConns: 10
               maxIdleConns: 10
               maxConnLifetime: "1h"
-              connectAttributes:
-                sslmode: "${postgres.sslMode}"
+              tls:
+                enabled: true
+                caFile: "${postgres.caFile}"
+                enableHostVerification: true
+                serverName: "${postgres.host}"
 
       global:
         membership:

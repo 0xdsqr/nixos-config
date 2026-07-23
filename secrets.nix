@@ -70,6 +70,7 @@ mkSecretsForHost "srv-lx-beacon" [
   "hosts/srv-lx-khaos/vault-listener-pki.env.age"
 ]
 // mkSecretsForHost "srv-lx-knox" [
+  "hosts/srv-lx-knox/listener-pki.secret-id.age"
   "hosts/srv-lx-knox/postgresql-replication.pgpass.age"
   "hosts/srv-lx-knox/tailscale.auth-key.age"
 ]

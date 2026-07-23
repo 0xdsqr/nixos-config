@@ -46,6 +46,8 @@ in
 
         hardware.report = ./srv-lx-knox.report.json;
 
+        allowedUnfreePackageNames = [ "vault-bin" ];
+
         dsqr.nixos = {
           openssh.enable = true;
           postgresql = {

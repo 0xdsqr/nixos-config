@@ -8,23 +8,21 @@ let
   inherit (lib) escapeShellArg;
 
   postgres = {
-    host = "127.0.0.1";
+    host = "postgres.service.home.arpa";
     port = 5432;
     user = "temporal";
     database = "temporal";
     visibilityDatabase = "temporal_visibility";
     pluginName = "postgres12";
-    sslMode = "disable";
+    caFile = "/etc/ssl/certs/ca-certificates.crt";
     passwordEnvVar = "TEMPORAL_POSTGRES_PASSWORD";
   };
-
-  psql = "${config.services.postgresql.package}/bin/psql";
 
   temporalPostgresqlSchema = pkgs.writeShellApplication {
     name = "temporal-postgresql-schema";
     runtimeInputs = [
       config.dsqr.nixos.temporal.package
-      config.services.postgresql.package
+      config.dsqr.nixos.postgresql.package
       pkgs.gnugrep
     ];
     text = ''
@@ -47,9 +45,13 @@ let
       export SQL_USER=${escapeShellArg postgres.user}
       export SQL_PASSWORD="$password_value"
       export SQL_PLUGIN=${escapeShellArg postgres.pluginName}
-      export SQL_CONNECT_ATTRIBUTES=${escapeShellArg "sslmode=${postgres.sslMode}"}
+      export SQL_TLS=true
+      export SQL_TLS_CA_FILE=${escapeShellArg postgres.caFile}
+      export SQL_TLS_SERVER_NAME=${escapeShellArg postgres.host}
+      export SQL_TLS_DISABLE_HOST_VERIFICATION=false
       export PGPASSWORD="$password_value"
-      export PGSSLMODE=${escapeShellArg postgres.sslMode}
+      export PGSSLMODE=verify-full
+      export PGSSLROOTCERT=${escapeShellArg postgres.caFile}
 
       setup_schema() {
         local database="$1"
@@ -84,81 +86,10 @@ in
 
   environment.systemPackages = [ temporalPostgresqlSchema ];
 
-  systemd.services.temporal-postgresql-bootstrap = {
-    description = "Prepare PostgreSQL role and databases for Temporal";
-    requires = [ "postgresql.service" ];
-    after = [ "postgresql.service" ];
-    before = [
-      "temporal-postgresql-schema.service"
-      "temporal.service"
-    ];
-    serviceConfig = {
-      Type = "oneshot";
-      User = "postgres";
-      Group = "postgres";
-      EnvironmentFile = [ config.age.secrets.temporalPostgresEnv.path ];
-    };
-    script = ''
-      set -euo pipefail
-
-      password_env_var=${escapeShellArg postgres.passwordEnvVar}
-      password_value="''${!password_env_var:-}"
-      if [[ -z "$password_value" ]]; then
-        echo "$password_env_var must be set before bootstrapping Temporal PostgreSQL" >&2
-        exit 1
-      fi
-
-      ${psql} --dbname postgres --set ON_ERROR_STOP=1 <<SQL
-      \set temporal_password $password_value
-
-      DO \$\$
-      BEGIN
-        IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '${postgres.user}') THEN
-          CREATE ROLE "${postgres.user}" LOGIN;
-        END IF;
-      END
-      \$\$;
-
-      ALTER ROLE "${postgres.user}" WITH LOGIN PASSWORD :'temporal_password';
-      SQL
-
-      if ! ${psql} \
-        --dbname postgres \
-        --tuples-only \
-        --no-align \
-        --command "SELECT 1 FROM pg_database WHERE datname = '${postgres.database}'" \
-        | ${pkgs.gnugrep}/bin/grep --quiet --line-regexp 1; then
-        ${psql} \
-          --dbname postgres \
-          --set ON_ERROR_STOP=1 \
-          --command 'CREATE DATABASE "${postgres.database}" OWNER "${postgres.user}"'
-      fi
-
-      if ! ${psql} \
-        --dbname postgres \
-        --tuples-only \
-        --no-align \
-        --command "SELECT 1 FROM pg_database WHERE datname = '${postgres.visibilityDatabase}'" \
-        | ${pkgs.gnugrep}/bin/grep --quiet --line-regexp 1; then
-        ${psql} \
-          --dbname postgres \
-          --set ON_ERROR_STOP=1 \
-          --command 'CREATE DATABASE "${postgres.visibilityDatabase}" OWNER "${postgres.user}"'
-      fi
-
-      ${psql} --dbname postgres --set ON_ERROR_STOP=1 <<SQL
-      ALTER DATABASE "${postgres.database}" OWNER TO "${postgres.user}";
-      ALTER DATABASE "${postgres.visibilityDatabase}" OWNER TO "${postgres.user}";
-      GRANT ALL PRIVILEGES ON DATABASE "${postgres.database}" TO "${postgres.user}";
-      GRANT ALL PRIVILEGES ON DATABASE "${postgres.visibilityDatabase}" TO "${postgres.user}";
-      SQL
-    '';
-  };
-
   systemd.services.temporal-postgresql-schema = {
     description = "Setup and upgrade Temporal PostgreSQL schema";
-    requires = [ "temporal-postgresql-bootstrap.service" ];
-    after = [ "temporal-postgresql-bootstrap.service" ];
+    wants = [ "network-online.target" ];
+    after = [ "network-online.target" ];
     before = [ "temporal.service" ];
     serviceConfig = {
       Type = "oneshot";

@@ -52,11 +52,13 @@ in
 
       database = {
         type = "postgres";
-        host = "10.10.30.107:5432";
+        host = "postgres.service.home.arpa:5432";
         name = "grafana";
         user = "grafana";
         password = "$__file{${config.age.secrets.grafanaDbPassword.path}}";
-        ssl_mode = "disable";
+        ssl_mode = "verify-full";
+        ca_cert_path = "/etc/ssl/certs/ca-certificates.crt";
+        server_cert_name = "postgres.service.home.arpa";
       };
 
       server = {

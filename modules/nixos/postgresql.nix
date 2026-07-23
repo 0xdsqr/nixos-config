@@ -7,7 +7,12 @@
       ...
     }:
     let
-      inherit (lib.attrsets) attrNames genAttrs mapAttrsToList;
+      inherit (lib.attrsets)
+        attrNames
+        genAttrs
+        mapAttrsToList
+        optionalAttrs
+        ;
       inherit (lib.lists) optional unique;
       inherit (lib.meta) getExe;
       inherit (lib.modules)
@@ -84,6 +89,22 @@
       extraHostAuthRules = concatMapStringsSep "\n" (
         rule: "${rule.type}  ${rule.database}  ${rule.user}  ${rule.address}  ${rule.method}"
       ) cfg.hostAuthenticationRules;
+      waitForTlsFiles = pkgs.writeShellApplication {
+        name = "postgresql-wait-for-tls-files";
+        runtimeInputs = [ pkgs.coreutils ];
+        text = ''
+          for _ in $(seq 1 240); do
+            if [[ -s ${escapeShellArg cfg.tls.certificateFile} && -s ${escapeShellArg cfg.tls.privateKeyFile} ]]; then
+              exit 0
+            fi
+
+            sleep 0.25
+          done
+
+          echo "PostgreSQL TLS certificate files were not rendered within 60 seconds." >&2
+          exit 1
+        '';
+      };
     in
     {
       options.dsqr.nixos.postgresql = {
@@ -228,6 +249,31 @@
           description = "Additional structured pg_hba host rules.";
         };
 
+        tls = {
+          enable = mkEnableOption "PostgreSQL TLS";
+
+          certificateFile = mkOption {
+            type = str;
+            default = "/var/lib/postgresql/tls/server.crt";
+            description = "Path to the PostgreSQL listener certificate and CA chain.";
+          };
+
+          privateKeyFile = mkOption {
+            type = str;
+            default = "/var/lib/postgresql/tls/server.key";
+            description = "Path to the PostgreSQL listener private key.";
+          };
+
+          minimumProtocolVersion = mkOption {
+            type = enum [
+              "TLSv1.2"
+              "TLSv1.3"
+            ];
+            default = "TLSv1.2";
+            description = "Oldest TLS protocol accepted by PostgreSQL.";
+          };
+        };
+
         exporter.listenAddress = mkOption {
           type = str;
           default = "127.0.0.1";
@@ -265,7 +311,15 @@
           enableJIT = true;
           enableTCPIP = true;
 
-          settings.listen_addresses = mkForce (concatStringsSep "," cfg.listenAddresses);
+          settings = {
+            listen_addresses = mkForce (concatStringsSep "," cfg.listenAddresses);
+          }
+          // optionalAttrs cfg.tls.enable {
+            ssl = true;
+            ssl_cert_file = cfg.tls.certificateFile;
+            ssl_key_file = cfg.tls.privateKeyFile;
+            ssl_min_protocol_version = cfg.tls.minimumProtocolVersion;
+          };
           authentication = mkOverride 10 /* ini */ ''
             #     DATABASE USER        AUTHENTICATION
             local all      all         peer
@@ -288,6 +342,8 @@
           ${ownershipCommands}
           ${extensionCommands}
         '';
+
+        systemd.services.postgresql.serviceConfig.ExecStartPre = mkIf cfg.tls.enable [ "${lib.getExe waitForTlsFiles}" ];
       };
     };
 }
