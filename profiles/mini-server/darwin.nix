@@ -171,6 +171,8 @@ in
         UserName = userName;
         ProgramArguments = [ (lib.getExe pkgs.exo) ];
         EnvironmentVariables = {
+          # Avoid MLX Metal fast-sync deadlocks during distributed warmup.
+          EXO_FAST_SYNCH = "false";
           HOME = userHome;
           LOGNAME = userName;
           USER = userName;
