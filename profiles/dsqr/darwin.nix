@@ -6,6 +6,8 @@
 let
   inherit (lib.modules) mkDefault;
 
+  keys = import ./keys.nix;
+
   existingHostSecret =
     name:
     let
@@ -19,6 +21,7 @@ in
       enable = mkDefault true;
       name = mkDefault "dsqr";
       home = mkDefault "/Users/dsqr";
+      authorizedKeys = mkDefault keys.admins;
     };
 
     homebrew = {

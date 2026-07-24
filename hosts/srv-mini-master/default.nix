@@ -25,6 +25,7 @@ in
   flake.hostDefinitions.${hostName} = self.lib.mkHostMeta {
     class = "darwin";
     path = ./.;
+    sshHost = "10.10.30.100";
     system = "aarch64-darwin";
   };
 

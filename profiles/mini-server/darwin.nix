@@ -6,8 +6,10 @@
   ...
 }:
 let
+  inherit (lib.lists) optional;
   inherit (lib.modules) mkIf mkMerge;
-  inherit (lib.options) mkEnableOption;
+  inherit (lib.options) mkEnableOption mkOption;
+  inherit (lib.types) bool str;
 
   cfg = config.dsqr.darwin.profiles.miniServer;
   userCfg = config.dsqr.darwin.personal.user;
@@ -26,6 +28,18 @@ in
 
     exo.enable = mkEnableOption "Exo service for Mac mini servers" // {
       default = true;
+    };
+
+    exo.clusterNamespace = mkOption {
+      type = str;
+      default = "dsqr-mini-cluster";
+      description = "Shared libp2p namespace used to isolate the Mac mini Exo cluster.";
+    };
+
+    exo.forceMaster = mkOption {
+      type = bool;
+      default = hostName == "srv-mini-master";
+      description = "Whether this Exo node should have priority in master election.";
     };
 
     monitoring.enable = mkEnableOption "Grafana Alloy log shipping for Mac mini servers" // {
@@ -169,17 +183,15 @@ in
     launchd.daemons.exo = mkIf cfg.exo.enable {
       serviceConfig = {
         UserName = userName;
-        ProgramArguments = [ (lib.getExe pkgs.exo) ];
+        ProgramArguments = [ (lib.getExe pkgs.exo) ] ++ optional cfg.exo.forceMaster "--force-master";
         EnvironmentVariables = {
+          EXO_LIBP2P_NAMESPACE = cfg.exo.clusterNamespace;
           HOME = userHome;
           LOGNAME = userName;
           USER = userName;
         };
-        KeepAlive = {
-          Crashed = true;
-          SuccessfulExit = false;
-        };
-        ProcessType = "Background";
+        KeepAlive = true;
+        ProcessType = "Interactive";
         RunAtLoad = true;
         WorkingDirectory = userHome;
         StandardErrorPath = exoLogPath;
@@ -199,6 +211,7 @@ in
         disksleep 0 \
         standby 0 \
         autopoweroff 0 \
+        powermode 2 \
         womp 1 \
         tcpkeepalive 1 \
         autorestart 1 \

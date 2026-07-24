@@ -4,7 +4,7 @@
     let
       inherit (lib.modules) mkIf;
       inherit (lib.options) mkEnableOption mkOption;
-      inherit (lib.types) nullOr str;
+      inherit (lib.types) listOf nullOr str;
 
       cfg = config.dsqr.darwin.personal.user;
       userName = if cfg.name == null then "primary-user-unset" else cfg.name;
@@ -24,6 +24,12 @@
           default = null;
           description = "Primary Darwin user home directory.";
         };
+
+        authorizedKeys = mkOption {
+          type = listOf str;
+          default = [ ];
+          description = "SSH authorized keys for the primary Darwin user.";
+        };
       };
 
       config = mkIf cfg.enable {
@@ -38,7 +44,10 @@
           }
         ];
 
-        users.users.${userName}.home = mkIf (cfg.home != null) cfg.home;
+        users.users.${userName} = {
+          home = mkIf (cfg.home != null) cfg.home;
+          openssh.authorizedKeys.keys = cfg.authorizedKeys;
+        };
         system.primaryUser = userName;
       };
     };
