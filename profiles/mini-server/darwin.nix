@@ -183,7 +183,13 @@ in
     launchd.daemons.exo = mkIf cfg.exo.enable {
       serviceConfig = {
         UserName = userName;
-        ProgramArguments = [ (lib.getExe pkgs.exo) ] ++ optional cfg.exo.forceMaster "--force-master";
+        ProgramArguments = [
+          (lib.getExe pkgs.exo)
+          # MLX fast synchronization can permanently deadlock distributed
+          # Ring inference on Apple silicon; Exo exposes this safe fallback.
+          "--no-fast-synch"
+        ]
+        ++ optional cfg.exo.forceMaster "--force-master";
         EnvironmentVariables = {
           EXO_LIBP2P_NAMESPACE = cfg.exo.clusterNamespace;
           HOME = userHome;
