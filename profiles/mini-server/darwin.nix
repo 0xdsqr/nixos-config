@@ -1,6 +1,7 @@
 {
   config,
   hostName,
+  inputs,
   lib,
   pkgs,
   ...
@@ -17,6 +18,7 @@ let
   userHome = if userCfg.home == null then "/Users/${userName}" else userCfg.home;
   exoLogDirectory = "${userHome}/Library/Logs/exo";
   exoLogPath = "${exoLogDirectory}/exo.log";
+  exoPackage = inputs.exo.packages.${pkgs.stdenv.hostPlatform.system}.exo;
 in
 {
   options.dsqr.darwin.profiles.miniServer = {
@@ -113,7 +115,7 @@ in
     };
 
     home-manager.users.${userName} = { lib, ... }: {
-      home.packages = lib.optional cfg.exo.enable pkgs.exo;
+      home.packages = lib.optional cfg.exo.enable exoPackage;
 
       home.activation.retireLegacyExoAgent = mkIf cfg.exo.enable (
         lib.hm.dag.entryBefore [ "setupLaunchAgents" ] /* bash */ ''
@@ -184,7 +186,7 @@ in
       serviceConfig = {
         UserName = userName;
         ProgramArguments = [
-          (lib.getExe pkgs.exo)
+          (lib.getExe exoPackage)
           # MLX fast synchronization can permanently deadlock distributed
           # Ring inference on Apple silicon; Exo exposes this safe fallback.
           "--no-fast-synch"

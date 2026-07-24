@@ -24,6 +24,11 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
+    # Keep Exo's own locked Python/MLX stack. The nixpkgs package substitutes
+    # stock MLX packages, but Exo pins distributed-inference fixes that the
+    # two-node Apple-silicon cluster requires.
+    exo.url = "github:exo-explore/exo/v1.0.71";
+
     flake-parts.url = "github:hercules-ci/flake-parts";
 
     treefmt-nix = {
