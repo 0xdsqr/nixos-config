@@ -25,11 +25,39 @@ let
     }) themeFiles
   );
   extensionDefinitions = import ./extensions;
+  extensionPaths = lib.mapAttrs (
+    name: definition:
+    if definition ? npmDepsHash then
+      buildNpmPackage {
+        pname = "pi-extension-${name}";
+        version = "0.1.0";
+        src = definition.source;
+        npmDepsHash = if definition.npmDepsHash == "" then lib.fakeHash else definition.npmDepsHash;
+        nodejs = nodejs_22;
+        npmRebuildFlags = [ "--ignore-scripts" ];
+        dontNpmBuild = true;
+        doCheck = true;
+        checkPhase = ''
+          runHook preCheck
+          npm run check
+          runHook postCheck
+        '';
+        installPhase = ''
+          runHook preInstall
+          npm prune --omit=dev --ignore-scripts --offline
+          mkdir -p "$out"
+          cp -r . "$out/"
+          runHook postInstall
+        '';
+      }
+    else
+      definition.source
+  ) extensionDefinitions;
   extensions = linkFarm "pi-extensions-${version}" (
-    lib.mapAttrsToList (name: definition: {
+    lib.mapAttrsToList (name: path: {
       inherit name;
-      path = definition.source;
-    }) extensionDefinitions
+      inherit path;
+    }) extensionPaths
   );
 
   # Upstream generates this data before publishing and excludes it from git.
@@ -60,8 +88,6 @@ buildNpmPackage {
   nativeBuildInputs = [ makeBinaryWrapper ];
 
   preBuild = ''
-    node --experimental-strip-types --test ${./extensions/web-tools}/test/*.test.ts
-
     mkdir -p packages/ai/src/providers
     tar -xzf ${modelData} \
       --strip-components=3 \
@@ -115,6 +141,7 @@ buildNpmPackage {
   passthru = {
     inherit
       extensionDefinitions
+      extensionPaths
       extensions
       themeFiles
       themes

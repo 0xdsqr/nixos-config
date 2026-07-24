@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { isBlockedIp, parsePublicUrl } from "../network.ts";
+import {
+  acceptHeader,
+  composeSignal,
+  isBlockedIp,
+  parsePublicUrl,
+  readLimitedBody,
+} from "../network.ts";
 
 test("parsePublicUrl accepts public HTTP URLs and removes fragments", () => {
   assert.equal(parsePublicUrl("https://example.com/docs?q=1#private").href, "https://example.com/docs?q=1");
@@ -38,4 +44,36 @@ test("isBlockedIp blocks private, local, reserved, and documentation ranges", ()
 test("isBlockedIp permits representative public addresses", () => {
   assert.equal(isBlockedIp("8.8.8.8"), false);
   assert.equal(isBlockedIp("2606:4700:4700::1111"), false);
+});
+
+test("Accept headers prefer the requested representation", () => {
+  assert.match(acceptHeader("markdown"), /^text\/markdown/);
+  assert.match(acceptHeader("text"), /^text\/plain/);
+  assert.match(acceptHeader("html"), /^text\/html/);
+});
+
+test("operation signals propagate cancellation and clean up", () => {
+  const parent = new AbortController();
+  const operation = composeSignal(parent.signal, 30);
+  parent.abort(new Error("stop"));
+  assert.equal(operation.signal.aborted, true);
+  operation.cleanup();
+});
+
+test("bounded response reads reject declared and streamed overflow", async () => {
+  await assert.rejects(
+    () => readLimitedBody(new Response("tiny", { headers: { "content-length": "9" } }), 8),
+    /limit/,
+  );
+  await assert.rejects(
+    () => readLimitedBody(new Response("ninebytes"), 8),
+    /limit/,
+  );
+});
+
+test("operation signals enforce timeout", async () => {
+  const operation = composeSignal(undefined, 0.005);
+  await new Promise((resolve) => setTimeout(resolve, 15));
+  assert.equal(operation.signal.aborted, true);
+  operation.cleanup();
 });

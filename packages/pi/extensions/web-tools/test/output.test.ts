@@ -1,11 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { truncateOutput } from "../output.ts";
+import { readFile } from "node:fs/promises";
+
+import { boundOutput, truncateOutput } from "../output.ts";
 
 test("truncateOutput preserves normal output", () => {
   assert.deepEqual(truncateOutput("small\noutput"), {
+    outputBytes: 12,
+    outputLines: 2,
     text: "small\noutput",
+    totalBytes: 12,
+    totalLines: 2,
     truncated: false,
   });
 });
@@ -21,4 +27,14 @@ test("truncateOutput limits UTF-8 bytes without splitting characters", () => {
   assert.equal(result.truncated, true);
   assert.ok(Buffer.byteLength(result.text) <= 50 * 1024);
   assert.doesNotMatch(result.text, /\uFFFD/);
+});
+
+test("boundOutput saves complete overflow and reports measurements", async () => {
+  const original = "moon\n".repeat(2_010);
+  const result = await boundOutput(original, "web-tools-test");
+  assert.equal(result.truncated, true);
+  assert.equal(result.totalLines, 2_011);
+  assert.ok(result.fullOutputPath);
+  assert.equal(await readFile(result.fullOutputPath!, "utf8"), original);
+  assert.match(result.text, /Output truncated/);
 });

@@ -1,11 +1,14 @@
 import { lookup } from "node:dns/promises";
+import type { LookupAddress } from "node:dns";
 import { request as httpRequest } from "node:http";
 import type { IncomingHttpHeaders, IncomingMessage } from "node:http";
 import { request as httpsRequest } from "node:https";
 import { BlockList, isIP } from "node:net";
 
-const MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
-const MAX_REDIRECTS = 5;
+import { type FetchFormat, WEB_TOOLS_SETTINGS } from "./settings.ts";
+
+const MAX_RESPONSE_BYTES = WEB_TOOLS_SETTINGS.fetch.maxResponseBytes;
+const MAX_REDIRECTS = WEB_TOOLS_SETTINGS.fetch.maxRedirects;
 const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
 const RASTER_IMAGES = new Set(["image/gif", "image/jpeg", "image/png", "image/webp"]);
 const BLOCKED_IPS = new BlockList();
@@ -46,8 +49,6 @@ for (const [address, prefix] of [
   BLOCKED_IPS.addSubnet(address, prefix, "ipv6");
 }
 
-export type FetchFormat = "html" | "markdown" | "text";
-
 export type FetchedPage =
   | {
       kind: "image";
@@ -55,12 +56,18 @@ export type FetchedPage =
       data: string;
       finalUrl: string;
       mediaType: string;
+      requestedUrl: string;
+      status: number;
+      statusText: string;
     }
   | {
       kind: "text";
       bytes: number;
       contentType: string;
       finalUrl: string;
+      requestedUrl: string;
+      status: number;
+      statusText: string;
       text: string;
     };
 
@@ -114,10 +121,10 @@ export async function resolvePublicDestination(url: URL): Promise<PublicDestinat
   const literalFamily = isIP(hostname);
   if (literalFamily) {
     if (isBlockedIp(hostname)) throw new Error("Private or local destinations are blocked");
-    return { address: hostname, family: literalFamily };
+    return { address: hostname, family: literalFamily === 4 ? 4 : 6 };
   }
 
-  let addresses: Awaited<ReturnType<typeof lookup>>;
+  let addresses: LookupAddress[];
   try {
     addresses = await lookup(hostname, { all: true, verbatim: true });
   } catch {
@@ -131,7 +138,10 @@ export async function resolvePublicDestination(url: URL): Promise<PublicDestinat
   if (!destination || (destination.family !== 4 && destination.family !== 6)) {
     throw new Error("Could not resolve URL hostname");
   }
-  return destination;
+  return {
+    address: destination.address,
+    family: destination.family === 4 ? 4 : 6,
+  };
 }
 
 function firstHeader(headers: IncomingHttpHeaders, name: string): string | undefined {
@@ -220,7 +230,7 @@ function decodeBody(body: Uint8Array, charset: string): string {
   }
 }
 
-function composeSignal(signal: AbortSignal | undefined, timeoutSeconds: number): {
+export function composeSignal(signal: AbortSignal | undefined, timeoutSeconds: number): {
   cleanup: () => void;
   signal: AbortSignal;
 } {
@@ -242,6 +252,8 @@ function fetchPinned(
   url: URL,
   destination: PublicDestination,
   signal: AbortSignal,
+  accept: string,
+  userAgent: string,
 ): Promise<IncomingMessage> {
   const request = url.protocol === "https:" ? httpsRequest : httpRequest;
 
@@ -250,9 +262,10 @@ function fetchPinned(
       {
         family: destination.family,
         headers: {
-          accept: "text/markdown, text/html;q=0.9, text/plain;q=0.8, image/*;q=0.7, */*;q=0.1",
+          accept,
+          "accept-language": "en-US,en;q=0.9",
           host: url.host,
-          "user-agent": "pi-web-tools/0.1 (+https://pi.dev)",
+          "user-agent": userAgent,
         },
         hostname: destination.address,
         method: "GET",
@@ -268,13 +281,26 @@ function fetchPinned(
   });
 }
 
+export function acceptHeader(format: FetchFormat): string {
+  if (format === "html") {
+    return "text/html;q=1.0, application/xhtml+xml;q=0.9, text/plain;q=0.8, */*;q=0.1";
+  }
+  if (format === "text") {
+    return "text/plain;q=1.0, text/markdown;q=0.9, text/html;q=0.8, application/xhtml+xml;q=0.7, */*;q=0.1";
+  }
+  return "text/markdown;q=1.0, text/x-markdown;q=0.9, text/plain;q=0.8, text/html;q=0.7, application/xhtml+xml;q=0.6, */*;q=0.1";
+}
+
 export async function fetchPublicPage(
   rawUrl: string,
   timeoutSeconds: number,
   signal?: AbortSignal,
+  format: FetchFormat = WEB_TOOLS_SETTINGS.fetch.defaultFormat,
 ): Promise<FetchedPage> {
   const operation = composeSignal(signal, timeoutSeconds);
   let url = parsePublicUrl(rawUrl);
+  const requestedUrl = url.href;
+  const accept = acceptHeader(format);
 
   try {
     for (let redirects = 0; redirects <= MAX_REDIRECTS; redirects += 1) {
@@ -282,7 +308,26 @@ export async function fetchPublicPage(
 
       let response: IncomingMessage;
       try {
-        response = await fetchPinned(url, destination, operation.signal);
+        response = await fetchPinned(
+          url,
+          destination,
+          operation.signal,
+          accept,
+          WEB_TOOLS_SETTINGS.fetch.browserUserAgent,
+        );
+        if (
+          response.statusCode === 403
+          && firstHeader(response.headers, "cf-mitigated")?.toLowerCase() === "challenge"
+        ) {
+          response.destroy();
+          response = await fetchPinned(
+            url,
+            destination,
+            operation.signal,
+            accept,
+            WEB_TOOLS_SETTINGS.fetch.fallbackUserAgent,
+          );
+        }
       } catch (error) {
         if (operation.signal.aborted) {
           throw new Error(signal?.aborted ? "Web fetch cancelled" : `Web fetch timed out after ${timeoutSeconds}s`);
@@ -317,13 +362,21 @@ export async function fetchPublicPage(
           data: Buffer.from(body).toString("base64"),
           finalUrl: url.href,
           mediaType: type.mime,
+          requestedUrl,
+          status,
+          statusText: response.statusMessage ?? "",
         };
       }
 
       const isText = type.mime.startsWith("text/")
         || type.mime === "application/json"
+        || type.mime.endsWith("+json")
         || type.mime === "application/xhtml+xml"
         || type.mime === "application/xml"
+        || type.mime.endsWith("+xml")
+        || type.mime === "application/javascript"
+        || type.mime === "application/x-javascript"
+        || type.mime === "application/ecmascript"
         || type.mime === "image/svg+xml";
       if (!isText) {
         throw new Error(`Unsupported response type: ${type.mime}`);
@@ -334,9 +387,25 @@ export async function fetchPublicPage(
         bytes: body.byteLength,
         contentType: type.mime,
         finalUrl: url.href,
+        requestedUrl,
+        status,
+        statusText: response.statusMessage ?? "",
         text: decodeBody(body, type.charset),
       };
     }
+  } catch (error) {
+    if (operation.signal.aborted) {
+      throw new Error(signal?.aborted ? "Web fetch cancelled" : `Web fetch timed out after ${timeoutSeconds}s`);
+    }
+    if (
+      error instanceof Error
+      && /^(?:Could not resolve|Invalid URL|Private or local|Redirect |Response exceeds|Unsupported response|URL |Web fetch )/.test(
+        error.message,
+      )
+    ) {
+      throw error;
+    }
+    throw new Error("Web fetch failed while reading the response");
   } finally {
     operation.cleanup();
   }

@@ -7,7 +7,11 @@ const MAX_OUTPUT_LINES = 2_000;
 
 export interface BoundedOutput {
   fullOutputPath?: string;
+  outputBytes: number;
+  outputLines: number;
   text: string;
+  totalBytes: number;
+  totalLines: number;
   truncated: boolean;
 }
 
@@ -27,13 +31,28 @@ function truncateUtf8(value: string, maxBytes: number): string {
   return value.slice(0, low);
 }
 
-export function truncateOutput(value: string): { text: string; truncated: boolean } {
+export function truncateOutput(value: string): {
+  outputBytes: number;
+  outputLines: number;
+  text: string;
+  totalBytes: number;
+  totalLines: number;
+  truncated: boolean;
+} {
   const lines = value.split(/\r?\n/);
   let text = lines.length > MAX_OUTPUT_LINES ? lines.slice(0, MAX_OUTPUT_LINES).join("\n") : value;
   const lineTruncated = lines.length > MAX_OUTPUT_LINES;
   const byteTruncated = Buffer.byteLength(text) > MAX_OUTPUT_BYTES;
   if (byteTruncated) text = truncateUtf8(text, MAX_OUTPUT_BYTES);
-  return { text: text.trimEnd(), truncated: lineTruncated || byteTruncated };
+  text = text.trimEnd();
+  return {
+    outputBytes: Buffer.byteLength(text),
+    outputLines: text ? text.split(/\r?\n/).length : 0,
+    text,
+    totalBytes: Buffer.byteLength(value),
+    totalLines: value ? lines.length : 0,
+    truncated: lineTruncated || byteTruncated,
+  };
 }
 
 export async function boundOutput(value: string, prefix: string): Promise<BoundedOutput> {
@@ -45,8 +64,8 @@ export async function boundOutput(value: string, prefix: string): Promise<Bounde
   await writeFile(fullOutputPath, value, "utf8");
 
   return {
+    ...bounded,
     fullOutputPath,
-    truncated: true,
     text: `${bounded.text}\n\n[Output truncated. Full output: ${fullOutputPath}]`,
   };
 }
