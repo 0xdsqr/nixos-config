@@ -1,3 +1,4 @@
+import { keyHint } from "@earendil-works/pi-coding-agent";
 import { Text } from "@earendil-works/pi-tui";
 
 interface Theme {
@@ -55,7 +56,7 @@ export function renderResult(
   if (options.expanded && content) {
     text += `\n${theme.fg("toolOutput", preview(content, 24, 220))}`;
   } else {
-    text += theme.fg("dim", " (Ctrl+O for details)");
+    text += ` (${keyHint("app.tools.expand", "for details")})`;
   }
   return new Text(text, 0, 0);
 }

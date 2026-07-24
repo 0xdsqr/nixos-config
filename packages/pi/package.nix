@@ -7,6 +7,7 @@
   makeBinaryWrapper,
   nodejs_22,
   ripgrep,
+  runCommand,
   versionCheckHook,
   writableTmpDirAsHomeHook,
   writeText,
@@ -25,6 +26,28 @@ let
     }) themeFiles
   );
   extensionDefinitions = import ./extensions;
+  extensionChecksDefinition = import ./extensions/checks.nix;
+  extensionChecks = buildNpmPackage {
+    pname = "pi-extension-checks";
+    version = "0.1.0";
+    src = ./extensions;
+    npmDepsHash =
+      if extensionChecksDefinition.npmDepsHash == "" then lib.fakeHash else extensionChecksDefinition.npmDepsHash;
+    nodejs = nodejs_22;
+    npmRebuildFlags = [ "--ignore-scripts" ];
+    dontNpmBuild = true;
+    doCheck = true;
+    checkPhase = ''
+      runHook preCheck
+      npm run check
+      runHook postCheck
+    '';
+    installPhase = ''
+      runHook preInstall
+      touch "$out"
+      runHook postInstall
+    '';
+  };
   extensionPaths = lib.mapAttrs (
     name: definition:
     if definition ? npmDepsHash then
@@ -51,7 +74,11 @@ let
         '';
       }
     else
-      definition.source
+      runCommand "pi-extension-${name}-0.1.0" { } ''
+        test -e ${extensionChecks}
+        mkdir -p "$out"
+        cp -r ${definition.source}/. "$out/"
+      ''
   ) extensionDefinitions;
   extensions = linkFarm "pi-extensions-${version}" (
     lib.mapAttrsToList (name: path: {
@@ -141,6 +168,7 @@ buildNpmPackage {
   passthru = {
     inherit
       extensionDefinitions
+      extensionChecks
       extensionPaths
       extensions
       themeFiles

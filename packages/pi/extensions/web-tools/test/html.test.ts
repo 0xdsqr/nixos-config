@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { htmlToMarkdown, htmlToText } from "../html.ts";
+import { htmlToMarkdown, htmlToText, isPoorMarkdownConversion } from "../html.ts";
 
 test("htmlToMarkdown extracts readable content and resolves links", () => {
   const html = `
@@ -55,4 +55,42 @@ test("boilerplate is removed and relative image attributes are resolved", () => 
   );
   assert.doesNotMatch(markdown, /Accept everything/);
   assert.match(markdown, /!\[Moon\]\(https:\/\/example\.com\/moon\.png\)/);
+});
+
+test("skipped elements do not remove adjacent text or leak document metadata", () => {
+  const html = `
+    <html>
+      <head><title>Private title</title><meta name="secret" content="nope"></head>
+      <body>start<script>ignore()</script>tail<p>end</p></body>
+    </html>
+  `;
+  assert.equal(htmlToText(html, "https://example.com/page"), "starttail\n\nend");
+  assert.doesNotMatch(htmlToMarkdown(html, "https://example.com/page"), /Private title|secret|ignore/);
+});
+
+test("text conversion preserves block boundaries", () => {
+  const html = "<main><div>one</div><div>two</div><p>three <span>four</span></p><p>five</p></main>";
+  assert.equal(htmlToText(html, "https://example.com"), "one\ntwo\n\nthree four\n\nfive");
+});
+
+test("heading links are normalized into valid linked Markdown headings", () => {
+  const markdown = htmlToMarkdown(
+    `<main><a href="/story"><h2>Story title</h2></a></main>`,
+    "https://example.com/",
+  );
+  assert.equal(markdown, "## [Story title](https://example.com/story)");
+});
+
+test("news-style layout tables are flattened without losing their content", () => {
+  const markdown = htmlToMarkdown(
+    `<div id="bigbox"><table><tbody>
+      <tr><td>1.</td><td><a href="/item">Item title</a></td></tr>
+      <tr><td></td><td>123 points by alice</td></tr>
+    </tbody></table></div>`,
+    "https://news.ycombinator.com/",
+  );
+  assert.match(markdown, /Item title/);
+  assert.match(markdown, /123 points by alice/);
+  assert.doesNotMatch(markdown, /<table|<tr|<td/i);
+  assert.equal(isPoorMarkdownConversion(markdown), false);
 });

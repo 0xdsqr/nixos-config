@@ -1,12 +1,16 @@
 import assert from "node:assert/strict";
+import { createServer } from "node:http";
+import type { AddressInfo } from "node:net";
 import test from "node:test";
 
 import {
   acceptHeader,
   composeSignal,
+  fetchPinned,
   isBlockedIp,
   parsePublicUrl,
   readLimitedBody,
+  readLimitedIncomingBody,
 } from "../network.ts";
 
 test("parsePublicUrl accepts public HTTP URLs and removes fragments", () => {
@@ -76,4 +80,39 @@ test("operation signals enforce timeout", async () => {
   await new Promise((resolve) => setTimeout(resolve, 15));
   assert.equal(operation.signal.aborted, true);
   operation.cleanup();
+});
+
+test("pinned transport connects to the validated address while preserving the URL host", async (t) => {
+  let observedHost = "";
+  let observedPath = "";
+  let observedUserAgent = "";
+  const server = createServer((request, response) => {
+    observedHost = request.headers.host ?? "";
+    observedPath = request.url ?? "";
+    observedUserAgent = request.headers["user-agent"] ?? "";
+    response.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
+    response.end("pinned response");
+  });
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  t.after(() => new Promise<void>((resolve, reject) => {
+    server.close((error) => error ? reject(error) : resolve());
+  }));
+
+  const port = (server.address() as AddressInfo).port;
+  const response = await fetchPinned(
+    new URL(`http://public.example:${port}/docs/page?q=one`),
+    { address: "127.0.0.1", family: 4 },
+    AbortSignal.timeout(1_000),
+    "text/plain",
+    "pi-web-tools-test",
+  );
+  const body = await readLimitedIncomingBody(response, 1_024);
+
+  assert.equal(new TextDecoder().decode(body), "pinned response");
+  assert.equal(observedHost, `public.example:${port}`);
+  assert.equal(observedPath, "/docs/page?q=one");
+  assert.equal(observedUserAgent, "pi-web-tools-test");
 });

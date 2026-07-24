@@ -41,6 +41,8 @@ declare module "@earendil-works/pi-coding-agent" {
   export interface ExtensionAPI {
     registerTool(tool: ToolDefinition): void;
   }
+
+  export function keyHint(keybinding: string, description: string): string;
 }
 
 declare module "@earendil-works/pi-tui" {

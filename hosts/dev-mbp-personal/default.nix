@@ -62,6 +62,28 @@ in
         home-manager.users.dsqr = {
           programs.pi = {
             enable = true;
+            models.providers.exo = {
+              baseUrl = "http://10.10.30.100:52415/v1";
+              api = "openai-completions";
+              apiKey = "exo";
+              compat = {
+                supportsDeveloperRole = false;
+                supportsReasoningEffort = false;
+                thinkingFormat = "qwen";
+              };
+              models = [
+                {
+                  id = "mlx-community/Qwen3.5-122B-A10B-6bit";
+                  name = "Qwen3.5 122B A10B 6-bit (Exo)";
+                  input = [
+                    "text"
+                    "image"
+                  ];
+                  reasoning = true;
+                  contextWindow = 262144;
+                }
+              ];
+            };
             themes.dsqr-midnight.enable = true;
           };
 

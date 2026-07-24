@@ -5,10 +5,13 @@ import { gfm } from "turndown-plugin-gfm";
 
 const REMOVE = [
   "head",
+  "title",
   "script",
   "style",
   "noscript",
   "template",
+  "meta",
+  "link",
   "iframe",
   "object",
   "embed",
@@ -16,6 +19,8 @@ const REMOVE = [
   "svg",
   "video",
   "audio",
+  "source",
+  "picture",
   "button",
   "input",
   "select",
@@ -31,6 +36,7 @@ const LANDMARKS = [
   "nav",
   "aside",
   "menu",
+  "[aria-modal='true']",
   "[role='banner']",
   "[role='navigation']",
   "[role='complementary']",
@@ -42,6 +48,7 @@ const PREFERRED_CONTENT = [
   "[data-testid='repository-readme-content']",
   "article.markdown-body",
   ".markdown-body",
+  "#bigbox",
   "article",
   "main",
   "[role='main']",
@@ -51,6 +58,8 @@ const PREFERRED_CONTENT = [
   ".post-content",
   ".entry-content",
   ".article-content",
+  ".story-list",
+  ".story",
 ];
 
 const BOILERPLATE =
@@ -114,6 +123,7 @@ function score(element: Element): number {
     value += 1_500;
   }
   if (element.matches("article,main,[role='main'],#content,#main-content,.main-content")) value += 500;
+  if (element.id === "bigbox") value += 1_000;
   if (isBoilerplate(element)) value -= 800;
   return value;
 }
@@ -170,19 +180,52 @@ function resolveSrcset(value: string, baseUrl: string): string | undefined {
 function likelyLayoutTable(table: Element): boolean {
   if (table.querySelector("caption,thead,th")) return false;
   if (table.getAttribute("role") === "table" || table.getAttribute("role") === "grid") return false;
+  if (table.matches("#hnmain table,#bigbox table") || table.closest("#hnmain,#bigbox")) return true;
   if (table.querySelector("table")) return true;
   if (["align", "bgcolor", "border", "cellpadding", "cellspacing", "width"].some((name) => table.hasAttribute(name))) {
     return true;
   }
-  const rows = Array.from(table.querySelectorAll("tr"));
-  const cellCounts = rows.map((row) => row.querySelectorAll(":scope > td,:scope > th").length);
-  return cellCounts.length === 0 || Math.max(...cellCounts) <= 1 || new Set(cellCounts).size > 1;
+  const rows = Array.from(table.querySelectorAll("tr")).filter((row) => row.closest("table") === table);
+  if (rows.length === 0) return true;
+
+  const cellsByRow = rows.map((row) =>
+    Array.from(row.children).filter((child) => child.matches("td,th"))
+  );
+  const cellCounts = cellsByRow.map((cells) => cells.length).filter((count) => count > 0);
+  if (cellCounts.length === 0 || Math.max(...cellCounts) <= 1 || new Set(cellCounts).size > 1) {
+    return true;
+  }
+
+  const cells = cellsByRow.flat();
+  const averageCellTextLength = cells
+    .reduce((total, cell) => total + normalizedText(cell).length, 0) / Math.max(1, cells.length);
+  const linkCount = Array.from(table.querySelectorAll("a"))
+    .filter((link) => link.closest("table") === table).length;
+  return linkCount > cells.length * 0.6 && averageCellTextLength < 120;
 }
 
 function replaceTag(element: Element, tagName: string): void {
   const replacement = element.ownerDocument.createElement(tagName);
   while (element.firstChild) replacement.appendChild(element.firstChild);
   element.replaceWith(replacement);
+}
+
+function normalizeBlockLinks(root: Element): void {
+  for (const link of Array.from(root.querySelectorAll("a[href]"))) {
+    const children = Array.from(link.children);
+    if (children.length !== 1) continue;
+    const [heading] = children;
+    if (!heading?.matches("h1,h2,h3,h4,h5,h6")) continue;
+
+    const replacementLink = link.ownerDocument.createElement("a");
+    for (const attribute of ["href", "title"] as const) {
+      const value = link.getAttribute(attribute);
+      if (value) replacementLink.setAttribute(attribute, value);
+    }
+    while (heading.firstChild) replacementLink.appendChild(heading.firstChild);
+    heading.appendChild(replacementLink);
+    link.replaceWith(heading);
+  }
 }
 
 export function sanitizeHtml(rawHtml: string, baseUrl: string): string {
@@ -201,6 +244,7 @@ export function sanitizeHtml(rawHtml: string, baseUrl: string): string {
       .forEach((element) => replaceTag(element, "div"));
     replaceTag(table, "div");
   });
+  normalizeBlockLinks(root);
 
   root.querySelectorAll("[href],[src],[poster],[srcset]").forEach((element) => {
     for (const attribute of ["href", "src", "poster"] as const) {
@@ -235,7 +279,11 @@ function clean(value: string): string {
 
 export function htmlToMarkdown(rawHtml: string, baseUrl: string): string {
   return clean(markdownConverter.turndown(sanitizeHtml(rawHtml, baseUrl)))
-    .replace(/^\[\]\([^)]+\)\n?/gm, "");
+    .replace(/\[\s*\n+(#{1,6})\s+([^\n]+?)\s*\n+\s*\]\(([^)]+)\)/g, (_match, hashes, text, url) =>
+      `${hashes} [${text.trim()}](${url})`
+    )
+    .replace(/^\[\]\([^)]+\)\n?/gm, "")
+    .replace(/(\]\([^)]+\))(?=\[)/g, "$1 ");
 }
 
 export function htmlToText(rawHtml: string, baseUrl: string): string {

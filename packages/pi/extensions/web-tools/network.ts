@@ -71,7 +71,7 @@ export type FetchedPage =
       text: string;
     };
 
-interface PublicDestination {
+export interface PublicDestination {
   address: string;
   family: 4 | 6;
 }
@@ -248,7 +248,7 @@ export function composeSignal(signal: AbortSignal | undefined, timeoutSeconds: n
   };
 }
 
-function fetchPinned(
+export function fetchPinned(
   url: URL,
   destination: PublicDestination,
   signal: AbortSignal,

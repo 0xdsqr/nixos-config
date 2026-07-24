@@ -8,6 +8,11 @@
     "typecheck": "tsgo --noEmit -p tsconfig.json",
     "test": "node --experimental-strip-types --test test/*.test.ts"
   },
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  },
   "dependencies": {
     "html-to-text": "10.0.0",
     "linkedom": "0.18.13",

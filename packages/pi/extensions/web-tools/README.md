@@ -33,13 +33,35 @@ dependencies. Pi discovers `index.ts` from that directory.
 | HTML extraction | DOM-based content selection, boilerplate removal, GFM tables, absolute links and images |
 | Browser compatibility | Browser-like headers and a narrow Cloudflare-challenge user-agent retry |
 | Output handling | 50 KiB or 2,000-line context cap, with complete overflow in a private temporary file |
-| Pi UI | Custom progress, compact success/error metadata, and Ctrl+O previews |
+| Pi UI | Custom progress, compact success/error metadata, and previews labeled with the configured tool-expansion key |
 | Errors | Stable, credential-free boundary messages for timeouts, HTTP errors, unsupported content, and provider failures |
 
 This uses Exa's public hosted MCP endpoint directly. It does not depend on
 Dylan's private Cloudflare hostname and it is not an MCP proxy that this repo
 operates. Exa search and an `executor` extension are separate concerns:
 websearch finds public sources; an executor delegates or runs agent work.
+
+### Proxy boundary
+
+Dylan's `https://m.mulroy.dev/m/e` endpoint is a private search-service proxy:
+his extension sends it the same Exa MCP request shape that this extension sends
+to `https://mcp.exa.ai/mcp`. The proxy's server-side implementation is not in
+his dotfiles, and it does not proxy `webfetch`; page fetching remains a separate
+request to the selected site.
+
+Pi's generic `httpProxy` setting installs a process-wide Undici dispatcher, so
+normal `fetch()` calls can use it. This extension intentionally uses Node's
+lower-level HTTP clients for `webfetch`: it resolves and validates every
+destination locally, then connects to that exact public IP while preserving the
+original HTTP Host header and HTTPS SNI. Consequently, `websearch` can honor
+Pi's generic proxy, while `webfetch` deliberately bypasses it to preserve DNS
+rebinding protection.
+
+A future trusted egress proxy integration should keep that invariant: either
+the client must pin the validated address through the proxy, or the trusted
+proxy must perform equivalent URL, redirect, DNS, and address validation.
+Simply forwarding the hostname to a conventional proxy would reintroduce the
+DNS-rebinding gap this transport is designed to close.
 
 ## Safety
 
