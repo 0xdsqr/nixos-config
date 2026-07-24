@@ -7,7 +7,7 @@
 }:
 let
   inherit (lib.lists) optional;
-  inherit (lib.modules) mkIf mkMerge;
+  inherit (lib.modules) mkAfter mkIf mkMerge;
   inherit (lib.options) mkEnableOption mkOption;
   inherit (lib.types) bool str;
 
@@ -205,17 +205,25 @@ in
       localHostName = hostName;
     };
 
-    system.activationScripts.miniClusterPower.text = mkIf cfg.power.enable /* bash */ ''
-      /usr/bin/pmset -a sleep 0 \
-        displaysleep 0 \
-        disksleep 0 \
+    power = mkIf cfg.power.enable {
+      restartAfterFreeze = true;
+      restartAfterPowerFailure = true;
+
+      sleep = {
+        allowSleepByPowerButton = false;
+        computer = "never";
+        display = "never";
+        harddisk = "never";
+      };
+    };
+
+    system.activationScripts.power.text = mkIf cfg.power.enable (mkAfter /* bash */ ''
+      /usr/bin/pmset -a \
         standby 0 \
-        autopoweroff 0 \
         powermode 2 \
         womp 1 \
         tcpkeepalive 1 \
-        autorestart 1 \
         powernap 1
-    '';
+    '');
   };
 }
