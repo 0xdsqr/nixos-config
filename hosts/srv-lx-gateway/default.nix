@@ -91,7 +91,13 @@ in
                 hostHeader = "argocd.hub-a.home.arpa";
                 tlsServerName = "argocd.hub-a.home.arpa";
               };
-              "exo.home.arpa".upstream = "http://100.120.240.73:52415";
+              "exo.home.arpa" = {
+                upstream = "http://10.10.30.100:52415";
+                failover = {
+                  upstreams = [ "http://10.10.30.101:52415" ];
+                  healthUri = "/state";
+                };
+              };
               "grafana.home.arpa".upstream = "http://10.10.30.102:8000";
               "prometheus.home.arpa".upstream = "http://10.10.30.102:9090";
               "rustfs.home.arpa".upstream = "http://10.10.30.107:9001";

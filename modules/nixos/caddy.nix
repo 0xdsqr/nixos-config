@@ -195,14 +195,21 @@
         route:
         let
           hasHostHeader = route.hostHeader != null;
+          hasFailover = route.failover.upstreams != [ ];
           hasTransportConfig = route.tlsInsecureSkipVerify || route.tlsServerName != null;
+          upstreams = concatStringsSep " " ([ route.upstream ] ++ route.failover.upstreams);
         in
-        if !hasHostHeader && !hasTransportConfig then
-          "reverse_proxy ${route.upstream}"
+        if !hasHostHeader && !hasFailover && !hasTransportConfig then
+          "reverse_proxy ${upstreams}"
         else
           ''
-            reverse_proxy ${route.upstream} {
+            reverse_proxy ${upstreams} {
               ${optionalString hasHostHeader "header_up Host ${route.hostHeader}"}
+              ${optionalString hasFailover ''
+                lb_policy first
+                health_uri ${route.failover.healthUri}
+                lb_try_duration ${route.failover.tryDuration}
+              ''}
               ${optionalString hasTransportConfig ''
                 transport http {
                   ${optionalString (route.tlsServerName != null) "tls_server_name ${route.tlsServerName}"}
@@ -296,8 +303,30 @@
             options = {
               upstream = mkOption {
                 type = str;
-                description = "HTTP upstream target for this virtual host.";
+                description = "Primary HTTP upstream target for this virtual host.";
                 example = "http://10.10.30.102:8000";
+              };
+
+              failover = {
+                upstreams = mkOption {
+                  type = listOf str;
+                  default = [ ];
+                  description = "Ordered fallback upstreams used when the primary upstream is unhealthy.";
+                  example = [ "http://10.10.30.103:8000" ];
+                };
+
+                healthUri = mkOption {
+                  type = nullOr str;
+                  default = null;
+                  description = "HTTP path used to health-check the primary and fallback upstreams.";
+                  example = "/health";
+                };
+
+                tryDuration = mkOption {
+                  type = str;
+                  default = "5s";
+                  description = "Maximum time Caddy retries available upstreams for a request.";
+                };
               };
 
               tlsInternal = mkOption {
@@ -480,6 +509,10 @@
             assertion = route.pathRegexp != null || route.paths != [ ];
             message = "dsqr.nixos.caddy.httpRoutes.${hostName} must set paths or pathRegexp.";
           }) cfg.httpRoutes
+          ++ mapAttrsToList (hostName: route: {
+            assertion = route.failover.upstreams == [ ] || route.failover.healthUri != null;
+            message = "dsqr.nixos.caddy.routes.${hostName}.failover.healthUri is required when fallback upstreams are configured.";
+          }) cfg.routes
           ++ [
             {
               assertion = (certificateCfg.certFile == null) == (certificateCfg.keyFile == null);
