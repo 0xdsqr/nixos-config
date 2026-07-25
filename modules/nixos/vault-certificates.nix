@@ -17,7 +17,7 @@
       inherit (lib.lists) optional;
       inherit (lib.modules) mkIf;
       inherit (lib.options) mkOption;
-      inherit (lib.strings) concatStringsSep optionalString;
+      inherit (lib.strings) concatStringsSep escapeShellArg optionalString;
       inherit (lib.types)
         attrsOf
         float
@@ -32,6 +32,24 @@
       cfg = config.dsqr.nixos.vaultCertificates;
 
       cacheFile = certificate: "${certificate.directory}/agent-cache.pem";
+      readinessScript =
+        name: certificate:
+        pkgs.writeShellScript "wait-for-vault-certificate-${name}" ''
+          for _ in {1..60}; do
+            if [[
+              -s ${escapeShellArg (cacheFile certificate)}
+              && -s ${escapeShellArg certificate.certificateFile}
+              && -s ${escapeShellArg certificate.privateKeyFile}
+            ]]; then
+              exit 0
+            fi
+
+            sleep 1
+          done
+
+          echo "Timed out waiting for Vault Agent to render certificate ${escapeShellArg name}." >&2
+          exit 1
+        '';
       secretName = name: "vaultCertificate-${name}SecretId";
       roleIdFile = name: certificate: pkgs.writeText "vault-certificate-${name}-role-id" certificate.roleId;
 
@@ -240,6 +258,7 @@
             wants = [ "network-online.target" ];
 
             serviceConfig = {
+              ExecStartPost = readinessScript name certificate;
               UMask = "0077";
               NoNewPrivileges = true;
               PrivateTmp = true;
