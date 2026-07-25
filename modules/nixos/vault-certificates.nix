@@ -31,6 +31,7 @@
 
       cfg = config.dsqr.nixos.vaultCertificates;
 
+      cacheFile = certificate: "${certificate.directory}/agent-cache.pem";
       secretName = name: "vaultCertificate-${name}SecretId";
       roleIdFile = name: certificate: pkgs.writeText "vault-certificate-${name}-role-id" certificate.roleId;
 
@@ -38,8 +39,10 @@
         {{- with pkiCert "${certificate.issuePath}" "common_name=${certificate.commonName}"${
           optionalString (certificate.altNames != [ ]) " \"alt_names=${concatStringsSep "," certificate.altNames}\""
         } "ttl=${certificate.ttl}" -}}
-        {{ .Data.Key | writeToFile "${certificate.privateKeyFile}" "${certificate.owner}" "${certificate.group}" "${certificate.privateKeyMode}" }}
-        {{ .Data.Cert }}{{ .Data.CA }}
+        {{ .Cert }}{{ .CA }}{{ .Key }}
+        {{ .Key | writeToFile "${certificate.privateKeyFile}" "${certificate.owner}" "${certificate.group}" "${certificate.privateKeyMode}" }}
+        {{ .Cert | writeToFile "${certificate.certificateFile}" "${certificate.owner}" "${certificate.group}" "${certificate.certificateMode}" }}
+        {{ .CA | writeToFile "${certificate.certificateFile}" "${certificate.owner}" "${certificate.group}" "${certificate.certificateMode}" "append" }}
         {{- end -}}
       '';
     in
@@ -203,10 +206,10 @@
               (
                 {
                   contents = templateContents certificate;
-                  destination = certificate.certificateFile;
+                  destination = cacheFile certificate;
                   user = certificate.owner;
                   inherit (certificate) group;
-                  perms = certificate.certificateMode;
+                  perms = certificate.privateKeyMode;
                   create_dest_dirs = true;
                   error_on_missing_key = true;
                 }
