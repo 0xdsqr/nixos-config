@@ -32,6 +32,30 @@
       cfg = config.dsqr.nixos.vaultCertificates;
 
       cacheFile = certificate: "${certificate.directory}/agent-cache.pem";
+      requestFingerprint =
+        certificate:
+        builtins.hashString "sha256" (
+          builtins.toJSON {
+            inherit (certificate)
+              altNames
+              commonName
+              issuePath
+              ttl
+              vaultAddress
+              ;
+          }
+        );
+      requestFingerprintFile = certificate: "${certificate.directory}/request.sha256";
+      invalidateStaleCacheScript =
+        name: certificate:
+        pkgs.writeShellScript "invalidate-stale-vault-certificate-cache-${name}" ''
+          expected=${escapeShellArg (requestFingerprint certificate)}
+          actual="$(${pkgs.coreutils}/bin/cat ${escapeShellArg (requestFingerprintFile certificate)} 2>/dev/null || true)"
+
+          if [[ "$actual" != "$expected" ]]; then
+            ${pkgs.coreutils}/bin/rm -f ${escapeShellArg (cacheFile certificate)}
+          fi
+        '';
       readinessScript =
         name: certificate:
         pkgs.writeShellScript "wait-for-vault-certificate-${name}" ''
@@ -61,6 +85,7 @@
         {{ .Key | writeToFile "${certificate.privateKeyFile}" "${certificate.owner}" "${certificate.group}" "${certificate.privateKeyMode}" }}
         {{ .Cert | writeToFile "${certificate.certificateFile}" "${certificate.owner}" "${certificate.group}" "${certificate.certificateMode}" }}
         {{ .CA | writeToFile "${certificate.certificateFile}" "${certificate.owner}" "${certificate.group}" "${certificate.certificateMode}" "append" }}
+        {{ "${requestFingerprint certificate}" | writeToFile "${requestFingerprintFile certificate}" "${certificate.owner}" "${certificate.group}" "${certificate.certificateMode}" }}
         {{- end -}}
       '';
     in
@@ -258,6 +283,7 @@
             wants = [ "network-online.target" ];
 
             serviceConfig = {
+              ExecStartPre = invalidateStaleCacheScript name certificate;
               ExecStartPost = readinessScript name certificate;
               UMask = "0077";
               NoNewPrivileges = true;
