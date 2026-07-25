@@ -20,6 +20,7 @@
       inherit (lib.strings) concatStringsSep escapeShellArg optionalString;
       inherit (lib.types)
         attrsOf
+        bool
         float
         listOf
         nullOr
@@ -200,6 +201,12 @@
                   default = null;
                   description = "Systemd unit reloaded after certificate rotation.";
                 };
+
+                requireCertificateForUnitStart = mkOption {
+                  type = bool;
+                  default = true;
+                  description = "Require the initial certificate render before starting the reload unit.";
+                };
               };
             }
           )
@@ -277,9 +284,17 @@
         systemd.services = mapAttrs' (
           name: certificate:
           nameValuePair "vault-agent-${name}" {
-            before = optional (certificate.reloadUnit != null) certificate.reloadUnit;
-            requiredBy = optional (certificate.reloadUnit != null) certificate.reloadUnit;
-            after = [ "network-online.target" ];
+            before = optional (certificate.reloadUnit != null && certificate.requireCertificateForUnitStart) certificate.reloadUnit;
+            requiredBy = optional (
+              certificate.reloadUnit != null && certificate.requireCertificateForUnitStart
+            ) certificate.reloadUnit;
+            requires = optional (
+              certificate.reloadUnit != null && !certificate.requireCertificateForUnitStart
+            ) certificate.reloadUnit;
+            after = [
+              "network-online.target"
+            ]
+            ++ optional (certificate.reloadUnit != null && !certificate.requireCertificateForUnitStart) certificate.reloadUnit;
             wants = [ "network-online.target" ];
 
             serviceConfig = {
