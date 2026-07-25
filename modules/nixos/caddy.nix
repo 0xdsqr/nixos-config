@@ -19,6 +19,7 @@
       inherit (lib.types)
         attrsOf
         bool
+        enum
         lines
         listOf
         nullOr
@@ -61,20 +62,33 @@
             }
           '';
 
-      mkVirtualHost = _hostName: route: {
-        extraConfig = ''
-          ${optionalString route.tlsInternal routeTlsDirective}
-          encode zstd gzip
+      mkVirtualHost =
+        _hostName: route:
+        let
+          basicAuthUsers = concatStringsSep "\n" (
+            mapAttrsToList (user: passwordHash: "${user} ${passwordHash}") route.basicAuth.users
+          );
+        in
+        {
+          extraConfig = ''
+            ${optionalString route.tlsInternal routeTlsDirective}
+            encode zstd gzip
 
-          @internal remote_ip ${internalSourceRanges}
-          handle @internal {
-            ${mkReverseProxy route}
-          }
+            ${optionalString (route.basicAuth.users != { }) ''
+              basic_auth ${route.basicAuth.algorithm} {
+                ${basicAuthUsers}
+              }
+            ''}
 
-          respond 403
-          ${route.extraConfig}
-        '';
-      };
+            @internal remote_ip ${internalSourceRanges}
+            handle @internal {
+              ${mkReverseProxy route}
+            }
+
+            respond 403
+            ${route.extraConfig}
+          '';
+        };
 
       mkHttpVirtualHost =
         hostName: route:
@@ -168,6 +182,24 @@
                   type = str;
                   default = "5s";
                   description = "Maximum time Caddy retries available upstreams for a request.";
+                };
+              };
+
+              basicAuth = {
+                algorithm = mkOption {
+                  type = enum [
+                    "argon2id"
+                    "bcrypt"
+                  ];
+                  default = "argon2id";
+                  description = "Password hashing algorithm used for HTTP Basic Authentication.";
+                };
+
+                users = mkOption {
+                  type = attrsOf str;
+                  default = { };
+                  description = "Usernames mapped to password hashes for HTTP Basic Authentication.";
+                  example.dsqr = "$argon2id$v=19$m=47104,t=1,p=1$...";
                 };
               };
 

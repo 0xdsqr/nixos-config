@@ -81,6 +81,15 @@ in
               };
               "exo.home.arpa" = {
                 upstream = "http://10.10.30.100:52415";
+                basicAuth.users.dsqr = "$argon2id$v=19$m=47104,t=1,p=1$LNbI6VnTETiB3C4XeCVUxg$PcF044tqYCRPvimP8U0uV0bBAvjPaV3gLzeQvSz6pZw";
+                failover = {
+                  upstreams = [ "http://10.10.30.101:52415" ];
+                  healthUri = "/state";
+                };
+              };
+              "exo.service.home.arpa" = {
+                upstream = "http://10.10.30.100:52415";
+                basicAuth.users.dsqr = "$argon2id$v=19$m=47104,t=1,p=1$LNbI6VnTETiB3C4XeCVUxg$PcF044tqYCRPvimP8U0uV0bBAvjPaV3gLzeQvSz6pZw";
                 failover = {
                   upstreams = [ "http://10.10.30.101:52415" ];
                   healthUri = "/state";

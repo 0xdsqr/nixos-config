@@ -38,6 +38,7 @@ in
         dsqr.darwin = {
           determinate.enable = true;
           hostname.smb.enable = true;
+          security.certificates.homeRootCA.systemKeychain.enable = true;
 
           desktop = {
             dock.enable = true;
@@ -63,9 +64,11 @@ in
           programs.pi = {
             enable = true;
             models.providers.exo = {
-              baseUrl = "http://10.10.30.100:52415/v1";
+              baseUrl = "https://exo.service.home.arpa/v1";
               api = "openai-completions";
-              apiKey = "exo";
+              apiKey = "!security find-generic-password -w -a dsqr -s exo.home.arpa";
+              authHeader = false;
+              headers.Authorization = "!password=\"$(security find-generic-password -w -a dsqr -s exo.home.arpa)\"; printf 'Basic %s' \"$(printf 'dsqr:%s' \"$password\" | base64)\"";
               compat = {
                 supportsDeveloperRole = false;
                 supportsReasoningEffort = false;

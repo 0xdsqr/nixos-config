@@ -19,6 +19,7 @@ in
     commonName = "argocd.hub-a.home.arpa";
     altNames = [
       "exo.home.arpa"
+      "exo.service.home.arpa"
       "grafana.home.arpa"
       "prometheus.home.arpa"
       "rustfs.home.arpa"
