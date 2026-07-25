@@ -17,9 +17,11 @@
       inherit (lib.lists) optional;
       inherit (lib.modules) mkIf;
       inherit (lib.options) mkOption;
+      inherit (lib.strings) concatStringsSep optionalString;
       inherit (lib.types)
         attrsOf
         float
+        listOf
         nullOr
         package
         path
@@ -33,7 +35,9 @@
       roleIdFile = name: certificate: pkgs.writeText "vault-certificate-${name}-role-id" certificate.roleId;
 
       templateContents = certificate: /* go-template */ ''
-        {{- with pkiCert "${certificate.issuePath}" "common_name=${certificate.commonName}" "ttl=${certificate.ttl}" -}}
+        {{- with pkiCert "${certificate.issuePath}" "common_name=${certificate.commonName}"${
+          optionalString (certificate.altNames != [ ]) " \"alt_names=${concatStringsSep "," certificate.altNames}\""
+        } "ttl=${certificate.ttl}" -}}
         {{ .Data.Key | writeToFile "${certificate.privateKeyFile}" "${certificate.owner}" "${certificate.group}" "${certificate.privateKeyMode}" }}
         {{ .Data.Cert }}{{ .Data.CA }}
         {{- end -}}
@@ -83,6 +87,12 @@
                 commonName = mkOption {
                   type = str;
                   description = "DNS name requested for the certificate.";
+                };
+
+                altNames = mkOption {
+                  type = listOf str;
+                  default = [ ];
+                  description = "Additional DNS names requested for the certificate.";
                 };
 
                 ttl = mkOption {

@@ -34,6 +34,7 @@ mkSecretsForHost "srv-lx-beacon" [
   "hosts/srv-lx-beacon/tailscale.auth-key.age"
 ]
 // mkSecretsForHost "srv-lx-gateway" [
+  "hosts/srv-lx-gateway/caddy-pki.secret-id.age"
   "hosts/srv-lx-gateway/cloudflared.token.age"
   "hosts/srv-lx-gateway/host.password.age"
   "hosts/srv-lx-gateway/tailscale.auth-key.age"

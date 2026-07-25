@@ -38,10 +38,13 @@ in
         imports = modules ++ [
           ./cloudflared.nix
           ./disk.nix
+          ./tls.nix
         ];
 
         networking.hostName = hostName;
         hardware.report = ./srv-lx-gateway.report.json;
+
+        allowedUnfreePackageNames = [ "vault-bin" ];
 
         dsqr.nixos = {
           alloy = {
@@ -65,21 +68,6 @@ in
               "10.10.60.100/32"
               "100.64.0.0/10"
             ];
-            vaultPkiCertificate = {
-              enable = true;
-              useForRoutes = true;
-              vaultAddr = "https://vault.service.home.arpa:8200";
-              issuePath = "pki_int/issue/gateway-caddy-home-arpa";
-              commonName = "argocd.hub-a.home.arpa";
-              altNames = [
-                "exo.home.arpa"
-                "grafana.home.arpa"
-                "prometheus.home.arpa"
-                "rustfs.home.arpa"
-                "temporal.home.arpa"
-                "vault.home.arpa"
-              ];
-            };
             httpRoutes."vault.home.arpa" = {
               upstream = "https://10.10.30.107:8200";
               tlsServerName = "vault.service.home.arpa";
