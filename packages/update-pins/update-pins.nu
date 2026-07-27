@@ -1,5 +1,5 @@
-# Bump the pinned versions/hashes of the agent packages.
-#   update-pins [claude-code|codex|codexbar|pi|all]
+# Bump the pinned versions/hashes of agent packages and skill inputs.
+#   update-pins [claude-code|codex|codexbar|pi|skills|all]
 
 const FAKE = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 
@@ -62,7 +62,7 @@ def fetchzip-hash [url: string] {
 }
 
 def update-claude-code [] {
-  let file = $"(repo-root)/packages/claude-code/package.nix"
+  let file = $"(repo-root)/packages/agents/claude-code/package.nix"
   let base = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases"
   let latest = (http get $"($base)/latest" | into string | str trim)
   let current = (nix-field $file "version")
@@ -79,7 +79,7 @@ def update-claude-code [] {
 }
 
 def update-codex [] {
-  let file = $"(repo-root)/packages/codex/cli.nix"
+  let file = $"(repo-root)/packages/agents/codex/cli.nix"
   let latest = (
     gh-json "repos/openai/codex/releases?per_page=30"
     | get tag_name
@@ -105,7 +105,7 @@ def update-codex [] {
 }
 
 def update-codexbar [] {
-  let file = $"(repo-root)/packages/codex/bar.nix"
+  let file = $"(repo-root)/packages/agents/codex/bar.nix"
   let latest = (gh-json "repos/steipete/CodexBar/releases/latest" | get tag_name | str replace --regex '^v' '')
   let current = (nix-field $file "version")
   if $latest == $current {
@@ -119,7 +119,7 @@ def update-codexbar [] {
 }
 
 def update-pi [] {
-  let pkg = $"(repo-root)/packages/pi/package.nix"
+  let pkg = $"(repo-root)/packages/agents/pi/package.nix"
 
   let tag = (gh-json "repos/earendil-works/pi/releases/latest" | get tag_name)
   let version = ($tag | str replace --regex '^v' '')
@@ -138,20 +138,27 @@ def update-pi [] {
   }
 }
 
+def update-skills [] {
+  print "updating agent skill inputs"
+  ^nix flake update --flake (repo-root) i-have-adhd
+}
+
 def main [pkg: string = "all"] {
   match $pkg {
     "claude-code" => { update-claude-code }
     "codex" => { update-codex }
     "codexbar" => { update-codexbar }
     "pi" => { update-pi }
+    "skills" => { update-skills }
     "all" => {
       try { update-claude-code } catch {|e| print $"!! claude-code failed: ($e.msg)"}
       try { update-codex } catch {|e| print $"!! codex failed: ($e.msg)"}
       try { update-codexbar } catch {|e| print $"!! codexbar failed: ($e.msg)"}
       try { update-pi } catch {|e| print $"!! pi failed: ($e.msg)"}
+      try { update-skills } catch {|e| print $"!! skills failed: ($e.msg)"}
     }
     _ => {
-      print "usage: update-pins [claude-code|codex|codexbar|pi|all]"
+      print "usage: update-pins [claude-code|codex|codexbar|pi|skills|all]"
       exit 1
     }
   }

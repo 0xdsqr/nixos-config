@@ -454,6 +454,22 @@
         "type": "github"
       }
     },
+    "i-have-adhd": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1785106000,
+        "narHash": "sha256-KBtjiy1unXuMYn0d++2wEhy54k7AO+VTZYeVvRtNLxI=",
+        "owner": "ayghri",
+        "repo": "i-have-adhd",
+        "rev": "c784dcb56b07c8c103323f308b25f7b055008baa",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ayghri",
+        "repo": "i-have-adhd",
+        "type": "github"
+      }
+    },
     "nix": {
       "inputs": {
         "flake-parts": "flake-parts",
@@ -724,6 +740,7 @@
         "home-manager": "home-manager",
         "homebrew-cask": "homebrew-cask",
         "homebrew-core": "homebrew-core",
+        "i-have-adhd": "i-have-adhd",
         "nix-homebrew": "nix-homebrew",
         "nixos-facter": "nixos-facter",
         "nixpkgs": "nixpkgs_4",

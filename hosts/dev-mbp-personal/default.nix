@@ -91,6 +91,14 @@ in
           };
 
           dsqr.home = {
+            agentSkills = {
+              git-workflow.targets = [ "claude" ];
+              i-have-adhd.targets = [
+                "agents"
+                "claude"
+              ];
+            };
+
             aws.config = {
               enable = true;
               sections = {

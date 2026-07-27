@@ -13,9 +13,9 @@
 
       cfg = config.programs.pi;
       agentDirectory = "${config.xdg.configHome}/pi/agent";
-      enabledExtensions = filterAttrs (name: _: cfg.extensions.${name}.enable) (import ../../packages/pi/extensions);
+      enabledExtensions = filterAttrs (name: _: cfg.extensions.${name}.enable) (import ../../packages/agents/pi/extensions);
       configurableExtensions = filterAttrs (_: definition: definition ? settingsFile) enabledExtensions;
-      enabledThemes = filterAttrs (name: _: cfg.themes.${name}.enable) (import ../../packages/pi/themes);
+      enabledThemes = filterAttrs (name: _: cfg.themes.${name}.enable) (import ../../packages/agents/pi/themes);
       extensionFiles = mapAttrs' (
         name: _: nameValuePair "pi/agent/extensions/${name}" { source = "${cfg.package}/share/pi/extensions/${name}"; }
       ) enabledExtensions;
@@ -29,7 +29,7 @@
       ) enabledThemes;
     in
     {
-      options.programs.pi = import ../../packages/pi/options.nix { inherit lib pkgs; };
+      options.programs.pi = import ../../packages/agents/pi/options.nix { inherit lib pkgs; };
 
       config = mkIf cfg.enable {
         home.packages = singleton cfg.package;
