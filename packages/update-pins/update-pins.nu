@@ -1,5 +1,5 @@
 # Bump the pinned versions/hashes of agent packages and skill inputs.
-#   update-pins [claude-code|codex|codexbar|pi|skills|all]
+#   update-pins [claude-code|codex|codexbar|opencode|pi|skills|all]
 
 const FAKE = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 
@@ -138,6 +138,11 @@ def update-pi [] {
   }
 }
 
+def update-opencode [] {
+  print "updating OpenCode upstream flake"
+  ^nix flake update --flake (repo-root) opencode
+}
+
 def update-skills [] {
   print "updating agent skill inputs"
   ^nix flake update --flake (repo-root) i-have-adhd
@@ -148,17 +153,19 @@ def main [pkg: string = "all"] {
     "claude-code" => { update-claude-code }
     "codex" => { update-codex }
     "codexbar" => { update-codexbar }
+    "opencode" => { update-opencode }
     "pi" => { update-pi }
     "skills" => { update-skills }
     "all" => {
       try { update-claude-code } catch {|e| print $"!! claude-code failed: ($e.msg)"}
       try { update-codex } catch {|e| print $"!! codex failed: ($e.msg)"}
       try { update-codexbar } catch {|e| print $"!! codexbar failed: ($e.msg)"}
+      try { update-opencode } catch {|e| print $"!! opencode failed: ($e.msg)"}
       try { update-pi } catch {|e| print $"!! pi failed: ($e.msg)"}
       try { update-skills } catch {|e| print $"!! skills failed: ($e.msg)"}
     }
     _ => {
-      print "usage: update-pins [claude-code|codex|codexbar|pi|skills|all]"
+      print "usage: update-pins [claude-code|codex|codexbar|opencode|pi|skills|all]"
       exit 1
     }
   }

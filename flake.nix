@@ -108,6 +108,11 @@
       flake = false;
     };
 
+    opencode = {
+      url = "github:anomalyco/opencode";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     ublock = {
       url = "github:gorhill/uBlock";
       flake = false;

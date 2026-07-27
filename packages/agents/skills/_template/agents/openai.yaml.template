@@ -1,0 +1,7 @@
+interface:
+  display_name: "Replace With Display Name"
+  short_description: "Replace with a concise 25–64 character summary"
+  default_prompt: "Use $replace-with-skill-name to complete the requested workflow."
+
+policy:
+  allow_implicit_invocation: false

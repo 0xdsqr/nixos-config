@@ -25,6 +25,8 @@
           type = listOf (enum [
             "agents"
             "claude"
+            "codex"
+            "opencode"
             "pi"
           ]);
           default = [ ];
@@ -33,9 +35,13 @@
       }) skills;
 
       config = {
-        home.file = linksFor ".agents/skills" (enabledFor "agents") // linksFor ".claude/skills" (enabledFor "claude");
+        home.file = linksFor ".agents/skills" (enabledFor "agents");
 
-        xdg.configFile = linksFor "claude-code/skills" (enabledFor "claude") // linksFor "pi/agent/skills" (enabledFor "pi");
+        xdg.configFile =
+          linksFor "claude-code/skills" (enabledFor "claude")
+          // linksFor "codex/skills" (enabledFor "codex")
+          // linksFor "opencode/skills" (enabledFor "opencode")
+          // linksFor "pi/agent/skills" (enabledFor "pi");
       };
     };
 }

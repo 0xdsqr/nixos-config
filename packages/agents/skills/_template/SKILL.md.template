@@ -1,0 +1,11 @@
+---
+name: replace-with-skill-name
+description: Replace with what this skill does and the exact requests or contexts that should trigger it.
+---
+
+# Replace With Skill Name
+
+1. State the first required action.
+2. Add only the task-specific workflow and constraints the agent needs.
+3. Reference scripts, references, or assets only after adding those resources.
+4. Define the expected result and any required validation.

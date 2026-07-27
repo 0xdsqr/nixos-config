@@ -652,6 +652,26 @@
         "type": "github"
       }
     },
+    "opencode": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1785162234,
+        "narHash": "sha256-v6HUwSwRHYvX+C5Cltskp+MhzkgjCbpMUh/srlg1xJo=",
+        "owner": "anomalyco",
+        "repo": "opencode",
+        "rev": "55b02116905efff9b8a245ea8f885f3c979101de",
+        "type": "github"
+      },
+      "original": {
+        "owner": "anomalyco",
+        "repo": "opencode",
+        "type": "github"
+      }
+    },
     "purescript-overlay": {
       "inputs": {
         "flake-compat": "flake-compat_2",
@@ -744,6 +764,7 @@
         "nix-homebrew": "nix-homebrew",
         "nixos-facter": "nixos-facter",
         "nixpkgs": "nixpkgs_4",
+        "opencode": "opencode",
         "rustfs": "rustfs",
         "treefmt-nix": "treefmt-nix_2",
         "ublock": "ublock"
