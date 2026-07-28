@@ -17,6 +17,7 @@ let
     ++ [
       ../../profiles/dsqr/common.nix
       ../../profiles/dsqr/nixos.nix
+      ../../profiles/observability/nixos.nix
     ]
     ++ singleton (self.lib.mkHomeManagerSharedModule homeModules);
 
@@ -49,6 +50,12 @@ in
         allowedUnfreePackageNames = [ "vault-bin" ];
 
         dsqr.nixos = {
+          alloy = {
+            enable = true;
+            loki.enable = true;
+            prometheus.enable = true;
+          };
+
           openssh.enable = true;
           postgresql = {
             enable = true;

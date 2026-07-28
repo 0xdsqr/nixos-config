@@ -23,6 +23,7 @@ let
     ++ [
       ../../profiles/dsqr/common.nix
       ../../profiles/dsqr/nixos.nix
+      ../../profiles/observability/nixos.nix
     ]
     ++ singleton (
       self.lib.mkHomeManagerSharedModule (
@@ -63,6 +64,7 @@ let
       hardware.report = ./srv-lx-mailbox.report.json;
 
       dsqr.nixos = {
+        alloy.enable = false;
         fonts.enable = true;
         openssh.enable = true;
         tailscale.enable = true;

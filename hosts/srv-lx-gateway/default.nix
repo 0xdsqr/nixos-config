@@ -17,6 +17,7 @@ let
     ++ [
       ../../profiles/dsqr/common.nix
       ../../profiles/dsqr/nixos.nix
+      ../../profiles/observability/nixos.nix
     ]
     ++ singleton (self.lib.mkHomeManagerSharedModule homeModules);
 

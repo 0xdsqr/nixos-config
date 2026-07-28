@@ -17,6 +17,7 @@ let
     ++ [
       ../../profiles/dsqr/common.nix
       ../../profiles/dsqr/darwin.nix
+      ../../profiles/observability/darwin.nix
     ]
     ++ singleton (self.lib.mkHomeManagerSharedModule homeModules);
 in
@@ -37,6 +38,7 @@ in
 
         dsqr.darwin = {
           determinate.enable = true;
+          grafana.alloy.enable = false;
           hostname.smb.enable = true;
           security.certificates.homeRootCA.systemKeychain.enable = true;
 

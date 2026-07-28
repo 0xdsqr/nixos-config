@@ -18,6 +18,7 @@ let
       ../../profiles/dsqr/common.nix
       ../../profiles/dsqr/darwin.nix
       ../../profiles/mini-server/darwin.nix
+      ../../profiles/observability/darwin.nix
     ]
     ++ singleton (self.lib.mkHomeManagerSharedModule homeModules);
 in
@@ -36,7 +37,10 @@ in
       { ... }: {
         imports = modules;
 
-        dsqr.darwin.profiles.miniServer.enable = true;
+        dsqr.darwin.profiles.miniServer = {
+          enable = true;
+          monitoring.enable = true;
+        };
 
         system.stateVersion = 5;
       }

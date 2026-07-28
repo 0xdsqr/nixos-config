@@ -29,15 +29,6 @@ in
       user = mkDefault "dsqr";
     };
 
-    grafana = {
-      alloy = {
-        environment = mkDefault "homelab";
-        prometheus.remoteWriteUrl = mkDefault "http://10.10.30.102:9090/api/v1/write";
-      };
-
-      loki.writeUrl = mkDefault "http://10.10.30.102:3100/loki/api/v1/push";
-    };
-
     desktop = {
       lapdog.enable = mkDefault true;
       obsidian.enable = mkDefault true;

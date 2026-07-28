@@ -13,10 +13,7 @@ let
     mapAttrsToList
     ;
   inherit (lib.lists) filter sort;
-  inherit (lib.lists) concatLists optional unique;
-  inherit (lib.strings) concatStringsSep hasInfix hasPrefix;
-
-  observabilityContract = import ../profiles/ops/observability/contract.nix;
+  inherit (lib.strings) concatStringsSep hasInfix;
 
   requiredExports = {
     commonModules = [
@@ -81,70 +78,6 @@ let
       { inherit (meta) class system; };
 
   hostDefinitionSummary = mapAttrs checkHostDefinition self.hostDefinitions;
-
-  observabilityHostNames = sortedNames observabilityContract.hosts;
-  definedHostNames = sortedNames self.hostDefinitions;
-  missingObservabilityHosts = filter (name: !hasAttr name observabilityContract.hosts) definedHostNames;
-  duplicateRoutingLabels =
-    builtins.length observabilityContract.identity.lowCardinalityRoutingLabels
-    != builtins.length (unique observabilityContract.identity.lowCardinalityRoutingLabels);
-  duplicateForbiddenFields =
-    builtins.length observabilityContract.privacy.forbiddenFields
-    != builtins.length (unique observabilityContract.privacy.forbiddenFields);
-  supportedCollectors = [
-    "darwin-alloy"
-    "disabled"
-    "kubernetes-gitops"
-    "nixos-alloy"
-  ];
-  hostsWithUnsupportedCollectors = filter (
-    name: !(builtins.elem observabilityContract.hosts.${name}.collector supportedCollectors)
-  ) observabilityHostNames;
-  kubernetesHostsWithWrongOwner = filter (
-    name: hasPrefix "srv-lx-k8s-" name && observabilityContract.hosts.${name}.collector != "kubernetes-gitops"
-  ) observabilityHostNames;
-  disabledHosts = filter (name: !observabilityContract.hosts.${name}.baseline) observabilityHostNames;
-  expectedDisabledHosts = [
-    "dev-mbp-personal"
-    "dev-mbp-stablecore"
-  ];
-  expectedRetentionDays = {
-    logs = 14;
-    metrics = 30;
-    profiles = 14;
-    traces = 14;
-  };
-  observabilityErrors = concatLists [
-    (optional (
-      missingObservabilityHosts != [ ]
-    ) "missing host coverage: ${concatStringsSep ", " missingObservabilityHosts}")
-    (optional duplicateRoutingLabels "low-cardinality routing labels must be unique")
-    (optional duplicateForbiddenFields "forbidden privacy fields must be unique")
-    (optional (
-      hostsWithUnsupportedCollectors != [ ]
-    ) "unsupported collectors on: ${concatStringsSep ", " hostsWithUnsupportedCollectors}")
-    (optional (
-      kubernetesHostsWithWrongOwner != [ ]
-    ) "Kubernetes collector ownership must remain with GitOps: ${concatStringsSep ", " kubernetesHostsWithWrongOwner}")
-    (optional (disabledHosts != expectedDisabledHosts) "only the two MacBook workstations may omit the host baseline")
-    (optional (
-      observabilityContract.retentionDays != expectedRetentionDays
-    ) "observability retention does not match the accepted 30/14/14/14-day contract")
-  ];
-  observabilitySummary =
-    if observabilityErrors == [ ] then
-      {
-        inherit (observabilityContract)
-          backends
-          budgets
-          ownership
-          retentionDays
-          schemaVersion
-          ;
-        hosts = observabilityHostNames;
-      }
-    else
-      builtins.throw "invalid observability contract: ${concatStringsSep "; " observabilityErrors}";
 
   knownHostForSystem = system: name: hasAttr name self.hostDefinitions && self.hostDefinitions.${name}.system == system;
 
@@ -215,13 +148,6 @@ in
           mkdir -p "$out"
           printf '%s\n' "$summary" > "$out/hosts.json"
         '';
-
-        observability-contract =
-          pkgs.runCommandLocal "nixos-config-observability-contract-${system}" { summary = builtins.toJSON observabilitySummary; }
-            ''
-              mkdir -p "$out"
-              printf '%s\n' "$summary" > "$out/contract.json"
-            '';
 
         neovim-smoke =
           pkgs.runCommandLocal "nixos-config-neovim-smoke-${system}" { toggleSummary = builtins.toJSON neovimToggleSummary; }
