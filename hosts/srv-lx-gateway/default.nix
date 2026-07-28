@@ -17,7 +17,6 @@ let
     ++ [
       ../../profiles/dsqr/common.nix
       ../../profiles/dsqr/nixos.nix
-      ../../profiles/observability/nixos.nix
     ]
     ++ singleton (self.lib.mkHomeManagerSharedModule homeModules);
 
@@ -37,6 +36,7 @@ in
     modules = singleton (
       { ... }: {
         imports = modules ++ [
+          ../../profiles/observability/nixos.nix
           ./cloudflared.nix
           ./disk.nix
           ./tls.nix
@@ -48,11 +48,6 @@ in
         allowedUnfreePackageNames = [ "vault-bin" ];
 
         dsqr.nixos = {
-          alloy = {
-            enable = true;
-            loki.enable = true;
-          };
-
           fonts.enable = true;
           openssh.enable = true;
           proxmox.enable = true;

@@ -17,7 +17,6 @@ let
     ++ [
       ../../profiles/dsqr/common.nix
       ../../profiles/dsqr/nixos.nix
-      ../../profiles/observability/nixos.nix
     ]
     ++ singleton (self.lib.mkHomeManagerSharedModule homeModules);
 
@@ -38,6 +37,7 @@ in
       { ... }: {
         imports =
           modules
+          ++ [ ../../profiles/observability/nixos.nix ]
           ++ self.lib.collectNix {
             path = ./.;
             recursive = true;
@@ -50,12 +50,6 @@ in
         hardware.report = ./srv-lx-khaos.report.json;
 
         dsqr.nixos = {
-          alloy = {
-            enable = true;
-            loki.enable = true;
-            prometheus.enable = true;
-          };
-
           fonts.enable = true;
           openssh.enable = true;
           proxmox.enable = true;

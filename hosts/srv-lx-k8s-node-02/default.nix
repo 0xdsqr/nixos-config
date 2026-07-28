@@ -17,7 +17,6 @@ let
     ++ [
       ../../profiles/dsqr/common.nix
       ../../profiles/dsqr/nixos.nix
-      ../../profiles/observability/nixos.nix
     ]
     ++ singleton (self.lib.mkHomeManagerSharedModule homeModules);
 
@@ -38,6 +37,7 @@ in
       { ... }: {
         imports =
           modules
+          ++ [ ../../profiles/observability/nixos.nix ]
           ++ self.lib.collectNix {
             path = ./.;
             exclude = path: path == ./default.nix;
@@ -52,10 +52,7 @@ in
 
         dsqr.nixos = {
           alloy = {
-            enable = true;
             role = "k8s-worker";
-
-            loki.enable = true;
           };
 
           fonts.enable = true;

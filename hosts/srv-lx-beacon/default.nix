@@ -17,7 +17,6 @@ let
     ++ [
       ../../profiles/dsqr/common.nix
       ../../profiles/dsqr/nixos.nix
-      ../../profiles/observability/nixos.nix
     ]
     ++ singleton (self.lib.mkHomeManagerSharedModule homeModules);
 
@@ -38,6 +37,7 @@ in
       { ... }: {
         imports =
           modules
+          ++ [ ../../profiles/observability/nixos.nix ]
           ++ self.lib.collectNix {
             path = ./.;
             exclude = path: path == ./default.nix;
@@ -47,11 +47,6 @@ in
         hardware.report = ./srv-lx-beacon.report.json;
 
         dsqr.nixos = {
-          alloy = {
-            enable = true;
-            loki.enable = true;
-          };
-
           fonts.enable = true;
           openssh.enable = true;
           proxmox.enable = true;
