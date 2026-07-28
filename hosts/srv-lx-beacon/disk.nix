@@ -1,8 +1,12 @@
 { lib, ... }: {
+  boot.growPartition = true;
+
   boot.loader.grub = {
     enable = true;
     devices = lib.mkForce [ "/dev/sda" ];
   };
+
+  fileSystems."/".autoResize = true;
 
   disko.devices.disk.main = {
     device = "/dev/sda";
