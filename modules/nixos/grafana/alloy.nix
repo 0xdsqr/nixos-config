@@ -80,9 +80,23 @@
               ${cfg.extraConfig}
             '';
 
+          systemd.tmpfiles.rules = [ "d /var/lib/alloy/textfile 0755 root root - -" ];
+
           dsqr.nixos.alloy.configFragments = mkAfter [
             ''
-              prometheus.exporter.unix "host" {}
+              prometheus.exporter.unix "host" {
+                enable_collectors = ["systemd"]
+
+                systemd {
+                  enable_restarts = true
+                  start_time      = true
+                  unit_include    = "(alloy|caddy|cloudflared|grafana|loki|postgresql|prometheus|restic-backups-.+|rustfs|tempo|temporal|vault|vault-agent-.+)\\.service"
+                }
+
+                textfile {
+                  directory = "/var/lib/alloy/textfile"
+                }
+              }
 
               prometheus.relabel "host" {
                 forward_to = [prometheus.remote_write.primary.receiver]

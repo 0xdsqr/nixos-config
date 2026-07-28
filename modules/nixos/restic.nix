@@ -11,6 +11,7 @@
       inherit (lib.lists) elem;
       inherit (lib.modules) mkIf;
       inherit (lib.options) mkEnableOption mkOption;
+      inherit (lib.strings) concatMapStringsSep escapeShellArg;
       inherit (lib.types)
         listOf
         nullOr
@@ -22,6 +23,25 @@
       cfg = config.dsqr.nixos.restic;
       isReceiver = elem config.networking.hostName cfg.receiverHosts;
       hasPasswordAgeFile = cfg.passwordAgeFile != null && builtins.pathExists cfg.passwordAgeFile;
+      backupHosts = config.services.restic.hosts;
+      metricsDirectory = "/var/lib/alloy/textfile";
+      metricsFile = host: "${metricsDirectory}/restic-${host}.prom";
+      initializeMetrics = concatMapStringsSep "\n" (
+        host:
+        let
+          file = metricsFile host;
+        in
+        ''
+          if [[ ! -e ${escapeShellArg file} ]]; then
+            printf '%s\n' \
+              '# HELP dsqr_restic_backup_last_success_timestamp_seconds Unix timestamp of the most recent successful restic backup.' \
+              '# TYPE dsqr_restic_backup_last_success_timestamp_seconds gauge' \
+              'dsqr_restic_backup_last_success_timestamp_seconds{repository_host="${host}"} 0' \
+              > ${escapeShellArg file}
+            chmod 0644 ${escapeShellArg file}
+          fi
+        ''
+      ) backupHosts;
     in
     {
       options = {
@@ -94,6 +114,39 @@
               "--keep-monthly 3"
             ];
           });
+
+          systemd.services =
+            genAttrs (map (host: "restic-backups-${host}") backupHosts) (
+              unitName:
+              let
+                host = builtins.replaceStrings [ "restic-backups-" ] [ "" ] unitName;
+                file = metricsFile host;
+              in
+              {
+                postStart = ''
+                  temporary_file=${escapeShellArg file}.$$
+                  printf '%s\n' \
+                    '# HELP dsqr_restic_backup_last_success_timestamp_seconds Unix timestamp of the most recent successful restic backup.' \
+                    '# TYPE dsqr_restic_backup_last_success_timestamp_seconds gauge' \
+                    "dsqr_restic_backup_last_success_timestamp_seconds{repository_host=\"${host}\"} $(${pkgs.coreutils}/bin/date +%s)" \
+                    > "$temporary_file"
+                  chmod 0644 "$temporary_file"
+                  mv "$temporary_file" ${escapeShellArg file}
+                '';
+              }
+            )
+            // {
+              restic-backup-metrics = {
+                description = "Initialize restic backup health metrics";
+                wantedBy = [ "multi-user.target" ];
+                before = [ "alloy.service" ];
+                serviceConfig.Type = "oneshot";
+                script = ''
+                  install -d -o root -g root -m 0755 ${metricsDirectory}
+                  ${initializeMetrics}
+                '';
+              };
+            };
         }
       );
     };

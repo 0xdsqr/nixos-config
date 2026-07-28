@@ -50,6 +50,21 @@ in
       api_addr = "${apiAddr}"
       cluster_addr = "https://vault.service.home.arpa:8201"
       disable_mlock = true
+
+      telemetry {
+        prometheus_retention_time = "30s"
+        disable_hostname = true
+      }
+
+      listener "tcp" {
+        address = "127.0.0.1:8202"
+        cluster_address = "127.0.0.1:8203"
+        tls_disable = true
+
+        telemetry {
+          unauthenticated_metrics_access = true
+        }
+      }
     '';
   };
 

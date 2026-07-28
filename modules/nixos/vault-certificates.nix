@@ -8,6 +8,7 @@
     }:
     let
       inherit (lib.attrsets)
+        attrNames
         mapAttrs
         mapAttrs'
         mapAttrsToList
@@ -33,6 +34,8 @@
       cfg = config.dsqr.nixos.vaultCertificates;
 
       cacheFile = certificate: "${certificate.directory}/agent-cache.pem";
+      certificateMetricsDirectory = "/var/lib/alloy/textfile";
+      certificateMetricsFile = "${certificateMetricsDirectory}/vault-certificates.prom";
       requestFingerprint =
         certificate:
         builtins.hashString "sha256" (
@@ -89,6 +92,58 @@
         {{ "${requestFingerprint certificate}" | writeToFile "${requestFingerprintFile certificate}" "${certificate.owner}" "${certificate.group}" "${certificate.certificateMode}" }}
         {{- end -}}
       '';
+      certificateMetricsScript = pkgs.writeShellApplication {
+        name = "vault-certificate-metrics";
+        runtimeInputs = [
+          pkgs.coreutils
+          pkgs.openssl
+        ];
+        text = ''
+          install -d -o root -g root -m 0755 ${certificateMetricsDirectory}
+          temporary_file=${escapeShellArg certificateMetricsFile}.$$
+
+          {
+            printf '%s\n' \
+              '# HELP dsqr_x509_certificate_expiry_timestamp_seconds Unix timestamp when a Vault Agent-managed certificate expires.' \
+              '# TYPE dsqr_x509_certificate_expiry_timestamp_seconds gauge' \
+              '# HELP dsqr_x509_certificate_valid Whether a Vault Agent-managed certificate is present and parseable.' \
+              '# TYPE dsqr_x509_certificate_valid gauge'
+            ${concatStringsSep "\n" (
+              mapAttrsToList (name: certificate: ''
+                expiry_timestamp=0
+                valid=0
+                if [[ -s ${escapeShellArg certificate.certificateFile} ]]; then
+                  if expiry="$(
+                    openssl x509 \
+                      -in ${escapeShellArg certificate.certificateFile} \
+                      -noout \
+                      -enddate \
+                      2>/dev/null \
+                    | cut -d= -f2-
+                  )"; then
+                    if expiry_timestamp="$(date --date="$expiry" +%s 2>/dev/null)"; then
+                      valid=1
+                    else
+                      expiry_timestamp=0
+                    fi
+                  fi
+                fi
+                printf 'dsqr_x509_certificate_expiry_timestamp_seconds{name="%s",common_name="%s"} %s\n' \
+                  ${escapeShellArg name} \
+                  ${escapeShellArg certificate.commonName} \
+                  "$expiry_timestamp"
+                printf 'dsqr_x509_certificate_valid{name="%s",common_name="%s"} %s\n' \
+                  ${escapeShellArg name} \
+                  ${escapeShellArg certificate.commonName} \
+                  "$valid"
+              '') cfg
+            )}
+          } > "$temporary_file"
+
+          chmod 0644 "$temporary_file"
+          mv "$temporary_file" ${escapeShellArg certificateMetricsFile}
+        '';
+      };
     in
     {
       options.dsqr.nixos.vaultCertificates = mkOption {
@@ -281,34 +336,65 @@
           _: certificate: "d ${certificate.directory} 0750 ${certificate.owner} ${certificate.group} - -"
         ) cfg;
 
-        systemd.services = mapAttrs' (
-          name: certificate:
-          nameValuePair "vault-agent-${name}" {
-            before = optional (certificate.reloadUnit != null && certificate.requireCertificateForUnitStart) certificate.reloadUnit;
-            requiredBy = optional (
-              certificate.reloadUnit != null && certificate.requireCertificateForUnitStart
-            ) certificate.reloadUnit;
-            requires = optional (
-              certificate.reloadUnit != null && !certificate.requireCertificateForUnitStart
-            ) certificate.reloadUnit;
-            after = [
-              "network-online.target"
-            ]
-            ++ optional (certificate.reloadUnit != null && !certificate.requireCertificateForUnitStart) certificate.reloadUnit;
-            wants = [ "network-online.target" ];
+        systemd = {
+          services =
+            mapAttrs' (
+              name: certificate:
+              nameValuePair "vault-agent-${name}" {
+                before = optional (certificate.reloadUnit != null && certificate.requireCertificateForUnitStart) certificate.reloadUnit;
+                requiredBy = optional (
+                  certificate.reloadUnit != null && certificate.requireCertificateForUnitStart
+                ) certificate.reloadUnit;
+                requires = optional (
+                  certificate.reloadUnit != null && !certificate.requireCertificateForUnitStart
+                ) certificate.reloadUnit;
+                after = [
+                  "network-online.target"
+                ]
+                ++ optional (certificate.reloadUnit != null && !certificate.requireCertificateForUnitStart) certificate.reloadUnit;
+                wants = [ "network-online.target" ];
 
-            serviceConfig = {
-              ExecStartPre = invalidateStaleCacheScript name certificate;
-              ExecStartPost = readinessScript name certificate;
-              UMask = "0077";
-              NoNewPrivileges = true;
-              PrivateTmp = true;
-              ProtectHome = true;
-              ProtectSystem = "strict";
-              ReadWritePaths = [ certificate.directory ];
+                serviceConfig = {
+                  ExecStartPre = invalidateStaleCacheScript name certificate;
+                  ExecStartPost = readinessScript name certificate;
+                  UMask = "0077";
+                  NoNewPrivileges = true;
+                  PrivateTmp = true;
+                  ProtectHome = true;
+                  ProtectSystem = "strict";
+                  ReadWritePaths = [ certificate.directory ];
+                };
+              }
+            ) cfg
+            // {
+              vault-certificate-metrics = {
+                description = "Export Vault Agent-managed certificate expiry metrics";
+                wantedBy = [ "multi-user.target" ];
+                after = map (name: "vault-agent-${name}.service") (attrNames cfg);
+                serviceConfig = {
+                  Type = "oneshot";
+                  ExecStart = lib.getExe certificateMetricsScript;
+                  NoNewPrivileges = true;
+                  PrivateTmp = true;
+                  ProtectHome = true;
+                  ProtectSystem = "strict";
+                  ReadWritePaths = [ certificateMetricsDirectory ];
+                };
+              };
             };
-          }
-        ) cfg;
+
+          timers.vault-certificate-metrics = {
+            description = "Refresh Vault Agent-managed certificate expiry metrics";
+            wantedBy = [ "timers.target" ];
+            timerConfig = {
+              OnBootSec = "1m";
+              OnUnitActiveSec = "5m";
+              RandomizedDelaySec = "30s";
+              Persistent = true;
+              Unit = "vault-certificate-metrics.service";
+            };
+          };
+        };
       };
     };
 }
