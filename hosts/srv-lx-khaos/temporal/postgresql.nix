@@ -53,18 +53,34 @@ let
       export PGSSLMODE=verify-full
       export PGSSLROOTCERT=${escapeShellArg postgres.caFile}
 
+      psql_args=(
+        --host "$SQL_HOST"
+        --port "$SQL_PORT"
+        --username "$SQL_USER"
+        --tuples-only
+        --no-align
+      )
+
+      for ((attempt = 1; attempt <= 60; attempt++)); do
+        if psql "''${psql_args[@]}" --dbname ${escapeShellArg postgres.database} --command "select 1" >/dev/null 2>&1; then
+          break
+        fi
+
+        if ((attempt == 60)); then
+          echo "PostgreSQL did not become reachable within 120 seconds" >&2
+          exit 1
+        fi
+
+        sleep 2
+      done
+
       setup_schema() {
         local database="$1"
         local schema_dir="$2"
 
         export SQL_DATABASE="$database"
-        if ! psql \
-          --host "$SQL_HOST" \
-          --port "$SQL_PORT" \
-          --username "$SQL_USER" \
+        if ! psql "''${psql_args[@]}" \
           --dbname "$database" \
-          --tuples-only \
-          --no-align \
           --command "select 1 from information_schema.tables where table_schema = 'public' and table_name = 'schema_version'" \
           | grep --quiet --line-regexp 1; then
           temporal-sql-tool setup-schema --version 0.0

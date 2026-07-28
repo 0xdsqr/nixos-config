@@ -18,9 +18,7 @@ in
   dsqr.nixos.rustfs = {
     enable = true;
     inherit package;
-    address = "10.10.30.107:9000";
     accessKeyAgeFile = ./rustfs.access-key.age;
-    consoleAddress = "10.10.30.107:9001";
     secretKeyAgeFile = ./rustfs.secret-key.age;
     tlsDirectory = certificate.directory;
   };

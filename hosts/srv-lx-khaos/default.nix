@@ -47,6 +47,7 @@ in
         allowedUnfreePackageNames = [ "vault-bin" ];
 
         networking.hostName = hostName;
+        networking.dhcpcd.wait = "ipv4";
         hardware.report = ./srv-lx-khaos.report.json;
 
         dsqr.nixos = {

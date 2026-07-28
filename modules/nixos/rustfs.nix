@@ -38,13 +38,13 @@
 
         address = mkOption {
           type = str;
-          default = "0.0.0.0:9000";
+          default = ":9000";
           description = "Address used by the S3-compatible API listener.";
         };
 
         consoleAddress = mkOption {
           type = str;
-          default = "0.0.0.0:9001";
+          default = ":9001";
           description = "Address used by the management console listener.";
         };
 

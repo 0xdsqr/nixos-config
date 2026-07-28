@@ -165,6 +165,7 @@
           systemd.services.temporal-ui = {
             description = "Temporal Web UI";
             wantedBy = [ "multi-user.target" ];
+            wants = [ "network-online.target" ];
             requires = [ "temporal.service" ];
             after = [
               "network-online.target"
