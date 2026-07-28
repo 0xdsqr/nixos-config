@@ -10,7 +10,13 @@
       inherit (lib.attrsets) genAttrs' nameValuePair;
       inherit (lib.modules) mkIf;
       inherit (lib.options) mkEnableOption mkOption;
-      inherit (lib.types) nullOr package path;
+      inherit (lib.types)
+        bool
+        nullOr
+        package
+        path
+        str
+        ;
       cfg = config.dsqr.nixos.rustfs;
       resticHosts = config.services.restic.hosts or [ ];
     in
@@ -28,6 +34,30 @@
           inherit (inputs.rustfs.packages.${config.nixpkgs.hostPlatform.system}) default;
           defaultText = "inputs.rustfs.packages.${config.nixpkgs.hostPlatform.system}.default";
           description = "RustFS package to run.";
+        };
+
+        address = mkOption {
+          type = str;
+          default = "0.0.0.0:9000";
+          description = "Address used by the S3-compatible API listener.";
+        };
+
+        consoleAddress = mkOption {
+          type = str;
+          default = "0.0.0.0:9001";
+          description = "Address used by the management console listener.";
+        };
+
+        openFirewall = mkOption {
+          type = bool;
+          default = false;
+          description = "Open the RustFS API and console ports to every source.";
+        };
+
+        tlsDirectory = mkOption {
+          type = nullOr str;
+          default = null;
+          description = "Runtime directory containing rustfs_cert.pem and rustfs_key.pem.";
         };
 
         accessKeyAgeFile = mkOption {
@@ -54,22 +84,24 @@
           mode = "0400";
         };
 
-        networking.firewall.allowedTCPPorts = [
+        networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall [
           9000
           9001
         ];
 
         services.rustfs = {
           enable = true;
-          inherit (cfg) package;
+          inherit (cfg) package address consoleAddress;
           accessKeyFile = config.age.secrets.rustfsAccessKey.path;
           secretKeyFile = config.age.secrets.rustfsSecretKey.path;
           volumes = [ "/var/lib/rustfs/data" ];
-          address = "0.0.0.0:9000";
           consoleEnable = true;
-          consoleAddress = "0.0.0.0:9001";
           logLevel = "warn";
-          logDirectory = "/var/log/rustfs";
+          logDirectory = null;
+        }
+        // lib.optionalAttrs (cfg.tlsDirectory != null) {
+          inherit (cfg) tlsDirectory;
+          extraEnvironmentVariables.RUSTFS_TLS_PATH = cfg.tlsDirectory;
         };
 
         services.restic.backups = mkIf (resticHosts != [ ]) (

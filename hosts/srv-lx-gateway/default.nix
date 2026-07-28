@@ -93,7 +93,10 @@ in
               };
               "grafana.home.arpa".upstream = "http://10.10.30.102:8000";
               "prometheus.home.arpa".upstream = "http://10.10.30.102:9090";
-              "rustfs.home.arpa".upstream = "http://10.10.30.107:9001";
+              "rustfs.home.arpa" = {
+                upstream = "https://10.10.30.107:9001";
+                tlsServerName = "rustfs.service.home.arpa";
+              };
               "temporal.home.arpa".upstream = "http://10.10.30.107:8088";
               "vault.home.arpa" = {
                 upstream = "https://10.10.30.107:8200";

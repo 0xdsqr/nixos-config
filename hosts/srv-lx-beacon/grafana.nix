@@ -46,7 +46,12 @@ in
     };
 
     settings = {
-      analytics.reporting_enabled = false;
+      analytics = {
+        check_for_plugin_updates = false;
+        check_for_updates = false;
+        feedback_links_enabled = false;
+        reporting_enabled = false;
+      };
 
       "auth.anonymous".enabled = false;
 
@@ -63,10 +68,15 @@ in
 
       server = {
         domain = fqdn;
-        http_addr = "0.0.0.0";
+        http_addr = "10.10.30.102";
         http_port = port;
         enforce_domain = true;
         root_url = "https://${fqdn}/";
+      };
+
+      snapshots = {
+        external_enabled = false;
+        public_mode = false;
       };
 
       users = {
@@ -84,7 +94,10 @@ in
 
       cookie_secure = true;
       cookie_samesite = "strict";
+      disable_brute_force_login_protection = false;
       disable_gravatar = true;
+      strict_transport_security = true;
+      strict_transport_security_max_age_seconds = 31536000;
 
       # disable_initial_admin_creation = false;
     };

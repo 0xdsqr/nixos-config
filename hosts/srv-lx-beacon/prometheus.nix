@@ -17,9 +17,12 @@ _: {
     enable = true;
     listenAddress = "10.10.30.102";
     port = 9090;
-    retentionTime = "30d";
+    retentionTime = "14d";
     webExternalUrl = "https://prometheus.home.arpa/";
-    extraFlags = [ "--web.enable-remote-write-receiver" ];
+    extraFlags = [
+      "--storage.tsdb.retention.size=40GB"
+      "--web.enable-remote-write-receiver"
+    ];
     globalConfig = {
       scrape_interval = "15s";
       evaluation_interval = "30s";
@@ -29,7 +32,7 @@ _: {
         job_name = "prometheus";
         static_configs = [
           {
-            targets = [ "127.0.0.1:9090" ];
+            targets = [ "10.10.30.102:9090" ];
             labels = {
               role = "beacon";
               kind = "service";

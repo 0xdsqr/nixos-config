@@ -79,14 +79,10 @@ in
           };
         };
 
-        networking.firewall.allowedTCPPorts = [
-          8000
-          9090
-          3100
-          4317
-          4318
-          1514
-        ];
+        networking.firewall.extraInputRules = ''
+          ip saddr { 10.10.30.0/24, 10.10.60.100/32 } tcp dport { 8000, 9090, 3100, 4317, 4318 } accept
+          ip saddr 10.10.10.1/32 tcp dport 1514 accept
+        '';
         networking.dhcpcd.wait = "ipv4";
 
         system.stateVersion = "25.05";

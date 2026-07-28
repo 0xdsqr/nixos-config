@@ -57,7 +57,7 @@ _: {
 
     loki.source.syslog "opnsense" {
       listener {
-        address                = "0.0.0.0:1514"
+        address                = "10.10.30.102:1514"
         protocol               = "tcp"
         syslog_format          = "rfc5424"
         use_incoming_timestamp = true
@@ -91,7 +91,9 @@ _: {
       auth_enabled = false;
 
       server = {
+        http_listen_address = "10.10.30.102";
         http_listen_port = 3100;
+        grpc_listen_address = "127.0.0.1";
       };
 
       common = {
@@ -127,6 +129,18 @@ _: {
           active_index_directory = "/var/lib/loki/index";
           cache_location = "/var/lib/loki/index_cache";
         };
+      };
+
+      compactor = {
+        working_directory = "/var/lib/loki/compactor";
+        retention_enabled = true;
+        retention_delete_delay = "2h";
+        retention_delete_worker_count = 50;
+        delete_request_store = "filesystem";
+      };
+
+      limits_config = {
+        retention_period = "336h";
       };
     };
   };
