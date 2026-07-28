@@ -89,4 +89,9 @@ in
       # disable_initial_admin_creation = false;
     };
   };
+
+  systemd.services.grafana = {
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+  };
 }

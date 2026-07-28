@@ -106,4 +106,9 @@ _: {
       }
     ];
   };
+
+  systemd.services.prometheus = {
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+  };
 }

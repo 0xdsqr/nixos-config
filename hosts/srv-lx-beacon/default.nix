@@ -87,6 +87,7 @@ in
           4318
           1514
         ];
+        networking.dhcpcd.wait = "ipv4";
 
         system.stateVersion = "25.05";
       }
