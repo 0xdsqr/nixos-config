@@ -48,6 +48,7 @@ in
 
         networking.hostName = hostName;
         networking.dhcpcd.wait = "ipv4";
+        networking.nftables.enable = true;
         hardware.report = ./srv-lx-khaos.report.json;
 
         dsqr.nixos = {

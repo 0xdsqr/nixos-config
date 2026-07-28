@@ -84,6 +84,7 @@ in
           ip saddr 10.10.10.1/32 tcp dport 1514 accept
         '';
         networking.dhcpcd.wait = "ipv4";
+        networking.nftables.enable = true;
 
         system.stateVersion = "25.05";
       }
