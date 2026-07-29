@@ -48,6 +48,8 @@ in
         };
       };
 
+      query_backend.address = "127.0.0.1:9097";
+
       storage = {
         backend = "filesystem";
         filesystem.dir = "/var/lib/pyroscope/shared";
