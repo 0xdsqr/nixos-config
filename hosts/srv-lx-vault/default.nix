@@ -37,13 +37,18 @@ in
       { ... }: {
         imports =
           modules
-          ++ [ ../../profiles/server/nixos.nix ]
+          ++ [
+            ../../profiles/observability/nixos.nix
+            ../../profiles/server/nixos.nix
+          ]
           ++ self.lib.collectNix {
             path = ./.;
             exclude = path: path == ./default.nix;
           };
 
         networking.hostName = hostName;
+
+        allowedUnfreePackageNames = [ "vault-bin" ];
 
         hardware.report = ./srv-lx-vault.report.json;
 
