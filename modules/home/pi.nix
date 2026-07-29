@@ -7,11 +7,25 @@
       ...
     }:
     let
-      inherit (lib.attrsets) filterAttrs mapAttrs' nameValuePair;
+      inherit (lib.attrsets)
+        attrByPath
+        filterAttrs
+        mapAttrs'
+        nameValuePair
+        optionalAttrs
+        ;
       inherit (lib.lists) singleton;
       inherit (lib.modules) mkIf;
 
       cfg = config.programs.pi;
+      herdrCfg = attrByPath [ "dsqr" "home" "desktop" "ghostty" "herdr" ] {
+        enable = false;
+        integrations = {
+          pi.enable = false;
+          artifacts = null;
+        };
+      } config;
+      herdrIntegrationEnabled = herdrCfg.enable && herdrCfg.integrations.pi.enable && herdrCfg.integrations.artifacts != null;
       agentDirectory = "${config.xdg.configHome}/pi/agent";
       enabledExtensions = filterAttrs (name: _: cfg.extensions.${name}.enable) (import ../../packages/agents/pi/extensions);
       configurableExtensions = filterAttrs (_: definition: definition ? settingsFile) enabledExtensions;
@@ -36,7 +50,15 @@
         home.sessionVariables.PI_CODING_AGENT_DIR = agentDirectory;
         programs.nushell.environmentVariables.PI_CODING_AGENT_DIR = agentDirectory;
 
-        xdg.configFile = extensionFiles // extensionSettingsFiles // modelsFile // themeFiles;
+        xdg.configFile =
+          extensionFiles
+          // extensionSettingsFiles
+          // modelsFile
+          // themeFiles
+          // optionalAttrs herdrIntegrationEnabled {
+            "pi/agent/extensions/herdr-agent-state.ts".source =
+              "${herdrCfg.integrations.artifacts}/pi/extensions/herdr-agent-state.ts";
+          };
       };
     };
 }

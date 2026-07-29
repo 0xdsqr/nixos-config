@@ -7,12 +7,23 @@
       ...
     }:
     let
+      inherit (lib.attrsets) attrByPath optionalAttrs;
       inherit (lib.lists) singleton;
       inherit (lib.modules) mkIf;
       inherit (lib.options) mkEnableOption mkOption;
       inherit (lib.types) package;
 
       cfg = config.dsqr.home.claudeCode;
+      herdrCfg = attrByPath [ "dsqr" "home" "desktop" "ghostty" "herdr" ] {
+        enable = false;
+        integrations = {
+          claude.enable = false;
+          artifacts = null;
+        };
+      } config;
+      herdrIntegrationEnabled =
+        herdrCfg.enable && herdrCfg.integrations.claude.enable && herdrCfg.integrations.artifacts != null;
+      herdrHook = "${config.xdg.configHome}/claude-code/hooks/herdr-agent-state.sh";
 
       gitWorkflowInstructions = ''
         # Claude Code Preferences
@@ -121,9 +132,29 @@
         xdg.configFile."claude-code/commands/commit.md".text = commitCommand;
         xdg.configFile."claude-code/commands/commit-push-pr.md".text = commitPushPrCommand;
 
-        xdg.configFile."claude-code/settings.json".text = builtins.toJSON {
-          "$schema" = "https://json.schemastore.org/claude-code-settings.json";
+        xdg.configFile."claude-code/hooks/herdr-agent-state.sh" = mkIf herdrIntegrationEnabled {
+          source = "${herdrCfg.integrations.artifacts}/claude/hooks/herdr-agent-state.sh";
         };
+
+        xdg.configFile."claude-code/settings.json".text = builtins.toJSON (
+          {
+            "$schema" = "https://json.schemastore.org/claude-code-settings.json";
+          }
+          // optionalAttrs herdrIntegrationEnabled {
+            hooks.SessionStart = [
+              {
+                hooks = [
+                  {
+                    command = "bash '${herdrHook}' session";
+                    timeout = 10;
+                    type = "command";
+                  }
+                ];
+                matcher = "*";
+              }
+            ];
+          }
+        );
       };
     };
 }
