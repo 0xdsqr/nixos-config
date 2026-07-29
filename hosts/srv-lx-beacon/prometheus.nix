@@ -19,6 +19,12 @@ _: {
     port = 9090;
     retentionTime = "14d";
     webExternalUrl = "https://prometheus.home.arpa/";
+    remoteWrite = [
+      {
+        name = "mimir";
+        url = "http://10.10.30.102:9009/api/v1/push";
+      }
+    ];
     extraFlags = [
       "--storage.tsdb.retention.size=40GB"
       "--web.enable-remote-write-receiver"
@@ -107,6 +113,32 @@ _: {
         ];
       }
       {
+        job_name = "mimir";
+        static_configs = [
+          {
+            targets = [ "10.10.30.102:9009" ];
+            labels = {
+              role = "beacon";
+              kind = "service";
+              env = "homelab";
+            };
+          }
+        ];
+      }
+      {
+        job_name = "pyroscope";
+        static_configs = [
+          {
+            targets = [ "10.10.30.102:4040" ];
+            labels = {
+              role = "beacon";
+              kind = "service";
+              env = "homelab";
+            };
+          }
+        ];
+      }
+      {
         job_name = "opnsense-node-exporter";
         static_configs = [
           {
@@ -176,7 +208,13 @@ _: {
   };
 
   systemd.services.prometheus = {
-    after = [ "network-online.target" ];
-    wants = [ "network-online.target" ];
+    after = [
+      "mimir.service"
+      "network-online.target"
+    ];
+    wants = [
+      "mimir.service"
+      "network-online.target"
+    ];
   };
 }
