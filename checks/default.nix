@@ -123,6 +123,41 @@ in
         else
           builtins.throw "Disabling telescope left plugin(s) enabled: ${concatStringsSep ", " unexpectedTelescopePlugins}";
 
+      nushellSmokeHomeDirectory = "/tmp/nixos-config-nushell-smoke";
+      mkNushellHome =
+        extraModule:
+        inputs.home-manager.lib.homeManagerConfiguration {
+          inherit pkgs;
+          modules = [
+            self.homeModules.nushell
+            self.homeModules.xdg
+            {
+              home.username = "nushell-smoke";
+              home.homeDirectory = nushellSmokeHomeDirectory;
+              home.stateVersion = "25.11";
+            }
+            extraModule
+          ];
+        };
+
+      nushellHome = mkNushellHome {
+        # The workstation package only disables upstream Darwin checks. Use the
+        # pinned package directly here so this smoke test stays cache-friendly.
+        dsqr.home.nu.package = pkgs.nushell;
+        home.sessionVariables = {
+          CLAUDE_CONFIG_DIR = "${nushellSmokeHomeDirectory}/.config/claude-code";
+          CODEX_HOME = "${nushellSmokeHomeDirectory}/.config/codex";
+          NU_SMOKE_SESSION_VARIABLE = "available";
+        };
+        home.sessionPath = [ "${nushellSmokeHomeDirectory}/custom-bin" ];
+        programs.nushell.environmentVariables.NU_SMOKE_CONFIG_VARIABLE = "configured";
+      };
+      nushellHomeConfig = nushellHome.config;
+      nushellConfigPath = "${nushellHomeConfig.programs.nushell.configDir}/config.nu";
+      nushellConfig = nushellHomeConfig.home.file.${nushellConfigPath}.source;
+      nushellSessionVariables = "${nushellHomeConfig.home.sessionVariablesPackage}/etc/profile.d/hm-session-vars.sh";
+      nushellSmoke = ./nushell-smoke.nu;
+
       hostEvalSummary = {
         hostDefinitions = hostDefinitionSummary;
 
@@ -175,6 +210,102 @@ in
               ${neovimConfig.finalPackage}/bin/nvim --version > "$out/version.txt"
               printf '%s\n' "$toggleSummary" > "$out/telescope-disabled-plugins.json"
             '';
+
+        nushell-smoke = pkgs.runCommandLocal "nixos-config-nushell-smoke-${system}" { } ''
+          export HOME=${lib.escapeShellArg nushellSmokeHomeDirectory}
+          export PATH="$TMPDIR/inherited-bin:/usr/bin:/bin"
+          export XDG_RUNTIME_DIR="$TMPDIR/runtime"
+          unset \
+            CLAUDE_CONFIG_DIR \
+            CODEX_HOME \
+            NU_SMOKE_CONFIG_VARIABLE \
+            NU_SMOKE_SESSION_VARIABLE \
+            TERMINFO_DIRS \
+            XDG_CACHE_HOME \
+            XDG_CONFIG_HOME \
+            XDG_DATA_HOME \
+            XDG_STATE_HOME \
+            __HM_SESS_VARS_SOURCED
+
+          mkdir -p \
+            "$TMPDIR/inherited-bin" \
+            "$XDG_RUNTIME_DIR"
+
+          ${lib.optionalString pkgs.stdenv.isDarwin ''
+            # Darwin normally receives these before Nu starts from the zsh
+            # bootstrap. Model that boundary without sourcing the script.
+            export XDG_CACHE_HOME=${lib.escapeShellArg nushellHomeConfig.xdg.cacheHome}
+            export XDG_CONFIG_HOME=${lib.escapeShellArg nushellHomeConfig.xdg.configHome}
+            export XDG_DATA_HOME=${lib.escapeShellArg nushellHomeConfig.xdg.dataHome}
+            export XDG_STATE_HOME=${lib.escapeShellArg nushellHomeConfig.xdg.stateHome}
+          ''}
+
+          ${lib.getExe nushellHomeConfig.programs.nushell.package} \
+            --no-history \
+            --config ${nushellConfig} \
+            ${nushellSmoke}
+
+          mkdir -p "$out"
+          ${lib.getExe nushellHomeConfig.programs.nushell.package} --version > "$out/version.txt"
+        '';
+      }
+      // lib.optionalAttrs pkgs.stdenv.isDarwin {
+        nushell-zsh-bootstrap =
+          let
+            zshDotDirRelative = lib.removePrefix "${nushellSmokeHomeDirectory}/" nushellHomeConfig.programs.zsh.dotDir;
+            zshXdgEnv = nushellHomeConfig.home.file."${zshDotDirRelative}/.zshenv".source;
+            zshRcEntry = nushellHomeConfig.home.file."${zshDotDirRelative}/.zshrc";
+            zshRc = zshRcEntry.source;
+            zshRcText = zshRcEntry.text;
+            zshXdgEnvText = nushellHomeConfig.home.file."${zshDotDirRelative}/.zshenv".text;
+            bootstrapSummary =
+              if
+                hasInfix "__DSQR_NU_HANDOFF" zshRcText
+                && hasInfix "ZSH_EXECUTION_STRING+x" zshRcText
+                && hasInfix "etc/profile.d/hm-session-vars.sh" zshXdgEnvText
+              then
+                {
+                  environment = nushellSessionVariables;
+                  handoffMarker = "__DSQR_NU_HANDOFF";
+                  commandGuard = "ZSH_EXECUTION_STRING";
+                }
+              else
+                builtins.throw "Darwin Nushell bootstrap must load Home Manager's environment and preserve zsh commands";
+          in
+          pkgs.runCommandLocal "nixos-config-nushell-zsh-bootstrap-${system}" { summary = builtins.toJSON bootstrapSummary; } ''
+            mkdir -p \
+              "$TMPDIR/home" \
+              "$TMPDIR/inherited-bin" \
+              "$TMPDIR/runtime" \
+              "$TMPDIR/zsh"
+
+            ln -s ${zshXdgEnv} "$TMPDIR/zsh/.zshenv"
+            ln -s ${zshRc} "$TMPDIR/zsh/.zshrc"
+
+            export HOME="$TMPDIR/home"
+            export NU_BOOTSTRAP_MARKER="$TMPDIR/zsh-command-ran"
+            export PATH="$TMPDIR/inherited-bin:/usr/bin:/bin"
+            export SHELL=/bin/zsh
+            export XDG_RUNTIME_DIR="$TMPDIR/runtime"
+            export ZDOTDIR="$TMPDIR/zsh"
+            unset \
+              __DSQR_NU_HANDOFF \
+              __HM_SESS_VARS_SOURCED \
+              __HM_ZSH_SESS_VARS_SOURCED
+
+            ${lib.getExe pkgs.zsh} -d -ic '
+              [[ "$NU_SMOKE_SESSION_VARIABLE" == available ]] || exit 91
+              [[ "$XDG_CONFIG_HOME" == /tmp/nixos-config-nushell-smoke/.config ]] || exit 92
+              [[ "$XDG_DATA_HOME" == /tmp/nixos-config-nushell-smoke/.local/share ]] || exit 93
+              [[ ":$PATH:" == *":/tmp/nixos-config-nushell-smoke/custom-bin:"* ]] || exit 94
+              [[ "$SHELL" == /bin/zsh ]] || exit 95
+              printf command-ran > "$NU_BOOTSTRAP_MARKER"
+            '
+            test "$(cat "$NU_BOOTSTRAP_MARKER")" = command-ran
+
+            mkdir -p "$out"
+            printf '%s\n' "$summary" > "$out/bootstrap.json"
+          '';
       };
     };
 }

@@ -7,10 +7,17 @@
       ...
     }:
     let
-      inherit (lib.attrsets) recursiveUpdate;
-      inherit (lib.modules) mkIf;
+      inherit (lib.attrsets)
+        filterAttrs
+        mapAttrs
+        optionalAttrs
+        recursiveUpdate
+        ;
+      inherit (lib.hm.nushell) mkNushellInline toNushell;
+      inherit (lib.meta) getExe;
+      inherit (lib.modules) mkDefault mkIf mkOrder;
       inherit (lib.options) mkEnableOption mkOption;
-      inherit (lib.strings) optionalString readFile;
+      inherit (lib.strings) escapeShellArg optionalString readFile;
       inherit (lib.types)
         anything
         attrsOf
@@ -27,6 +34,38 @@
           })
         else
           pkgs.nushell;
+      nuExecutable = getExe cfg.package;
+      portableSessionVariables = builtins.removeAttrs (filterAttrs (_: value: value != null) config.home.sessionVariables) [
+        "TERMINFO_DIRS"
+      ];
+      inheritedPath = mkNushellInline /* nu */ ''
+        (
+          ${toNushell { } config.home.sessionPath}
+          | append (
+              if (($env.PATH? | default [] | describe) starts-with "list") {
+                $env.PATH? | default []
+              } else {
+                $env.PATH? | default "" | split row (char esep)
+              }
+            )
+          | each { into string }
+          | uniq
+        )
+      '';
+      terminfoDirs = mkNushellInline /* nu */ ''
+        (
+          [${toNushell { } "${config.home.profileDirectory}/share/terminfo"}]
+          | append ($env.TERMINFO_DIRS? | default "" | split row (char esep))
+          | append ${toNushell { } "/usr/share/terminfo"}
+          | where { |directory| $directory != "" }
+          | uniq
+          | str join (char esep)
+        )
+      '';
+      nuSessionVariables =
+        mapAttrs (_: mkDefault) portableSessionVariables
+        // optionalAttrs (config.home.sessionPath != [ ]) { PATH = mkDefault inheritedPath; }
+        // optionalAttrs pkgs.stdenv.isDarwin { TERMINFO_DIRS = mkDefault terminfoDirs; };
     in
     {
       options.dsqr.home.nu = {
@@ -65,7 +104,7 @@
         zshPrelude = mkOption {
           type = lines;
           default = "";
-          description = "Extra zsh text prepended before the Darwin zsh-to-Nushell handoff.";
+          description = "Extra zsh text evaluated before the Darwin zsh-to-Nushell handoff.";
         };
 
         agenixIdentityFile = mkOption {
@@ -76,19 +115,34 @@
       };
 
       config = mkIf cfg.enable {
-        home.file.".zshrc" = mkIf pkgs.stdenv.isDarwin {
-          text = /* zsh */ ''
+        # Zsh exists only to establish the Darwin login environment before Nu.
+        # Keep prompt and completion integrations in their owning Nu process.
+        home.shell.enableZshIntegration = mkIf pkgs.stdenv.isDarwin false;
+
+        programs.zsh = mkIf pkgs.stdenv.isDarwin {
+          enable = true;
+          enableCompletion = false;
+          dotDir = "${config.xdg.configHome}/zsh";
+          initContent = mkOrder 1500 /* zsh */ ''
             ${optionalString (cfg.zshPrelude != "") cfg.zshPrelude}
 
-            # Ghostty launches zsh on Darwin; immediately hand off to Nushell
-            # with the Home Manager-managed config so prompt/theme/integrations load.
-            SHELL=${cfg.package}/bin/nu exec ${cfg.package}/bin/nu --config '${config.xdg.configHome}/nushell/config.nu'
+            # Home Manager loads session variables and session paths before this
+            # point. Hand off only a real interactive session so `zsh -c` and
+            # `zsh -ic` remain usable, and retain zsh when it is started from Nu.
+            if [[ -o interactive \
+              && -z "''${ZSH_EXECUTION_STRING+x}" \
+              && -z "''${__DSQR_NU_HANDOFF:-}" ]]; then
+              export __DSQR_NU_HANDOFF=1
+              export SHELL=${escapeShellArg nuExecutable}
+              exec ${escapeShellArg nuExecutable}
+            fi
           '';
         };
 
         programs.nushell = {
           enable = true;
           inherit (cfg) package;
+          environmentVariables = nuSessionVariables;
           settings = recursiveUpdate {
             show_banner = false;
             edit_mode = "vi";
