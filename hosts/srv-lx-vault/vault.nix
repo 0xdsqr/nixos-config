@@ -13,7 +13,7 @@ in
 {
   dsqr.nixos.vaultCertificates.vaultListener = {
     roleId = "1b2715fa-ae7b-e4f0-41b3-e739e52f0e79";
-    secretIdAgeFile = ../srv-lx-khaos/vault-listener-pki.secret-id.age;
+    secretIdAgeFile = ./vault-listener-pki.secret-id.age;
     inherit (listenerCertificate)
       certificateFile
       commonName
