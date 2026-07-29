@@ -75,8 +75,9 @@ def herdr-layout-existing-workspace [layout: string, directory: path] {
   $workspaces
   | where { |workspace|
       let tokens = ($workspace | get -o tokens | default {})
-      (($tokens | get -o dsqr_layout | default "") == $layout)
-        and (($tokens | get -o dsqr_cwd | default "") == ($directory | path expand))
+      let layout_matches = (($tokens | get -o dsqr_layout | default "") == $layout)
+      let directory_matches = (($tokens | get -o dsqr_cwd | default "") == ($directory | path expand))
+      $layout_matches and $directory_matches
     }
   | get 0?
 }
@@ -137,8 +138,9 @@ def herdr-layout-owned-workspace [
     $workspaces
     | where { |workspace|
         let tokens = ($workspace | get -o tokens | default {})
-        (($tokens | get -o dsqr_layout | default "") == $layout)
-          and (($tokens | get -o dsqr_cwd | default "") == $project_root)
+        let layout_matches = (($tokens | get -o dsqr_layout | default "") == $layout)
+        let directory_matches = (($tokens | get -o dsqr_cwd | default "") == $project_root)
+        $layout_matches and $directory_matches
       }
   }
 
