@@ -28,6 +28,7 @@ in
       multitenancy_enabled = false;
       architecture_storage = "v2";
       show_banner = false;
+      retention_period = "336h";
 
       server = {
         http_listen_address = address;
@@ -42,22 +43,7 @@ in
 
       pyroscopedb = {
         data_path = "/var/lib/pyroscope/data";
-        retention_policy_enforcement_interval = "5m";
-        retention_policy_min_disk_available_percentage = 0.15;
-        retention_policy_min_free_disk_gb = 15;
       };
-
-      compactor = {
-        data_dir = "/var/lib/pyroscope/compactor";
-        blocks_retention_period = "336h";
-        ring.store = "inmemory";
-      };
-
-      distributor.ring.store = "inmemory";
-      ring.store = "inmemory";
-      store_gateway.sharding_ring.store = "inmemory";
-      query_scheduler.ring.store = "inmemory";
-      overrides_exporter.ring.store = "inmemory";
 
       analytics.reporting_enabled = false;
     };

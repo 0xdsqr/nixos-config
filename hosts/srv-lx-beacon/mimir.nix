@@ -46,9 +46,9 @@ in
 
       compactor = {
         data_dir = "/var/lib/mimir/compactor";
-        blocks_retention_period = "336h";
-        ring.kvstore.store = "inmemory";
       };
+
+      limits.compactor_blocks_retention_period = "336h";
 
       ingester.ring = {
         kvstore.store = "inmemory";
