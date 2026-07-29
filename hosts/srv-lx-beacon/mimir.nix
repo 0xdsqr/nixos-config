@@ -38,6 +38,11 @@ in
         grpc_listen_port = 9096;
       };
 
+      memberlist = {
+        bind_addr = [ "127.0.0.1" ];
+        bind_port = 7947;
+      };
+
       blocks_storage = {
         backend = "filesystem";
         filesystem.dir = "/var/lib/mimir/blocks";

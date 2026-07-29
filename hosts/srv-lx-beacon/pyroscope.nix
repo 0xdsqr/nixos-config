@@ -37,6 +37,17 @@ in
         grpc_listen_port = 9097;
       };
 
+      metastore = {
+        address = "127.0.0.1:9097";
+        data_dir = "/var/lib/pyroscope/metastore";
+        raft = {
+          dir = "/var/lib/pyroscope/raft";
+          server_id = "127.0.0.1:9099";
+          bind_address = "127.0.0.1:9099";
+          advertise_address = "127.0.0.1:9099";
+        };
+      };
+
       storage = {
         backend = "filesystem";
         filesystem.dir = "/var/lib/pyroscope/shared";
