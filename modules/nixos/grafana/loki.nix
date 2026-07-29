@@ -80,10 +80,17 @@
                 target_label  = "service_name"
                 replacement   = "cloudflared"
               }
+
+              rule {
+                source_labels = ["__journal__systemd_unit"]
+                regex         = "stalwart\\.service"
+                target_label  = "service_name"
+                replacement   = "stalwart"
+              }
             }
 
             loki.source.journal "systemd" {
-              forward_to    = [loki.write.primary.receiver]
+              forward_to    = [loki.process.journal.receiver]
               relabel_rules = loki.relabel.journal.rules
               max_age       = "${lokiCfg.journalMaxAge}"
 

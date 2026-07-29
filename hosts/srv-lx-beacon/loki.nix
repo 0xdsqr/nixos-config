@@ -70,7 +70,7 @@ _: {
         }
       }
 
-      forward_to    = [loki.write.primary.receiver]
+      forward_to    = [loki.process.opnsense_syslog.receiver]
       relabel_rules = loki.relabel.opnsense_syslog.rules
     }
   '';
@@ -91,7 +91,7 @@ _: {
       auth_enabled = false;
 
       server = {
-        http_listen_address = "10.10.30.102";
+        http_listen_address = "0.0.0.0";
         http_listen_port = 3100;
         grpc_listen_address = "127.0.0.1";
       };

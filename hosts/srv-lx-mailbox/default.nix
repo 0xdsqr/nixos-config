@@ -23,6 +23,7 @@ let
     ++ [
       ../../profiles/dsqr/common.nix
       ../../profiles/dsqr/nixos.nix
+      ../../profiles/observability/nixos.nix
     ]
     ++ singleton (
       self.lib.mkHomeManagerSharedModule (
@@ -63,6 +64,12 @@ let
       hardware.report = ./srv-lx-mailbox.report.json;
 
       dsqr.nixos = {
+        alloy = {
+          role = "mail";
+          remoteWriteUrl = "http://srv-lx-beacon.tail72c837.ts.net:9090/api/v1/write";
+
+          loki.writeUrl = "http://srv-lx-beacon.tail72c837.ts.net:3100/loki/api/v1/push";
+        };
         fonts.enable = true;
         openssh.enable = true;
         tailscale.enable = true;

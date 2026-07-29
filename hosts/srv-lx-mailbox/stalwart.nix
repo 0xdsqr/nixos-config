@@ -146,6 +146,28 @@ let
   stalwartTemplate = (pkgs.formats.toml { }).generate "stalwart-runtime-template.toml" stalwartSettings;
 in
 {
+  dsqr.nixos.alloy.loki.journalProcessStages = ''
+    stage.match {
+      selector = "{unit=\"stalwart.service\"}"
+
+      stage.regex {
+        expression = `^[^ ]+ (?P<stalwart_level>TRACE|DEBUG|INFO|WARN|ERROR) .* \((?P<event>[a-z0-9.-]+)\).*$`
+      }
+
+      stage.regex {
+        expression = `listenerId = "(?P<listener>[^"]+)"`
+      }
+
+      stage.structured_metadata {
+        values = {
+          event          = "",
+          listener       = "",
+          stalwart_level = "",
+        }
+      }
+    }
+  '';
+
   age.secrets.cloudflareAcmeEnv.file = ./cloudflare-acme.env.age;
   age.secrets.stalwartAdminSecret.file = ./stalwart-admin.secret.age;
   age.secrets.stalwartAdminPassword.file = ./stalwart-admin.password.age;

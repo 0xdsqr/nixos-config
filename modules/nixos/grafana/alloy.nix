@@ -90,7 +90,7 @@
                 systemd {
                   enable_restarts = true
                   start_time      = true
-                  unit_include    = "(alloy|caddy|cloudflared|grafana|loki|postgresql|prometheus|restic-backups-.+|rustfs|tempo|temporal|vault|vault-agent-.+)\\.service"
+                  unit_include    = "(alloy|caddy|cloudflared|grafana|loki|postgresql|prometheus|restic-backups-.+|rustfs|stalwart|tempo|temporal|vault|vault-agent-.+)\\.service"
                 }
 
                 textfile {

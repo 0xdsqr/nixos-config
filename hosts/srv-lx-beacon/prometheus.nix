@@ -15,7 +15,7 @@ _: {
 
   services.prometheus = {
     enable = true;
-    listenAddress = "10.10.30.102";
+    listenAddress = "0.0.0.0";
     port = 9090;
     retentionTime = "14d";
     webExternalUrl = "https://prometheus.home.arpa/";
