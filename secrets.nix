@@ -69,7 +69,6 @@ mkSecretsForHost "srv-lx-beacon" [
   "hosts/srv-lx-khaos/rustfs.secret-key.age"
   "hosts/srv-lx-khaos/tailscale.auth-key.age"
   "hosts/srv-lx-khaos/temporal/postgres.env.age"
-  "hosts/srv-lx-khaos/vault-listener-pki.secret-id.age"
 ]
 // mkSecretsForHost "srv-lx-knox" [
   "hosts/srv-lx-knox/listener-pki.secret-id.age"
@@ -83,6 +82,10 @@ mkSecretsForHost "srv-lx-beacon" [
 // {
   "hosts/dev-mbp-personal/tailscale.auth-key.age".publicKeys = admins;
   "hosts/dev-mbp-stablecore/git.config.inc.age".publicKeys = admins;
+  "hosts/srv-lx-khaos/vault-listener-pki.secret-id.age".publicKeys = [
+    hosts.srv-lx-khaos
+    hosts.srv-lx-vault
+  ] ++ admins;
   "hosts/srv-mini-master/tailscale.auth-key.age".publicKeys = forHost "srv-mini-master";
   "hosts/srv-mini-node-01/tailscale.auth-key.age".publicKeys = forHost "srv-mini-node-01";
 }
