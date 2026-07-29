@@ -138,7 +138,7 @@
         };
       };
 
-      frontend.instance_addr = "127.0.0.1";
+      frontend_worker.frontend_address = "127.0.0.1:9095";
 
       memberlist = {
         advertise_addr = "127.0.0.1";
