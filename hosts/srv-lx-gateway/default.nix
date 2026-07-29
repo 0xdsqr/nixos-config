@@ -65,7 +65,7 @@ in
               "100.64.0.0/10"
             ];
             httpRoutes."vault.home.arpa" = {
-              upstream = "https://10.10.30.107:8200";
+              upstream = "https://10.10.30.110:8200";
               tlsServerName = "vault.service.home.arpa";
               pathRegexp = "^/v1/(pki_root|pki_int)/(issuer/[^/]+/(der|crl/der)|ocsp)$";
             };
@@ -99,7 +99,7 @@ in
               };
               "temporal.home.arpa".upstream = "http://10.10.30.107:8088";
               "vault.home.arpa" = {
-                upstream = "https://10.10.30.107:8200";
+                upstream = "https://10.10.30.110:8200";
                 tlsServerName = "vault.service.home.arpa";
               };
             };
