@@ -191,7 +191,27 @@ def herdr-layout-start-agent [
     ]
     | append $definition.args
   )
-  herdr-layout-json $start_arguments | ignore
+
+  mut last_error = ""
+  for attempt in 1..6 {
+    let completed = (
+      do { ^$HERDR_LAYOUT_CONFIG.binary ...$start_arguments }
+      | complete
+    )
+    if $completed.exit_code == 0 {
+      return
+    }
+
+    $last_error = ($completed.stderr | str trim)
+    if not ($last_error | str contains "agent_pane_busy") {
+      herdr-layout-error $last_error
+    }
+    if $attempt < 6 {
+      sleep 200ms
+    }
+  }
+
+  herdr-layout-error $last_error
 }
 
 # Build or focus an editor + agent + shell workspace for one project.
