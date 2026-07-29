@@ -226,7 +226,6 @@
         "${config.services.loki.package}/bin/loki-canary"
         "-addr=127.0.0.1:3100"
         "-push=true"
-        "-labels=env=homelab,job=loki-canary,service_name=loki-canary"
         "-port=3500"
         "-interval=30s"
         "-query-timeout=10s"
