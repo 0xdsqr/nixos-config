@@ -23,17 +23,18 @@ in
 
   services.pyroscope = {
     enable = true;
+    extraFlags = [ "--retention-period=336h" ];
     settings = {
       target = "all";
       multitenancy_enabled = false;
       architecture_storage = "v2";
       show_banner = false;
-      retention_period = "336h";
 
       server = {
         http_listen_address = address;
         http_listen_port = port;
         grpc_listen_address = "127.0.0.1";
+        grpc_listen_port = 9097;
       };
 
       storage = {
