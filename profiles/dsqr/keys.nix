@@ -4,6 +4,7 @@ let
   };
 
   hosts = {
+    srv-lx-backup = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGX2SWU0YDLdqVNZLHvEsam2sI8nQJwP49LA5FBTO2Sd root@srv-lx-backup";
     srv-lx-beacon = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEg0Wa1hKeMF7yipTmlxdC+ZIiY9sEvlG5wgqX76/64k root@srv-lx-beacon";
     srv-lx-gateway = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEu2uKz+OGZmCnECDZ3OMItW3rTInjNEFxgB4p5oDqxn root@srv-lx-gateway";
     srv-lx-k8s-master-01 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBa0ivhIPpBU+lTUGz9/uK6eQd9rT9Y3UrSn55sMkmpe root@srv-lx-k8s-master-01";
@@ -12,6 +13,7 @@ let
     srv-lx-khaos = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO96/hopscQBRbeWkv6CCcCNpe/5lwYt13c3bEWBDkyD root@srv-lx-khaos";
     srv-lx-knox = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICXPwoxWYx0xNgSnAR30YX/GWr/aig06ALZT2qD1bufy root@srv-lx-knox";
     srv-lx-mailbox = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDrwjdEz7mbg7E7BO6FqNG4S6eAcx73ktPhniXDwTGBu root@srv-lx-mailbox";
+    srv-lx-vault = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEW5iw8i1LW1uscFa9TE+8DPc4FPF67n/LZicWR0OIHz root@srv-lx-vault";
     srv-mini-master = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBuwrWQjAbviB9R1ScthdebOFHR4h9FJ48VanjWfK0c2 root@srv-mini-master";
     srv-mini-node-01 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF74AAT/4nYE0Abn3IdNE15xrHpFWViOMbCd7hKKtbH8 root@srv-mini-node-01";
   };
