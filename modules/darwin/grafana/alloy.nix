@@ -23,7 +23,9 @@
       alloyConfig = pkgs.writeText "config.alloy" (
         concatStringsSep "\n\n" (
           singleton /* alloy */ ''
-            prometheus.exporter.unix "host" {}
+            prometheus.exporter.unix "host" {
+              disable_collectors = ["thermal"]
+            }
 
             prometheus.relabel "host" {
               forward_to = [prometheus.remote_write.primary.receiver]
