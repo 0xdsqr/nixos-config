@@ -59,7 +59,10 @@
           ];
         };
 
-        ui.accent = colors.magentaBright;
+        ui = {
+          accent = colors.magentaBright;
+          sidebar_start_collapsed = false;
+        };
       };
     in
     {
