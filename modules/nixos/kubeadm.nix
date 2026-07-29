@@ -89,8 +89,12 @@
           allowedTCPPorts = [
             10250
             4240
+            7946
           ];
-          allowedUDPPorts = [ 8472 ];
+          allowedUDPPorts = [
+            7946
+            8472
+          ];
         };
 
         boot.kernelModules = [
