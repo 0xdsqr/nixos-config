@@ -86,5 +86,8 @@ in
   systemd.services.mimir = {
     after = [ "network-online.target" ];
     wants = [ "network-online.target" ];
+    preStart = ''
+      mkdir -p /var/lib/mimir/alertmanager /var/lib/mimir/rules
+    '';
   };
 }
