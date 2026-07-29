@@ -228,7 +228,7 @@
         "-push=true"
         "-labels=env=homelab,job=loki-canary,service_name=loki-canary"
         "-port=3500"
-        "-interval=5s"
+        "-interval=30s"
         "-query-timeout=10s"
       ];
       NoNewPrivileges = true;
