@@ -34,7 +34,7 @@ in
       server = {
         http_listen_address = address;
         http_listen_port = port;
-        grpc_listen_address = address;
+        grpc_listen_address = "0.0.0.0";
         grpc_listen_port = 9096;
       };
 
