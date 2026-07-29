@@ -82,6 +82,7 @@ in
         networking.firewall.extraInputRules = ''
           ip saddr { 10.10.30.0/24, 10.10.60.100/32 } tcp dport { 8000, 9090, 3100, 4317, 4318 } accept
           ip saddr 10.10.10.1/32 tcp dport 1514 accept
+          iifname "tailscale0" ip saddr 100.125.141.48/32 tcp dport 1515 accept
         '';
         networking.dhcpcd.wait = "ipv4";
         networking.nftables.enable = true;

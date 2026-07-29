@@ -65,7 +65,20 @@
             singleton /* alloy */ ''
               loki.write "primary" {
                 endpoint {
-                  url = "${if lokiCfg.writeUrl == null then "" else lokiCfg.writeUrl}"
+                  url                 = "${if lokiCfg.writeUrl == null then "" else lokiCfg.writeUrl}"
+                  min_backoff_period  = "500ms"
+                  max_backoff_period  = "30s"
+                  max_backoff_retries = 20
+                  retry_on_http_429   = true
+                  remote_timeout      = "10s"
+                }
+
+                wal {
+                  enabled            = true
+                  drain_timeout      = "30s"
+                  min_read_frequency = "250ms"
+                  max_read_frequency = "1s"
+                  max_segment_age    = "1h"
                 }
               }
 

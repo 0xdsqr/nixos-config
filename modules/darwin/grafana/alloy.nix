@@ -135,6 +135,8 @@
               "run"
               "--storage.path=/var/lib/grafana-alloy"
               "--server.http.listen-addr=127.0.0.1:12345"
+              "--stability.level=experimental"
+              "--disable-reporting"
               "${alloyConfig}"
             ];
           };
