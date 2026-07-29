@@ -10,7 +10,6 @@
     let
       inherit (lib.attrsets) attrByPath recursiveUpdate;
       inherit (lib.hm.nushell) toNushell;
-      inherit (lib.lists) optional;
       inherit (lib.meta) getExe;
       inherit (lib.modules) mkAfter mkIf;
       inherit (lib.options) mkEnableOption mkOption;
@@ -29,8 +28,6 @@
       nuEnabled = attrByPath [ "dsqr" "home" "nu" "enable" ] false config;
       colors = config.dsqr.theme.colors;
       tomlFormat = pkgs.formats.toml { };
-      integrationsEnabled = cfg.integrations.codex.enable || cfg.integrations.claude.enable || cfg.integrations.pi.enable;
-
       integrationArtifacts = pkgs.runCommand "herdr-${cfg.package.version}-agent-integrations" { } ''
         export HOME="$TMPDIR/home"
         mkdir -p \
@@ -41,6 +38,14 @@
         CODEX_HOME="$out/codex" ${getExe cfg.package} integration install codex
         CLAUDE_CONFIG_DIR="$out/claude" ${getExe cfg.package} integration install claude
         PI_CODING_AGENT_DIR="$out/pi" ${getExe cfg.package} integration install pi
+
+        for hook in \
+          "$out/codex/herdr-agent-state.sh" \
+          "$out/claude/hooks/herdr-agent-state.sh"
+        do
+          substituteInPlace "$hook" \
+            --replace-fail "python3" "${getExe pkgs.python3}"
+        done
       '';
 
       layoutScript = pkgs.writeText "herdr-layouts.nu" ''
@@ -208,7 +213,7 @@
 
         dsqr.home.desktop.ghostty.herdr.integrations.artifacts = integrationArtifacts;
 
-        home.packages = [ cfg.package ] ++ optional integrationsEnabled pkgs.python3;
+        home.packages = [ cfg.package ];
 
         programs.nushell.extraConfig = mkIf cfg.layouts.enable (mkAfter /* nu */ ''
           source ${layoutScript}
