@@ -90,6 +90,7 @@
         };
 
         terminal.default_shell = "${config.home.profileDirectory}/bin/nu";
+        worktrees.directory = "${config.xdg.stateHome}/herdr/worktrees";
 
         keys = {
           prefix = "ctrl+space";

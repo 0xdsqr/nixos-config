@@ -39,7 +39,7 @@ in
         dsqr.darwin = {
           determinate.enable = true;
           grafana.alloy.enable = false;
-          hostname.smb.enable = true;
+          hostname.smb.enable = false;
           security.certificates.homeRootCA.systemKeychain.enable = true;
 
           desktop = {

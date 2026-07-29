@@ -81,11 +81,9 @@ def herdr-layout-existing-workspace [layout: string, directory: path] {
   | get 0?
 }
 
-def herdr-layout-record-workspace [
+def herdr-layout-report-workspace [
   workspace_id: string
-  layout: string
-  directory: path
-  --agent: string
+  tokens: record
 ] {
   mut arguments = [
     "workspace"
@@ -93,17 +91,105 @@ def herdr-layout-record-workspace [
     $workspace_id
     "--source"
     "dsqr:layouts"
-    "--token"
-    $"dsqr_layout=($layout)"
-    "--token"
-    $"dsqr_cwd=($directory | path expand)"
   ]
 
-  if $agent != null {
-    $arguments = ($arguments | append ["--token" $"dsqr_agent=($agent)"])
+  for token in ($tokens | transpose name value) {
+    $arguments = (
+      $arguments
+      | append ["--token" $"($token.name)=($token.value)"]
+    )
   }
 
   herdr-layout-exec $arguments | ignore
+}
+
+def herdr-layout-record-workspace [
+  workspace_id: string
+  layout: string
+  directory: path
+  --agent: string
+  --extra: record = {}
+] {
+  let agent_token = if $agent == null { {} } else { { dsqr_agent: $agent } }
+  herdr-layout-report-workspace $workspace_id (
+    {
+      dsqr_layout: $layout
+      dsqr_cwd: ($directory | path expand)
+    }
+    | merge $agent_token
+    | merge $extra
+  )
+}
+
+def herdr-layout-owned-workspace [
+  layout: string
+  directory: path
+  workspace_id: string = ""
+] {
+  let project_root = ($directory | path expand)
+  let workspaces = (
+    herdr-layout-json ["workspace" "list"]
+    | get result.workspaces
+  )
+  let candidates = if ($workspace_id | is-not-empty) {
+    $workspaces | where workspace_id == $workspace_id
+  } else {
+    $workspaces
+    | where { |workspace|
+        let tokens = ($workspace | get -o tokens | default {})
+        (($tokens | get -o dsqr_layout | default "") == $layout)
+          and (($tokens | get -o dsqr_cwd | default "") == $project_root)
+      }
+  }
+
+  if ($candidates | is-empty) {
+    herdr-layout-error (
+      if ($workspace_id | is-not-empty) {
+        $"No managed ($layout) workspace found with id ($workspace_id)"
+      } else {
+        $"No managed ($layout) workspace found for ($project_root)"
+      }
+    )
+  }
+
+  if ($candidates | length) > 1 {
+    let ids = ($candidates | get workspace_id | str join ", ")
+    herdr-layout-error (
+      $"Multiple managed ($layout) workspaces match: ($ids). "
+      + "Choose one with --workspace."
+    )
+  }
+
+  let workspace = ($candidates | first)
+  let tokens = ($workspace | get -o tokens | default {})
+  if (($tokens | get -o dsqr_layout | default "") != $layout) {
+    herdr-layout-error $"Workspace ($workspace.workspace_id) is not a managed ($layout) layout"
+  }
+
+  $workspace
+}
+
+def herdr-layout-start-agent [
+  name: string
+  definition: record
+  pane_id: string
+] {
+  let start_arguments = (
+    [
+      "agent"
+      "start"
+      $name
+      "--kind"
+      $definition.kind
+      "--pane"
+      $pane_id
+      "--timeout"
+      "60000"
+      "--"
+    ]
+    | append $definition.args
+  )
+  herdr-layout-json $start_arguments | ignore
 }
 
 # Build or focus an editor + agent + shell workspace for one project.
@@ -190,22 +276,7 @@ def tdl [
   ] | ignore
 
   let agent_name = $"tdl-($agent)-($workspace_id)"
-  let start_arguments = (
-    [
-      "agent"
-      "start"
-      $agent_name
-      "--kind"
-      $agent_definition.kind
-      "--pane"
-      $agent_pane
-      "--timeout"
-      "60000"
-      "--"
-    ]
-    | append $agent_definition.args
-  )
-  herdr-layout-json $start_arguments | ignore
+  herdr-layout-start-agent $agent_name $agent_definition $agent_pane
 
   if $focus == "agent" {
     herdr-layout-exec ["agent" "focus" $agent_name] | ignore
@@ -223,6 +294,30 @@ def tdl [
     agent_pane: $agent_pane
     shell_pane: $shell_pane
     agent: $agent_name
+  }
+}
+
+# Close the managed tdl workspace for one project.
+def tdl-close [
+  --cwd: path
+  --workspace: string
+] {
+  let requested_directory = ($cwd | default $env.PWD)
+  let project_root = (herdr-layout-project-root $requested_directory)
+  let target = (
+    herdr-layout-owned-workspace
+      "tdl"
+      $project_root
+      ($workspace | default "")
+  )
+
+  herdr-layout-json ["workspace" "close" $target.workspace_id] | ignore
+  {
+    closed: true
+    layout: "tdl"
+    project: ($project_root | path basename)
+    path: $project_root
+    workspace_id: $target.workspace_id
   }
 }
 
@@ -293,29 +388,63 @@ def tdlm [
   $layouts
 }
 
-# Build a balanced grid of agents sharing the current checkout.
-def tsl [
+def herdr-layout-swarm-id [] {
+  random uuid | split row "-" | first
+}
+
+def herdr-layout-create-worktree [
+  project_root: path
+  branch: string
+  label: string
+  base: string
+] {
+  herdr-layout-json [
+    "worktree"
+    "create"
+    "--cwd"
+    $project_root
+    "--branch"
+    $branch
+    "--base"
+    $base
+    "--label"
+    $label
+    "--no-focus"
+    "--json"
+  ]
+}
+
+def herdr-layout-move-worktree-pane [
+  created: record
+  target_tab: string
+  target_pane: string
+  direction: string
+  ratio: string
+] {
+  herdr-layout-json [
+    "pane"
+    "move"
+    $created.result.root_pane.pane_id
+    "--tab"
+    $target_tab
+    "--target-pane"
+    $target_pane
+    "--split"
+    $direction
+    "--ratio"
+    $ratio
+    "--no-focus"
+  ]
+}
+
+# Build a balanced grid of agents sharing one checkout.
+def herdr-layout-tsl-shared [
   panes: int
-  agent: string = "codex"
-  --cwd: path
-  --shared
+  agent: string
+  project_root: path
+  swarm_id: string
 ] {
   let agent_definition = (herdr-layout-agent $agent)
-  if not $shared {
-    herdr-layout-error (
-      "tsl starts multiple agents in one checkout. Pass --shared only for "
-      + "read-only/research work; worktree-backed swarms come later."
-    )
-  }
-
-  if $panes < 2 or $panes > $HERDR_LAYOUT_CONFIG.maxSwarmPanes {
-    herdr-layout-error (
-      $"panes must be between 2 and ($HERDR_LAYOUT_CONFIG.maxSwarmPanes)"
-    )
-  }
-
-  let requested_directory = ($cwd | default $env.PWD)
-  let project_root = (herdr-layout-project-root $requested_directory)
   let project_name = ($project_root | path basename)
   let created = (
     herdr-layout-json [
@@ -331,7 +460,10 @@ def tsl [
   let workspace_id = $created.result.workspace.workspace_id
   let root_pane = $created.result.root_pane.pane_id
 
-  herdr-layout-record-workspace $workspace_id "tsl" $project_root --agent $agent
+  herdr-layout-record-workspace $workspace_id "tsl" $project_root --agent $agent --extra {
+    dsqr_swarm: $swarm_id
+    dsqr_shared: "true"
+  }
 
   let columns = ($panes | math sqrt | math ceil | into int)
   mut column_panes = [$root_pane]
@@ -388,23 +520,8 @@ def tsl [
 
   mut agents = []
   for pane in ($agent_panes | enumerate) {
-    let agent_name = $"tsl-($agent)-($workspace_id)-($pane.index + 1)"
-    let start_arguments = (
-      [
-        "agent"
-        "start"
-        $agent_name
-        "--kind"
-        $agent_definition.kind
-        "--pane"
-        $pane.item
-        "--timeout"
-        "60000"
-        "--"
-      ]
-      | append $agent_definition.args
-    )
-    herdr-layout-json $start_arguments | ignore
+    let agent_name = $"tsl-($agent)-($swarm_id)-($pane.index + 1)"
+    herdr-layout-start-agent $agent_name $agent_definition $pane.item
     $agents = ($agents | append $agent_name)
   }
 
@@ -419,5 +536,321 @@ def tsl [
     workspace_id: $workspace_id
     agents: $agents
     shared_checkout: true
+  }
+}
+
+# Build a balanced grid where every agent owns a native Herdr Git worktree.
+def herdr-layout-tsl-isolated [
+  panes: int
+  agent: string
+  project_root: path
+  swarm_id: string
+  base: string
+] {
+  let agent_definition = (herdr-layout-agent $agent)
+  let project_name = ($project_root | path basename)
+  let branch_prefix = $"herdr/tsl-($swarm_id)"
+  let source_status = (
+    do { ^git -C $project_root status --porcelain }
+    | complete
+  )
+
+  if $source_status.exit_code != 0 {
+    herdr-layout-error "Isolated tsl requires a Git repository"
+  }
+  if not ($source_status.stdout | str trim | is-empty) {
+    herdr-layout-error (
+      "The source checkout has uncommitted changes. Commit or stash them "
+      + "before creating isolated worktrees, or use --shared for research-only work."
+    )
+  }
+
+  let first_branch = $"($branch_prefix)-1"
+  let first = (
+    herdr-layout-create-worktree
+      $project_root
+      $first_branch
+      $"($project_name)-swarm"
+      $base
+  )
+  let workspace_id = $first.result.workspace.workspace_id
+  let target_tab = $first.result.tab.tab_id
+  let root_pane = $first.result.root_pane.pane_id
+
+  herdr-layout-record-workspace $workspace_id "tsl" $project_root --agent $agent --extra {
+    dsqr_swarm: $swarm_id
+    dsqr_shared: "false"
+    dsqr_branch_prefix: $branch_prefix
+  }
+
+  mut worktrees = [
+    {
+      branch: $first.result.worktree.branch
+      path: $first.result.worktree.path
+    }
+  ]
+  mut next_index = 2
+  let columns = ($panes | math sqrt | math ceil | into int)
+  mut column_panes = [$root_pane]
+  mut remaining_pane = $root_pane
+
+  if $columns > 1 {
+    for split_index in 1..<$columns {
+      let branch = $"($branch_prefix)-($next_index)"
+      let created = (
+        herdr-layout-create-worktree
+          $project_root
+          $branch
+          $"($project_name)-swarm-($next_index)"
+          $base
+      )
+      let remaining_columns = ($columns - $split_index + 1)
+      let ratio = (1.0 / $remaining_columns | into string)
+      let moved = (
+        herdr-layout-move-worktree-pane
+          $created
+          $target_tab
+          $remaining_pane
+          "right"
+          $ratio
+      )
+      $remaining_pane = $moved.result.move_result.pane.pane_id
+      $column_panes = ($column_panes | append $remaining_pane)
+      $worktrees = (
+        $worktrees
+        | append {
+            branch: $created.result.worktree.branch
+            path: $created.result.worktree.path
+          }
+      )
+      $next_index = $next_index + 1
+    }
+  }
+
+  let base_rows = (($panes / $columns) | math floor | into int)
+  let extra_rows = ($panes mod $columns)
+  mut agent_panes = []
+
+  for column in ($column_panes | enumerate) {
+    let row_count = (
+      $base_rows
+      + if $column.index < $extra_rows { 1 } else { 0 }
+    )
+    $agent_panes = ($agent_panes | append $column.item)
+
+    if $row_count == 2 {
+      let branch = $"($branch_prefix)-($next_index)"
+      let created = (
+        herdr-layout-create-worktree
+          $project_root
+          $branch
+          $"($project_name)-swarm-($next_index)"
+          $base
+      )
+      let moved = (
+        herdr-layout-move-worktree-pane
+          $created
+          $target_tab
+          $column.item
+          "down"
+          "0.50"
+      )
+      $agent_panes = ($agent_panes | append $moved.result.move_result.pane.pane_id)
+      $worktrees = (
+        $worktrees
+        | append {
+            branch: $created.result.worktree.branch
+            path: $created.result.worktree.path
+          }
+      )
+      $next_index = $next_index + 1
+    }
+  }
+
+  mut agents = []
+  for pane in ($agent_panes | enumerate) {
+    let agent_name = $"tsl-($agent)-($swarm_id)-($pane.index + 1)"
+    herdr-layout-start-agent $agent_name $agent_definition $pane.item
+    $agents = ($agents | append $agent_name)
+  }
+
+  herdr-layout-exec ["workspace" "focus" $workspace_id] | ignore
+  herdr-layout-exec ["agent" "focus" ($agents | first)] | ignore
+
+  {
+    created: true
+    layout: "tsl"
+    project: $project_name
+    path: $project_root
+    workspace_id: $workspace_id
+    swarm_id: $swarm_id
+    agents: $agents
+    worktrees: $worktrees
+    shared_checkout: false
+  }
+}
+
+# Build an isolated worktree swarm by default; --shared is an explicit escape hatch.
+def tsl [
+  panes: int
+  agent: string = "codex"
+  --cwd: path
+  --base: string = "HEAD"
+  --shared
+] {
+  herdr-layout-agent $agent | ignore
+  if $panes < 2 or $panes > $HERDR_LAYOUT_CONFIG.maxSwarmPanes {
+    herdr-layout-error (
+      $"panes must be between 2 and ($HERDR_LAYOUT_CONFIG.maxSwarmPanes)"
+    )
+  }
+
+  let requested_directory = ($cwd | default $env.PWD)
+  let project_root = (herdr-layout-project-root $requested_directory)
+  let swarm_id = (herdr-layout-swarm-id)
+
+  if $shared {
+    herdr-layout-tsl-shared $panes $agent $project_root $swarm_id
+  } else {
+    herdr-layout-tsl-isolated $panes $agent $project_root $swarm_id $base
+  }
+}
+
+# Close a managed swarm and remove only its Herdr-created worktree checkouts.
+def tsl-clean [
+  --cwd: path
+  --workspace: string
+  --keep-worktrees
+  --force
+] {
+  let requested_directory = ($cwd | default $env.PWD)
+  let project_root = (herdr-layout-project-root $requested_directory)
+  let target = (
+    herdr-layout-owned-workspace
+      "tsl"
+      $project_root
+      ($workspace | default "")
+  )
+  let tokens = ($target | get -o tokens | default {})
+  let shared = (($tokens | get -o dsqr_shared | default "false") == "true")
+
+  if $shared {
+    herdr-layout-json ["workspace" "close" $target.workspace_id] | ignore
+    return {
+      closed: true
+      layout: "tsl"
+      workspace_id: $target.workspace_id
+      shared_checkout: true
+      removed_worktrees: []
+    }
+  }
+
+  let branch_prefix = ($tokens | get -o dsqr_branch_prefix | default "")
+  if not ($branch_prefix | str starts-with "herdr/tsl-") {
+    herdr-layout-error (
+      $"Workspace ($target.workspace_id) has no safe managed swarm branch prefix"
+    )
+  }
+
+  let worktree_result = (
+    herdr-layout-json [
+      "worktree"
+      "list"
+      "--workspace"
+      $target.workspace_id
+      "--json"
+    ]
+  )
+  let repo_root = $worktree_result.result.source.repo_root
+  let worktrees = (
+    $worktree_result.result.worktrees
+    | where { |worktree|
+        let branch = ($worktree | get -o branch | default "")
+        $worktree.is_linked_worktree and ($branch | str starts-with $branch_prefix)
+      }
+  )
+
+  if ($worktrees | is-empty) {
+    herdr-layout-error (
+      $"No Herdr-created worktrees match ($branch_prefix); refusing cleanup"
+    )
+  }
+
+  if not $keep_worktrees and not $force {
+    let dirty = (
+      $worktrees
+      | where { |worktree|
+          let status = (
+            do { ^git -C $worktree.path status --porcelain }
+            | complete
+          )
+          $status.exit_code != 0 or not ($status.stdout | str trim | is-empty)
+        }
+    )
+    if not ($dirty | is-empty) {
+      let paths = ($dirty | get path | str join ", ")
+      herdr-layout-error (
+        $"Dirty swarm worktrees were preserved: ($paths). "
+        + "Commit the work or rerun with --force."
+      )
+    }
+  }
+
+  herdr-layout-json ["workspace" "close" $target.workspace_id] | ignore
+
+  if $keep_worktrees {
+    return {
+      closed: true
+      layout: "tsl"
+      workspace_id: $target.workspace_id
+      shared_checkout: false
+      removed_worktrees: []
+      kept_worktrees: ($worktrees | select branch path)
+    }
+  }
+
+  mut removed = []
+  for worktree in $worktrees {
+    let opened = (
+      herdr-layout-json [
+        "worktree"
+        "open"
+        "--cwd"
+        $repo_root
+        "--path"
+        $worktree.path
+        "--label"
+        "swarm-cleanup"
+        "--no-focus"
+        "--json"
+      ]
+    )
+    mut remove_arguments = [
+      "worktree"
+      "remove"
+      "--workspace"
+      $opened.result.workspace.workspace_id
+    ]
+    if $force {
+      $remove_arguments = ($remove_arguments | append "--force")
+    }
+    $remove_arguments = ($remove_arguments | append "--json")
+    herdr-layout-json $remove_arguments | ignore
+    $removed = (
+      $removed
+      | append {
+          branch: $worktree.branch
+          path: $worktree.path
+        }
+    )
+  }
+
+  {
+    closed: true
+    layout: "tsl"
+    workspace_id: $target.workspace_id
+    shared_checkout: false
+    removed_worktrees: $removed
+    branches_preserved: ($removed | get branch)
   }
 }
