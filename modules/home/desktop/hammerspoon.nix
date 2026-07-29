@@ -7,12 +7,20 @@
       ...
     }:
     let
+      inherit (lib.attrsets) attrByPath;
       inherit (lib.lists) singleton;
+      inherit (lib.meta) getExe;
       inherit (lib.modules) mkIf;
       inherit (lib.options) mkEnableOption mkOption;
+      inherit (lib.strings) optionalString;
       inherit (lib.types) str;
 
       cfg = config.dsqr.home.desktop.hammerspoon;
+      herdrCfg = attrByPath [ "dsqr" "home" "desktop" "ghostty" "herdr" ] {
+        enable = false;
+        package = null;
+      } config;
+      herdrExecutable = if herdrCfg.enable then getExe herdrCfg.package else "";
       inherit (pkgs.stdenv.hostPlatform) isDarwin;
     in
     {
@@ -53,6 +61,7 @@
             local ghostty = "Ghostty"
             local browser = ${builtins.toJSON cfg.browserApplication}
             local slack = ${builtins.toJSON cfg.slackApplication}
+            ${optionalString herdrCfg.enable "local herdr = ${builtins.toJSON herdrExecutable}"}
 
             local function placeGhostty()
               local app = hs.application.get(ghostty)
@@ -209,6 +218,18 @@
               sendGhosttyKeystroke({ "ctrl", "shift" }, "t")
             end
 
+            ${optionalString herdrCfg.enable /* lua */ ''
+              local function launchHerdr()
+                hs.task.new("/usr/bin/open", nil, {
+                  "-na",
+                  "Ghostty.app",
+                  "--args",
+                  "-e",
+                  herdr,
+                }):start()
+              end
+            ''}
+
             local function launchNeovimTab()
               local app = hs.application.get(ghostty)
 
@@ -265,6 +286,10 @@
 
             hs.hotkey.bind(super, "return", launchGhostty)
             hs.hotkey.bind(super, "padenter", launchGhostty)
+            ${optionalString herdrCfg.enable /* lua */ ''
+              hs.hotkey.bind(super_alt, "return", launchHerdr)
+              hs.hotkey.bind(super_alt, "padenter", launchHerdr)
+            ''}
             hs.hotkey.bind(super, "n", launchNeovimTab)
 
             hs.hotkey.bind(super_shift, "return", launchBrowser)

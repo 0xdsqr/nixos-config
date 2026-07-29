@@ -1,4 +1,6 @@
 {
+  # Ghostty owns terminal rendering and windows. Herdr owns persistent panes,
+  # tabs, and workspaces, so this module intentionally has no split bindings.
   flake.homeModules.ghostty =
     {
       config,

@@ -93,6 +93,8 @@ in
           };
 
           dsqr.home = {
+            desktop.ghostty.herdr.enable = true;
+
             agentSkills = {
               git-workflow.targets = [ "claude" ];
               i-have-adhd.targets = [

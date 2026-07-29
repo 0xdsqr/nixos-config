@@ -8,6 +8,7 @@
     }:
     let
       inherit (lib.attrsets)
+        attrByPath
         filterAttrs
         mapAttrs
         optionalAttrs
@@ -27,6 +28,10 @@
         str
         ;
       cfg = config.dsqr.home.nu;
+      themeColors = attrByPath [ "dsqr" "theme" "colors" ] {
+        magentaBright = "light_magenta";
+        red = "red";
+      } config;
       defaultPackage =
         if pkgs.stdenv.isDarwin then
           pkgs.nushell.overrideAttrs (_: {
@@ -146,6 +151,17 @@
           settings = recursiveUpdate {
             show_banner = false;
             edit_mode = "vi";
+            cursor_shape = {
+              emacs = "line";
+              vi_insert = "line";
+              vi_normal = "block";
+            };
+            use_kitty_protocol = true;
+            highlight_resolved_externals = true;
+            color_config = {
+              shape_external = themeColors.red;
+              shape_external_resolved = themeColors.magentaBright;
+            };
             history = {
               file_format = "sqlite";
               max_size = 100000;
