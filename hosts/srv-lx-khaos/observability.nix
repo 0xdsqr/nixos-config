@@ -14,7 +14,7 @@ _: {
       metrics_path    = "/v1/sys/metrics"
       scrape_interval = "15s"
       params = {
-        format = ["prometheus"]
+        format = ["prometheus"],
       }
       forward_to = [prometheus.remote_write.primary.receiver]
     }
