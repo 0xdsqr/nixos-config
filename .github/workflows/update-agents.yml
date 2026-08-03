@@ -11,6 +11,7 @@ concurrency:
 
 permissions:
   contents: write
+  actions: write
   id-token: write
 
 jobs:
@@ -59,3 +60,5 @@ jobs:
           fi
           git diff --exit-code
           git push
+          # Pushes made with GITHUB_TOKEN do not trigger other workflows.
+          gh workflow run build-agents.yml --ref master
