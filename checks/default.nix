@@ -213,7 +213,7 @@ in
 
         nushell-smoke = pkgs.runCommandLocal "nixos-config-nushell-smoke-${system}" { } ''
           export HOME=${lib.escapeShellArg nushellSmokeHomeDirectory}
-          export PATH="$TMPDIR/inherited-bin:/usr/bin:/bin"
+          export PATH="${lib.makeBinPath [ pkgs.coreutils ]}:$TMPDIR/inherited-bin:/usr/bin:/bin"
           export XDG_RUNTIME_DIR="$TMPDIR/runtime"
           unset \
             CLAUDE_CONFIG_DIR \
