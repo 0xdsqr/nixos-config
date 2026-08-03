@@ -11,7 +11,6 @@ concurrency:
 
 permissions:
   contents: write
-  actions: write
   id-token: write
 
 jobs:
@@ -35,28 +34,28 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if git diff --quiet -- packages; then
+          if git diff --quiet -- packages flake.lock; then
             echo "no version changes"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           declare -A package_files=(
-            [claude-code]="packages/claude-code/package.nix"
-            [codex]="packages/codex/cli.nix"
-            [codexbar]="packages/codex/bar.nix"
+            [claude-code]="packages/agents/claude-code/package.nix"
+            [codex]="packages/agents/codex/cli.nix"
+            [codexbar]="packages/agents/codex/bar.nix"
+            [pi]="packages/agents/pi/package.nix"
           )
-          for pkg in claude-code codex codexbar; do
+          for pkg in claude-code codex codexbar pi; do
             file="${package_files[$pkg]}"
             git diff --quiet -- "$file" && continue
             version="$(sed -n 's/.*version = "\([^"]*\)".*/\1/p' "$file" | head -1)"
             git add "$file"
             git commit -m "chore($pkg): bump to $version"
           done
-          if ! git diff --quiet -- packages/pi/package.nix; then
-            version="$(sed -n 's/.*version = "\([^"]*\)".*/\1/p' packages/pi/package.nix | head -1)"
-            git add packages/pi/package.nix
-            git commit -m "chore(pi): bump to $version"
+          if ! git diff --quiet -- flake.lock; then
+            git add flake.lock
+            git commit -m "chore(agents): update flake inputs"
           fi
+          git diff --exit-code
           git push
-          gh workflow run build-agents.yml --ref master

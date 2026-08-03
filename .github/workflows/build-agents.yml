@@ -5,6 +5,7 @@ on:
     branches: [master]
     paths:
       - packages/**
+      - flake.lock
       - .github/workflows/build-agents.yml
   workflow_dispatch: {}
 

@@ -157,12 +157,12 @@ def main [pkg: string = "all"] {
     "pi" => { update-pi }
     "skills" => { update-skills }
     "all" => {
-      try { update-claude-code } catch {|e| print $"!! claude-code failed: ($e.msg)"}
-      try { update-codex } catch {|e| print $"!! codex failed: ($e.msg)"}
-      try { update-codexbar } catch {|e| print $"!! codexbar failed: ($e.msg)"}
-      try { update-opencode } catch {|e| print $"!! opencode failed: ($e.msg)"}
-      try { update-pi } catch {|e| print $"!! pi failed: ($e.msg)"}
-      try { update-skills } catch {|e| print $"!! skills failed: ($e.msg)"}
+      update-claude-code
+      update-codex
+      update-codexbar
+      update-opencode
+      update-pi
+      update-skills
     }
     _ => {
       print "usage: update-pins [claude-code|codex|codexbar|opencode|pi|skills|all]"

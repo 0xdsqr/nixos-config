@@ -41,10 +41,19 @@
         programs.codex = {
           enable = true;
           inherit (cfg) package;
-          settings.features = {
-            child_agents_md = true;
-          }
-          // optionalAttrs herdrIntegrationEnabled { hooks = true; };
+          # config.toml is Home Manager-owned, so persistent TUI choices belong
+          # here rather than being written back by Codex at runtime.
+          settings = {
+            model = "gpt-5.6-sol";
+            model_reasoning_effort = "high";
+            service_tier = "fast";
+            approvals_reviewer = "auto_review";
+
+            features = {
+              child_agents_md = true;
+              hooks = true;
+            };
+          };
         };
 
         xdg.configFile = {
