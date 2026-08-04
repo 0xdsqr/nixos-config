@@ -1,5 +1,6 @@
 { pkgs, ... }:
 let
+  keys = import ../../profiles/dsqr/keys.nix;
   metricsDirectory = "/var/lib/alloy/textfile";
   repository = "/var/lib/backup/system-config/proxmox";
   target = "100.125.141.48";
@@ -21,10 +22,38 @@ in
     serviceConfig = {
       Type = "oneshot";
       UMask = "0077";
+      CapabilityBoundingSet = "";
+      IPAddressAllow = "${target}/32";
+      IPAddressDeny = "any";
+      LockPersonality = true;
+      MemoryDenyWriteExecute = true;
+      NoNewPrivileges = true;
+      PrivateDevices = true;
+      PrivateTmp = true;
+      ProtectClock = true;
+      ProtectControlGroups = true;
+      ProtectHome = true;
+      ProtectHostname = true;
+      ProtectKernelLogs = true;
+      ProtectKernelModules = true;
+      ProtectKernelTunables = true;
+      ProtectSystem = "strict";
+      ReadWritePaths = [
+        metricsDirectory
+        repository
+      ];
+      RestrictAddressFamilies = [ "AF_INET" ];
+      RestrictNamespaces = true;
+      RestrictRealtime = true;
+      RestrictSUIDSGID = true;
+      SystemCallArchitectures = "native";
     };
     path = [
+      pkgs.age
       pkgs.coreutils
       pkgs.findutils
+      pkgs.gnutar
+      pkgs.gzip
       pkgs.openssh
     ];
     postStart = ''
@@ -42,8 +71,9 @@ in
       install -d -o root -g root -m 0700 ${repository}
 
       timestamp="$(date --utc +%Y%m%dT%H%M%SZ)"
-      temporary_file="${repository}/.''${timestamp}.tar.gz.tmp"
-      final_file="${repository}/''${timestamp}.tar.gz"
+      plaintext_file="${repository}/.''${timestamp}.tar.gz"
+      encrypted_file="${repository}/.''${timestamp}.tar.gz.age.tmp"
+      trap 'rm -f "$plaintext_file" "$encrypted_file"' EXIT
 
       ssh \
         -i /etc/ssh/ssh_host_ed25519_key \
@@ -51,11 +81,24 @@ in
         -o ConnectTimeout=10 \
         -o StrictHostKeyChecking=yes \
         root@${target} \
-        > "$temporary_file"
+        > "$plaintext_file"
 
-      test -s "$temporary_file"
-      mv "$temporary_file" "$final_file"
-      find ${repository} -type f -name '*.tar.gz' -mtime +31 -delete
+      test -s "$plaintext_file"
+      tar --gzip --list --file "$plaintext_file" >/dev/null
+
+      age \
+        --encrypt \
+        --output "$encrypted_file" \
+        --recipient ${builtins.toJSON keys.users.dsqr} \
+        "$plaintext_file"
+
+      final_file="${repository}/$timestamp.tar.gz.age"
+      chmod 0600 "$encrypted_file"
+      mv "$encrypted_file" "$final_file"
+      rm -f "$plaintext_file"
+
+      find ${repository} -type f -name '*.tar.gz.age' -mtime +31 -delete
+      find ${repository} -type f \( -name '*.tar.gz' -o -name '*.tmp' \) -delete
     '';
   };
 
