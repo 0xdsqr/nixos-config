@@ -1,7 +1,5 @@
-{ config, lib, ... }:
+_:
 let
-  inherit (lib.attrsets) genAttrs;
-
   address = "10.10.30.102";
   port = 9009;
 in
@@ -20,10 +18,6 @@ in
       };
     }
   ];
-
-  services.restic.backups = genAttrs config.services.restic.hosts (_: {
-    paths = [ "/var/lib/mimir" ];
-  });
 
   services.mimir = {
     enable = true;

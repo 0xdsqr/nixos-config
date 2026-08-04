@@ -50,7 +50,11 @@ in
           fonts.enable = true;
           openssh.enable = true;
           proxmox.enable = true;
-          restic.enable = true;
+          restic = {
+            enable = true;
+            hosts = [ "srv-lx-backup" ];
+            passwordAgeFile = ./restic.password.age;
+          };
           tailscale.enable = true;
           user.enable = true;
         };

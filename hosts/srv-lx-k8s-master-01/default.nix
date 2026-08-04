@@ -57,6 +57,11 @@ in
           kubeadm.enable = true;
           openssh.enable = true;
           proxmox.enable = true;
+          restic = {
+            enable = true;
+            hosts = [ "srv-lx-backup" ];
+            passwordAgeFile = ../srv-lx-beacon/restic.password.age;
+          };
           tailscale.enable = true;
           user.enable = true;
         };

@@ -7,7 +7,7 @@
       ...
     }:
     let
-      inherit (lib.attrsets) genAttrs;
+      inherit (lib.attrsets) genAttrs mapAttrs;
       inherit (lib.lists) elem;
       inherit (lib.modules) mkIf;
       inherit (lib.options) mkEnableOption mkOption;
@@ -15,6 +15,7 @@
       inherit (lib.types)
         listOf
         nullOr
+        attrsOf
         package
         path
         str
@@ -66,6 +67,18 @@
             description = "SSH public keys authorized to push restic backups to receiver hosts.";
           };
 
+          receiverRoot = mkOption {
+            type = str;
+            default = "/var/lib/backup/restic";
+            description = "Filesystem-backed home directory for incoming restic repositories.";
+          };
+
+          hostPublicKeys = mkOption {
+            type = attrsOf str;
+            default = { };
+            description = "Pinned SSH public host keys for restic repository receivers.";
+          };
+
           package = mkOption {
             type = package;
             default = pkgs.restic;
@@ -92,27 +105,42 @@
           users.users.backup = {
             description = "Backup";
             isNormalUser = true;
-            openssh.authorizedKeys.keys = cfg.authorizedKeys;
+            home = cfg.receiverRoot;
+            createHome = true;
+            openssh.authorizedKeys.keys = map (key: "restrict ${key}") cfg.authorizedKeys;
           };
+
+          systemd.tmpfiles.rules = [ "d ${cfg.receiverRoot} 0700 backup backup - -" ];
         }
         // mkIf (config.services.restic.hosts != [ ] && hasPasswordAgeFile) {
           age.secrets.resticPassword.file = cfg.passwordAgeFile;
 
           environment.systemPackages = [ cfg.package ];
 
+          programs.ssh.knownHosts = mapAttrs (host: publicKey: {
+            hostNames = [ host ];
+            inherit publicKey;
+          }) cfg.hostPublicKeys;
+
           services.restic.backups = genAttrs config.services.restic.hosts (host: {
             repository = "sftp:backup@${host}:${config.networking.hostName}-backup";
             passwordFile = config.age.secrets.resticPassword.path;
             initialize = true;
             extraOptions = [
-              "sftp.command='ssh -i /etc/ssh/ssh_host_ed25519_key -o StrictHostKeyChecking=accept-new backup@${host} -s sftp'"
+              "sftp.command='ssh -i /etc/ssh/ssh_host_ed25519_key -o StrictHostKeyChecking=yes backup@${host} -s sftp'"
             ];
 
             pruneOpts = [
-              "--keep-daily 7"
-              "--keep-weekly 4"
-              "--keep-monthly 3"
+              "--keep-daily 14"
+              "--keep-weekly 8"
+              "--keep-monthly 12"
             ];
+
+            timerConfig = {
+              OnCalendar = "*-*-* 03:15:00";
+              Persistent = true;
+              RandomizedDelaySec = "30m";
+            };
           });
 
           systemd.services =

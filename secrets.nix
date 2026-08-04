@@ -76,6 +76,7 @@ mkSecretsForHost "srv-lx-beacon" [
   "hosts/srv-lx-knox/postgresql-replication.pgpass.age"
   "hosts/srv-lx-knox/tailscale.auth-key.age"
 ]
+// mkSecretsForHost "srv-lx-vault" [ "hosts/srv-lx-vault/vault-raft-snapshot.secret-id.age" ]
 // mkSharedSecrets [ "hosts/srv-lx-beacon/restic.password.age" ]
 // {
   "hosts/dev-mbp-personal/tailscale.auth-key.age".publicKeys = admins;

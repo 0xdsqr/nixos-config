@@ -1,7 +1,5 @@
-{ config, lib, ... }:
+_:
 let
-  inherit (lib.attrsets) genAttrs;
-
   httpPort = 3200;
   grpcPort = 3201;
   otlpGrpcPort = 4317;
@@ -17,10 +15,6 @@ in
       url = "http://127.0.0.1:${toString httpPort}";
     }
   ];
-
-  services.restic.backups = genAttrs config.services.restic.hosts (_: {
-    paths = [ "/var/lib/tempo" ];
-  });
 
   services.tempo = {
     enable = true;

@@ -52,6 +52,12 @@ in
 
         hardware.report = ./srv-lx-vault.report.json;
 
+        dsqr.nixos.restic = {
+          enable = true;
+          hosts = [ "srv-lx-backup" ];
+          passwordAgeFile = ../srv-lx-beacon/restic.password.age;
+        };
+
         system.stateVersion = "25.05";
       }
     );

@@ -1,6 +1,5 @@
 {
   hostMeta ? null,
-  hostName,
   lib,
   ...
 }:
@@ -35,9 +34,10 @@ in
     tailscale.authKeyAgeFile = mkDefault (existingHostSecret "tailscale.auth-key.age");
 
     restic = {
-      hosts = mkDefault (if hostName == "srv-lx-khaos" then [ "srv-lx-beacon" ] else [ ]);
-      receiverHosts = mkDefault [ "srv-lx-beacon" ];
+      hosts = mkDefault [ ];
+      receiverHosts = mkDefault [ "srv-lx-backup" ];
       authorizedKeys = mkDefault keys.all;
+      hostPublicKeys.srv-lx-backup = mkDefault keys.hosts.srv-lx-backup;
       passwordAgeFile = mkDefault (existingHostSecret "restic.password.age");
     };
   };

@@ -10,6 +10,7 @@ let
   inherit (nixLib.lists) singleton;
 
   hostName = "srv-lx-backup";
+  keys = import ../../profiles/dsqr/keys.nix;
 
   modules =
     attrValues commonModules
@@ -46,6 +47,18 @@ in
         networking.hostName = hostName;
 
         hardware.report = ./srv-lx-backup.report.json;
+
+        dsqr.nixos.restic = {
+          enable = true;
+          receiverHosts = [ hostName ];
+          authorizedKeys = map (name: keys.hosts.${name}) [
+            "srv-lx-beacon"
+            "srv-lx-k8s-master-01"
+            "srv-lx-khaos"
+            "srv-lx-mailbox"
+            "srv-lx-vault"
+          ];
+        };
 
         system.stateVersion = "25.05";
       }

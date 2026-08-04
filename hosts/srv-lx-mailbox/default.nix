@@ -72,6 +72,11 @@ let
         };
         fonts.enable = true;
         openssh.enable = true;
+        restic = {
+          enable = true;
+          hosts = [ "srv-lx-backup" ];
+          passwordAgeFile = ../srv-lx-beacon/restic.password.age;
+        };
         tailscale.enable = true;
         user.enable = true;
       };

@@ -1,7 +1,5 @@
-{ config, lib, ... }:
+{ config, ... }:
 let
-  inherit (lib.attrsets) genAttrs;
-
   fqdn = "grafana.home.arpa";
   port = 8000;
 in
@@ -20,10 +18,6 @@ in
     file = ./grafana.secret-key.age;
     owner = "grafana";
   };
-
-  services.restic.backups = genAttrs config.services.restic.hosts (_: {
-    paths = [ "/var/lib/grafana" ];
-  });
 
   services.grafana = {
     enable = true;

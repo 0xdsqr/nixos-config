@@ -1,7 +1,5 @@
-{ config, lib, ... }:
+_:
 let
-  inherit (lib.attrsets) genAttrs;
-
   address = "10.10.30.102";
   port = 4040;
 in
@@ -16,10 +14,6 @@ in
       jsonData.minStep = "15s";
     }
   ];
-
-  services.restic.backups = genAttrs config.services.restic.hosts (_: {
-    paths = [ "/var/lib/pyroscope" ];
-  });
 
   services.pyroscope = {
     enable = true;
