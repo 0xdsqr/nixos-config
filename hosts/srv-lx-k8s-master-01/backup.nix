@@ -15,7 +15,7 @@ in
     backupPrepareCommand = ''
       install -d -o root -g root -m 0700 ${snapshotDirectory}
       rm -f ${snapshotDirectory}/snapshot.db
-      ETCDCTL_API=3 ${pkgs.etcd}/bin/etcdctl snapshot save ${snapshotDirectory}/snapshot.db \
+      ${pkgs.etcd}/bin/etcdctl snapshot save ${snapshotDirectory}/snapshot.db \
         --endpoints=https://127.0.0.1:2379 \
         --cacert=/etc/kubernetes/pki/etcd/ca.crt \
         --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt \
