@@ -27,7 +27,9 @@
       backupHosts = config.services.restic.hosts;
       repositoryAddress = host: cfg.repositoryAddresses.${host} or host;
       metricsDirectory = "/var/lib/alloy/textfile";
+      metricsName = host: "restic-${host}.prom";
       metricsFile = host: "${metricsDirectory}/restic-${host}.prom";
+      preserveActiveMetrics = concatMapStringsSep " " (host: "! -name ${escapeShellArg (metricsName host)}") backupHosts;
       initializeMetrics = concatMapStringsSep "\n" (
         host:
         let
@@ -181,6 +183,7 @@
                 serviceConfig.Type = "oneshot";
                 script = ''
                   install -d -o root -g root -m 0755 ${metricsDirectory}
+                  find ${metricsDirectory} -maxdepth 1 -type f -name 'restic-*.prom' ${preserveActiveMetrics} -delete
                   ${initializeMetrics}
                 '';
               };
