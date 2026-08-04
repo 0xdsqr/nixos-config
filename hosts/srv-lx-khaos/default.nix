@@ -55,7 +55,7 @@ in
           fonts.enable = true;
           openssh.enable = true;
           proxmox.enable = true;
-          restic.enable = true;
+          restic.hosts = [ ];
           tailscale.enable = true;
           user.enable = true;
         };
