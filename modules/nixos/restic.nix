@@ -9,7 +9,7 @@
     let
       inherit (lib.attrsets) genAttrs mapAttrs;
       inherit (lib.lists) elem;
-      inherit (lib.modules) mkIf;
+      inherit (lib.modules) mkIf mkMerge;
       inherit (lib.options) mkEnableOption mkOption;
       inherit (lib.strings) concatMapStringsSep escapeShellArg;
       inherit (lib.types)
@@ -100,8 +100,8 @@
         };
       };
 
-      config = mkIf cfg.enable (
-        mkIf isReceiver {
+      config = mkIf cfg.enable (mkMerge [
+        (mkIf isReceiver {
           users.users.backup = {
             description = "Backup";
             isNormalUser = true;
@@ -111,8 +111,8 @@
           };
 
           systemd.tmpfiles.rules = [ "d ${cfg.receiverRoot} 0700 backup backup - -" ];
-        }
-        // mkIf (config.services.restic.hosts != [ ] && hasPasswordAgeFile) {
+        })
+        (mkIf (config.services.restic.hosts != [ ] && hasPasswordAgeFile) {
           age.secrets.resticPassword.file = cfg.passwordAgeFile;
 
           environment.systemPackages = [ cfg.package ];
@@ -175,7 +175,7 @@
                 '';
               };
             };
-        }
-      );
+        })
+      ]);
     };
 }
