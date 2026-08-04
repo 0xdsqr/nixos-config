@@ -14,11 +14,14 @@ in
     ];
 
     backupPrepareCommand = ''
-      systemctl stop grafana.service loki.service mimir.service prometheus.service pyroscope.service tempo.service
+      systemctl stop prometheus.service
+      systemctl stop grafana.service loki.service mimir.service pyroscope.service tempo.service
     '';
 
     backupCleanupCommand = ''
-      systemctl start mimir.service loki.service tempo.service pyroscope.service prometheus.service grafana.service
+      systemctl start mimir.service loki.service tempo.service pyroscope.service
+      systemctl start prometheus.service
+      systemctl start grafana.service
     '';
   });
 }
