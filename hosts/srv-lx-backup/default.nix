@@ -38,7 +38,10 @@ in
       { ... }: {
         imports =
           modules
-          ++ [ ../../profiles/server/nixos.nix ]
+          ++ [
+            ../../profiles/observability/nixos.nix
+            ../../profiles/server/nixos.nix
+          ]
           ++ self.lib.collectNix {
             path = ./.;
             exclude = path: path == ./default.nix;
