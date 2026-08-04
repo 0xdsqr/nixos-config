@@ -1,6 +1,7 @@
 { config, pkgs, ... }:
 let
   credentials = config.age.secrets.opnsenseBackupApi.path;
+  keys = import ../../profiles/dsqr/keys.nix;
   metricsDirectory = "/var/lib/alloy/textfile";
   repository = "/var/lib/backup/system-config/opnsense";
 
@@ -26,6 +27,7 @@ in
     wants = [ "network-online.target" ];
     requires = [ "pgbackrest-repository-mount.service" ];
     path = [
+      pkgs.age
       pkgs.coreutils
       pkgs.curl
       pkgs.findutils
@@ -68,8 +70,10 @@ in
       test -n "''${secret:-}"
 
       netrc="$(mktemp)"
-      temporary_file="${repository}/.$(date --utc +%Y%m%dT%H%M%SZ).xml.tmp"
-      trap 'rm -f "$netrc" "$temporary_file"' EXIT
+      timestamp="$(date --utc +%Y%m%dT%H%M%SZ)"
+      plaintext_file="${repository}/.$timestamp.xml"
+      encrypted_file="${repository}/.$timestamp.xml.age.tmp"
+      trap 'rm -f "$netrc" "$plaintext_file" "$encrypted_file"' EXIT
 
       printf 'machine opnsense.dsqr.dev login %s password %s\n' "$key" "$secret" > "$netrc"
       unset key secret
@@ -80,7 +84,7 @@ in
         --fail-with-body \
         --max-time 60 \
         --netrc-file "$netrc" \
-        --output "$temporary_file" \
+        --output "$plaintext_file" \
         --proto '=https' \
         --resolve opnsense.dsqr.dev:443:10.10.10.1 \
         --retry 3 \
@@ -91,12 +95,19 @@ in
         --tlsv1.2 \
         https://opnsense.dsqr.dev/api/core/backup/download/this
 
-      test "$(xmllint --xpath 'name(/*)' "$temporary_file")" = opnsense
+      test "$(xmllint --xpath 'name(/*)' "$plaintext_file")" = opnsense
 
-      final_file="${repository}/$(basename "$temporary_file" .tmp)"
-      chmod 0600 "$temporary_file"
-      mv "$temporary_file" "$final_file"
-      find ${repository} -type f -name '*.xml' -mtime +31 -delete
+      age \
+        --encrypt \
+        --output "$encrypted_file" \
+        --recipient ${builtins.toJSON keys.users.dsqr} \
+        "$plaintext_file"
+
+      final_file="${repository}/$timestamp.xml.age"
+      chmod 0600 "$encrypted_file"
+      mv "$encrypted_file" "$final_file"
+      rm -f "$plaintext_file"
+      find ${repository} -type f -name '*.xml.age' -mtime +31 -delete
 
       temporary_metric=${metricsDirectory}/config-backup-opnsense.prom.$$
       printf '%s\n' \
