@@ -77,7 +77,10 @@ mkSecretsForHost "srv-lx-beacon" [
   "hosts/srv-lx-knox/tailscale.auth-key.age"
 ]
 // mkSecretsForHost "srv-lx-vault" [ "hosts/srv-lx-vault/vault-raft-snapshot.secret-id.age" ]
-// mkSecretsForHost "srv-lx-backup" [ "hosts/srv-lx-backup/tailscale.auth-key.age" ]
+// mkSecretsForHost "srv-lx-backup" [
+  "hosts/srv-lx-backup/opnsense-api.age"
+  "hosts/srv-lx-backup/tailscale.auth-key.age"
+]
 // mkSharedSecrets [ "hosts/srv-lx-beacon/restic.password.age" ]
 // {
   "hosts/dev-mbp-personal/tailscale.auth-key.age".publicKeys = admins;
