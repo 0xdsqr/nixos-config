@@ -31,7 +31,7 @@ in
 
       timestamp="$(date --utc +%Y%m%dT%H%M%SZ)"
       temporary_file="${repository}/.''${timestamp}.tar.gz.tmp"
-      final_file="${repository}/.''${timestamp}.tar.gz"
+      final_file="${repository}/''${timestamp}.tar.gz"
 
       ssh \
         -i /etc/ssh/ssh_host_ed25519_key \
