@@ -83,11 +83,6 @@ mkSecretsForHost "srv-lx-beacon" [
 // {
   "hosts/dev-mbp-personal/tailscale.auth-key.age".publicKeys = admins;
   "hosts/dev-mbp-stablecore/git.config.inc.age".publicKeys = admins;
-  "hosts/srv-lx-khaos/vault-listener-pki.secret-id.age".publicKeys = [
-    hosts.srv-lx-khaos
-    hosts.srv-lx-vault
-  ]
-  ++ admins;
   "hosts/srv-lx-backup/pgbackrest-repository.env.age".publicKeys = [
     hosts.srv-lx-backup
     hosts.srv-lx-knox
