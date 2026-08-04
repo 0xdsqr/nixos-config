@@ -35,6 +35,7 @@ in
       ssh \
         -i /etc/ssh/ssh_host_ed25519_key \
         -o BatchMode=yes \
+        -o ConnectTimeout=10 \
         -o StrictHostKeyChecking=yes \
         root@10.10.10.109 \
         > "$temporary_file"

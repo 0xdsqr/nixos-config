@@ -16,6 +16,8 @@ let
     if path != null && builtins.pathExists path then path else null;
 in
 {
+  networking.hosts."10.10.30.111" = [ "srv-lx-backup" ];
+
   dsqr.nixos = {
     user = {
       name = mkDefault "dsqr";
