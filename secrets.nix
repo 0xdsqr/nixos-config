@@ -72,6 +72,7 @@ mkSecretsForHost "srv-lx-beacon" [
 ]
 // mkSecretsForHost "srv-lx-knox" [
   "hosts/srv-lx-knox/listener-pki.secret-id.age"
+  "hosts/srv-lx-knox/pgbackrest-repository.key.age"
   "hosts/srv-lx-knox/postgresql-replication.pgpass.age"
   "hosts/srv-lx-knox/tailscale.auth-key.age"
 ]
@@ -85,6 +86,11 @@ mkSecretsForHost "srv-lx-beacon" [
   "hosts/srv-lx-khaos/vault-listener-pki.secret-id.age".publicKeys = [
     hosts.srv-lx-khaos
     hosts.srv-lx-vault
+  ]
+  ++ admins;
+  "hosts/srv-lx-backup/pgbackrest-repository.env.age".publicKeys = [
+    hosts.srv-lx-backup
+    hosts.srv-lx-knox
   ]
   ++ admins;
   "hosts/srv-mini-master/tailscale.auth-key.age".publicKeys = forHost "srv-mini-master";

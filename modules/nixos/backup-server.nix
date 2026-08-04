@@ -1,0 +1,130 @@
+{
+  flake.nixosModules.backup-server =
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    let
+      inherit (lib.meta) getExe;
+      inherit (lib.modules) mkIf;
+      inherit (lib.options) mkEnableOption mkOption;
+      inherit (lib.types) ints path str;
+
+      cfg = config.dsqr.nixos.backup.server;
+      repositoryEnvironment = config.age.secrets."pgbackrest-repository-environment".path;
+      pgBackRest = pkgs.writeShellApplication {
+        name = "pgbackrest-secure";
+        runtimeInputs = [ pkgs.pgbackrest ];
+        text = ''
+          set -a
+          # shellcheck disable=SC1091
+          source ${repositoryEnvironment}
+          set +a
+
+          exec ${getExe pkgs.pgbackrest} "$@"
+        '';
+      };
+      authorizedPgBackRest = pkgs.writeShellApplication {
+        name = "pgbackrest-authorized-command";
+        text = ''
+          if [[ "''${SSH_ORIGINAL_COMMAND:-}" != *" "* ]]; then
+            echo "Only the pgBackRest remote protocol is allowed." >&2
+            exit 1
+          fi
+
+          # pgBackRest sends its executable path followed by protocol arguments.
+          # Keep the executable fixed while passing only those arguments through.
+          # shellcheck disable=SC2086
+          exec ${getExe pgBackRest} ''${SSH_ORIGINAL_COMMAND#* }
+        '';
+      };
+    in
+    {
+      options.dsqr.nixos.backup.server = {
+        enable = mkEnableOption "the application-consistent backup repository";
+
+        rootDirectory = mkOption {
+          type = str;
+          default = "/var/lib/backup";
+          description = "Root directory for backup repositories and recovery artifacts.";
+        };
+
+        pgBackRest = {
+          enable = mkEnableOption "the pgBackRest repository";
+
+          authorizedKey = mkOption {
+            type = str;
+            description = "Dedicated public key authorized to run only the pgBackRest remote protocol.";
+          };
+
+          repositoryEnvironmentAgeFile = mkOption {
+            type = path;
+            description = "Encrypted environment file containing the pgBackRest repository cipher passphrase.";
+          };
+
+          retentionFull = mkOption {
+            type = ints.positive;
+            default = 2;
+            description = "Number of full PostgreSQL backup sets to retain.";
+          };
+
+          retentionDiff = mkOption {
+            type = ints.positive;
+            default = 14;
+            description = "Number of differential PostgreSQL backups to retain.";
+          };
+        };
+      };
+
+      config = mkIf cfg.enable {
+        assertions = [
+          {
+            assertion = cfg.pgBackRest.enable;
+            message = "The backup server currently requires the pgBackRest repository role.";
+          }
+        ];
+
+        age.secrets."pgbackrest-repository-environment" = {
+          file = cfg.pgBackRest.repositoryEnvironmentAgeFile;
+          owner = "root";
+          group = "pgbackrest";
+          mode = "0440";
+        };
+
+        services.pgbackrest = {
+          enable = true;
+
+          repos.localhost = {
+            path = "${cfg.rootDirectory}/postgresql";
+            bundle = true;
+            block = true;
+            cipher-type = "aes-256-cbc";
+            retention-full = cfg.pgBackRest.retentionFull;
+            retention-diff = cfg.pgBackRest.retentionDiff;
+            retention-archive-type = "full";
+          };
+
+          settings = {
+            process-max = 2;
+            compress-type = "zst";
+            compress-level = 3;
+          };
+          stanzas.default.settings = { };
+        };
+
+        users.users.pgbackrest.openssh.authorizedKeys.keys = [
+          ''restrict,command="${getExe authorizedPgBackRest}" ${cfg.pgBackRest.authorizedKey}''
+        ];
+
+        systemd.tmpfiles.rules = [
+          "d ${cfg.rootDirectory} 0710 root pgbackrest -"
+          "d ${cfg.rootDirectory}/bootstrap 0700 root root -"
+          "d ${cfg.rootDirectory}/postgresql 0750 pgbackrest pgbackrest -"
+        ];
+
+        environment.systemPackages = [ pgBackRest ];
+      };
+    };
+}
