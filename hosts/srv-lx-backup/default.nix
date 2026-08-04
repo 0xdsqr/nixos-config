@@ -60,6 +60,8 @@ in
           ];
         };
 
+        users.users.backup.extraGroups = [ "pgbackrest" ];
+
         system.stateVersion = "25.05";
       }
     );
