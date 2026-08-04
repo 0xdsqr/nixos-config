@@ -37,7 +37,6 @@ in
         -o BatchMode=yes \
         -o StrictHostKeyChecking=yes \
         root@10.10.10.109 \
-        'tar --create --gzip --file=- --ignore-failed-read /etc/pve /etc/network/interfaces /etc/hosts /etc/resolv.conf /etc/apt /etc/systemd/system' \
         > "$temporary_file"
 
       test -s "$temporary_file"
