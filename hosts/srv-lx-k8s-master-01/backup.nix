@@ -20,7 +20,7 @@ in
         --cacert=/etc/kubernetes/pki/etcd/ca.crt \
         --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt \
         --key=/etc/kubernetes/pki/etcd/healthcheck-client.key
-      ETCDCTL_API=3 ${pkgs.etcd}/bin/etcdctl snapshot status ${snapshotDirectory}/snapshot.db
+      ${pkgs.etcd}/bin/etcdutl snapshot status ${snapshotDirectory}/snapshot.db
     '';
 
     backupCleanupCommand = ''
