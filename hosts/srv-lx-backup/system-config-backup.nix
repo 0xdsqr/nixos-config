@@ -1,5 +1,6 @@
 { pkgs, ... }:
 let
+  metricsDirectory = "/var/lib/alloy/textfile";
   repository = "/var/lib/backup/system-config/proxmox";
   target = "100.125.141.48";
 in
@@ -26,6 +27,17 @@ in
       pkgs.findutils
       pkgs.openssh
     ];
+    postStart = ''
+      install -d -o root -g root -m 0755 ${metricsDirectory}
+      temporary_metric=${metricsDirectory}/config-backup-proxmox.prom.$$
+      printf '%s\n' \
+        '# HELP dsqr_config_backup_last_success_timestamp_seconds Unix timestamp of the most recent successful configuration backup.' \
+        '# TYPE dsqr_config_backup_last_success_timestamp_seconds gauge' \
+        "dsqr_config_backup_last_success_timestamp_seconds{source=\"proxmox\"} $(date +%s)" \
+        > "$temporary_metric"
+      chmod 0644 "$temporary_metric"
+      mv "$temporary_metric" ${metricsDirectory}/config-backup-proxmox.prom
+    '';
     script = ''
       install -d -o root -g root -m 0700 ${repository}
 

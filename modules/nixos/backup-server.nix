@@ -13,6 +13,7 @@
       inherit (lib.types) ints path str;
 
       cfg = config.dsqr.nixos.backup.server;
+      metricsDirectory = "/var/lib/alloy/textfile";
       repositoryEnvironment = config.age.secrets."pgbackrest-repository-environment".path;
       pgBackRest = pkgs.writeShellApplication {
         name = "pgbackrest-secure";
@@ -138,6 +139,46 @@
             Type = "oneshot";
             RemainAfterExit = true;
             ExecStart = "${getExe' pkgs.util-linux "mountpoint"} --quiet ${cfg.rootDirectory}";
+          };
+        };
+
+        systemd.services.pgbackrest-backup-metrics = {
+          description = "Publish pgBackRest backup freshness metrics";
+          after = [ "pgbackrest-repository-mount.service" ];
+          requires = [ "pgbackrest-repository-mount.service" ];
+          path = [
+            pgBackRest
+            pkgs.coreutils
+            pkgs.jq
+          ];
+          serviceConfig.Type = "oneshot";
+          script = ''
+            backup_timestamp="$(
+              pgbackrest-secure --stanza=default --output=json info \
+                | jq --exit-status --raw-output \
+                  '.[0] | select(.status.code == 0) | [.backup[].timestamp.stop] | max'
+            )"
+
+            test "$backup_timestamp" -gt 0
+            install -d -o root -g root -m 0755 ${metricsDirectory}
+
+            temporary_file=${metricsDirectory}/pgbackrest-backup.prom.$$
+            printf '%s\n' \
+              '# HELP dsqr_pgbackrest_backup_last_success_timestamp_seconds Unix timestamp of the most recent successful pgBackRest backup.' \
+              '# TYPE dsqr_pgbackrest_backup_last_success_timestamp_seconds gauge' \
+              "dsqr_pgbackrest_backup_last_success_timestamp_seconds{stanza=\"default\"} $backup_timestamp" \
+              > "$temporary_file"
+            chmod 0644 "$temporary_file"
+            mv "$temporary_file" ${metricsDirectory}/pgbackrest-backup.prom
+          '';
+        };
+
+        systemd.timers.pgbackrest-backup-metrics = {
+          wantedBy = [ "timers.target" ];
+          timerConfig = {
+            OnBootSec = "5m";
+            OnUnitActiveSec = "5m";
+            Persistent = true;
           };
         };
 
