@@ -113,9 +113,9 @@
 
           "pgbackrest-repository-key" = {
             file = cfg.repositorySshPrivateKeyAgeFile;
-            owner = "root";
-            group = "pgbackrest";
-            mode = "0440";
+            owner = "postgres";
+            group = "postgres";
+            mode = "0400";
           };
         };
 

@@ -7,7 +7,7 @@
       ...
     }:
     let
-      inherit (lib.meta) getExe;
+      inherit (lib.meta) getExe getExe';
       inherit (lib.modules) mkIf;
       inherit (lib.options) mkEnableOption mkOption;
       inherit (lib.types) ints path str;
@@ -29,6 +29,11 @@
       authorizedPgBackRest = pkgs.writeShellApplication {
         name = "pgbackrest-authorized-command";
         text = ''
+          if ! ${getExe' pkgs.util-linux "mountpoint"} --quiet ${lib.escapeShellArg cfg.rootDirectory}; then
+            echo "The backup repository filesystem is not mounted." >&2
+            exit 1
+          fi
+
           if [[ "''${SSH_ORIGINAL_COMMAND:-}" != *" "* ]]; then
             echo "Only the pgBackRest remote protocol is allowed." >&2
             exit 1
@@ -123,6 +128,18 @@
           "d ${cfg.rootDirectory}/bootstrap 0700 root root -"
           "d ${cfg.rootDirectory}/postgresql 0750 pgbackrest pgbackrest -"
         ];
+
+        systemd.services.pgbackrest-repository-mount = {
+          description = "Validate the backup repository filesystem";
+          wantedBy = [ "multi-user.target" ];
+          after = [ "var-lib-backup.mount" ];
+          requires = [ "var-lib-backup.mount" ];
+          serviceConfig = {
+            Type = "oneshot";
+            RemainAfterExit = true;
+            ExecStart = "${getExe' pkgs.util-linux "mountpoint"} --quiet ${cfg.rootDirectory}";
+          };
+        };
 
         environment.systemPackages = [ pgBackRest ];
       };
