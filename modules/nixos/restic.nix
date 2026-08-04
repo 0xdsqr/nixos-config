@@ -25,6 +25,7 @@
       isReceiver = elem config.networking.hostName cfg.receiverHosts;
       hasPasswordAgeFile = cfg.passwordAgeFile != null && builtins.pathExists cfg.passwordAgeFile;
       backupHosts = config.services.restic.hosts;
+      repositoryAddress = host: cfg.repositoryAddresses.${host} or host;
       metricsDirectory = "/var/lib/alloy/textfile";
       metricsFile = host: "${metricsDirectory}/restic-${host}.prom";
       initializeMetrics = concatMapStringsSep "\n" (
@@ -73,6 +74,12 @@
             description = "Filesystem-backed home directory for incoming restic repositories.";
           };
 
+          repositoryAddresses = mkOption {
+            type = attrsOf str;
+            default = { };
+            description = "Network addresses used to reach logical repository hosts.";
+          };
+
           hostPublicKeys = mkOption {
             type = attrsOf str;
             default = { };
@@ -118,16 +125,19 @@
           environment.systemPackages = [ cfg.package ];
 
           programs.ssh.knownHosts = mapAttrs (host: publicKey: {
-            hostNames = [ host ];
+            hostNames = [
+              host
+              (repositoryAddress host)
+            ];
             inherit publicKey;
           }) cfg.hostPublicKeys;
 
           services.restic.backups = genAttrs config.services.restic.hosts (host: {
-            repository = "sftp:backup@${host}:${config.networking.hostName}-backup";
+            repository = "sftp:backup@${repositoryAddress host}:${config.networking.hostName}-backup";
             passwordFile = config.age.secrets.resticPassword.path;
             initialize = true;
             extraOptions = [
-              "sftp.command='ssh -i /etc/ssh/ssh_host_ed25519_key -o StrictHostKeyChecking=yes backup@${host} -s sftp'"
+              "sftp.command='ssh -i /etc/ssh/ssh_host_ed25519_key -o StrictHostKeyChecking=yes backup@${repositoryAddress host} -s sftp'"
             ];
 
             pruneOpts = [

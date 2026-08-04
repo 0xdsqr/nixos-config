@@ -60,6 +60,13 @@ in
           ];
         };
 
+        dsqr.nixos.tailscale.enable = true;
+
+        services.tailscale = {
+          extraUpFlags = [ "--advertise-tags=tag:homelab,tag:backup" ];
+          useRoutingFeatures = "client";
+        };
+
         users.users.backup.extraGroups = [ "pgbackrest" ];
 
         system.stateVersion = "25.05";

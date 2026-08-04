@@ -58,6 +58,7 @@ let
     );
 
   systemModules = modules ++ [
+    ./backup.nix
     ./stalwart.nix
     {
       networking.hostName = "srv-lx-mailbox";
@@ -76,6 +77,7 @@ let
           enable = true;
           hosts = [ "srv-lx-backup" ];
           passwordAgeFile = ../srv-lx-beacon/restic.password.age;
+          repositoryAddresses.srv-lx-backup = "srv-lx-backup.tail72c837.ts.net";
         };
         tailscale.enable = true;
         user.enable = true;
