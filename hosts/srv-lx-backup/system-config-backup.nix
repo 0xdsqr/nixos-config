@@ -1,10 +1,11 @@
 { pkgs, ... }:
 let
   repository = "/var/lib/backup/system-config/proxmox";
+  target = "100.125.141.48";
 in
 {
   programs.ssh.knownHosts.proxmox = {
-    hostNames = [ "10.10.10.109" ];
+    hostNames = [ target ];
     publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILUG4TX9b5LNthwzHg7CYSWibGNjh3bH2hOo+OSrVoRD";
   };
 
@@ -37,7 +38,7 @@ in
         -o BatchMode=yes \
         -o ConnectTimeout=10 \
         -o StrictHostKeyChecking=yes \
-        root@10.10.10.109 \
+        root@${target} \
         > "$temporary_file"
 
       test -s "$temporary_file"
