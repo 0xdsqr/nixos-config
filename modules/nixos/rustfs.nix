@@ -7,8 +7,8 @@
       ...
     }:
     let
-      inherit (lib.attrsets) genAttrs' nameValuePair;
-      inherit (lib.modules) mkIf;
+      inherit (lib.attrsets) genAttrs;
+      inherit (lib.modules) mkForce mkIf;
       inherit (lib.options) mkEnableOption mkOption;
       inherit (lib.types)
         bool
@@ -105,30 +105,18 @@
         };
 
         services.restic.backups = mkIf (resticHosts != [ ]) (
-          genAttrs' resticHosts (
-            host:
-            let
-              hostBackup = config.services.restic.backups.${host};
-            in
-            nameValuePair "rustfs-${host}" {
-              repository = "sftp:backup@${host}:${config.networking.hostName}-rustfs-backup";
-              inherit (hostBackup) passwordFile;
-              inherit (hostBackup) initialize;
-              inherit (hostBackup) extraOptions;
-              inherit (hostBackup) pruneOpts;
-              inherit (hostBackup) timerConfig;
+          genAttrs resticHosts (host: {
+            repository = mkForce "sftp:backup@${host}:${config.networking.hostName}-rustfs-backup";
+            paths = [ "/var/lib/rustfs/data" ];
 
-              paths = [ "/var/lib/rustfs/data" ];
+            backupPrepareCommand = ''
+              systemctl stop rustfs.service
+            '';
 
-              backupPrepareCommand = ''
-                systemctl stop rustfs.service
-              '';
-
-              backupCleanupCommand = ''
-                systemctl start rustfs.service
-              '';
-            }
-          )
+            backupCleanupCommand = ''
+              systemctl start rustfs.service
+            '';
+          })
         );
 
         warnings = [
