@@ -37,11 +37,6 @@
         pkgs.writeText "hermes-profile-${name}.json" (
           builtins.toJSON (lib.recursiveUpdate { terminal.cwd = upstream.workingDirectory; } profile.settings)
         );
-      profileEnvironment =
-        name: profile:
-        pkgs.writeText "hermes-profile-${name}.env" (
-          concatStringsSep "\n" (mapAttrsToList (key: value: "${key}=${value}") profile.environment)
-        );
       profileSoul = name: profile: pkgs.writeText "hermes-profile-${name}-SOUL.md" profile.soul;
 
       profileModule = _: {
@@ -105,13 +100,6 @@
                 install -d -o ${upstream.user} -g ${upstream.group} -m 2770 ${home}
                 install -o ${upstream.user} -g ${upstream.group} -m 0640 \
                   ${profileConfig name profile} ${home}/config.yaml
-                install -o ${upstream.user} -g ${upstream.group} -m 0640 \
-                  ${profileEnvironment name profile} ${home}/.env
-                ${concatStringsSep "\n" (
-                  map (file: /* bash */ ''
-                    cat ${file} >> ${home}/.env
-                  '') profile.environmentFiles
-                )}
                 ${lib.optionalString (profile.soul != null) /* bash */ ''
                   install -o ${upstream.user} -g ${upstream.group} -m 0640 \
                     ${profileSoul name profile} ${home}/SOUL.md
@@ -122,7 +110,7 @@
         );
 
         systemd.services = mapAttrs' (
-          name: _profile:
+          name: profile:
           nameValuePair "hermes-agent-${name}" {
             description = "Hermes Agent Gateway (${name})";
             wantedBy = [ "multi-user.target" ];
@@ -133,7 +121,8 @@
               HOME = upstream.stateDir;
               HERMES_HOME = "${upstream.stateDir}/.hermes";
               HERMES_MANAGED = "true";
-            };
+            }
+            // profile.environment;
 
             path = [
               upstream.package
@@ -148,6 +137,7 @@
               Group = upstream.group;
               WorkingDirectory = upstream.workingDirectory;
               ExecStart = "${getExe upstream.package} --profile ${name} gateway run --replace";
+              EnvironmentFile = profile.environmentFiles;
               Restart = upstream.restart;
               RestartSec = upstream.restartSec;
               UMask = "0007";
