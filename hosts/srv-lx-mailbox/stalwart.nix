@@ -9,6 +9,16 @@ let
   mailHost = "mx.${mailDomain}";
   stalwartIdentifier = config.services.stalwart.user;
   runtimeConfigPath = "/run/${stalwartIdentifier}/stalwart.toml";
+  stalwartPackage = pkgs.stalwart.overrideAttrs (stalwartPrevious: {
+    passthru = stalwartPrevious.passthru // {
+      webadmin = stalwartPrevious.passthru.webadmin.overrideAttrs (webadminPrevious: {
+        postPatch = webadminPrevious.postPatch + ''
+          substituteInPlace index.html \
+            --replace-fail 'data-wasm-opt="z"' 'data-wasm-opt="0"'
+        '';
+      });
+    };
+  });
   stalwartSettings = {
     server.hostname = mailHost;
 
@@ -185,6 +195,7 @@ in
 
   services.stalwart = {
     enable = true;
+    package = stalwartPackage;
     stateVersion = "26.05";
     openFirewall = true;
 
