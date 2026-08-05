@@ -50,6 +50,8 @@ in
 
         hardware.report = ./srv-lx-pantheon.report.json;
 
+        dsqr.nixos.tailscale.enable = true;
+
         system.stateVersion = "25.05";
       }
     );

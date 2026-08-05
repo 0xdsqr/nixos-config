@@ -64,6 +64,7 @@ mkSecretsForHost "srv-lx-beacon" [
 // mkSecretsForHost "srv-lx-pantheon" [
   "hosts/srv-lx-pantheon/hermes-hoo.env.age"
   "hosts/srv-lx-pantheon/hermes-vanalia.env.age"
+  "hosts/srv-lx-pantheon/tailscale.auth-key.age"
 ]
 // mkSecretsForHost "srv-lx-khaos" [
   "hosts/srv-lx-khaos/host.password.age"
@@ -80,7 +81,10 @@ mkSecretsForHost "srv-lx-beacon" [
   "hosts/srv-lx-knox/postgresql-replication.pgpass.age"
   "hosts/srv-lx-knox/tailscale.auth-key.age"
 ]
-// mkSecretsForHost "srv-lx-vault" [ "hosts/srv-lx-vault/vault-raft-snapshot.secret-id.age" ]
+// mkSecretsForHost "srv-lx-vault" [
+  "hosts/srv-lx-vault/tailscale.auth-key.age"
+  "hosts/srv-lx-vault/vault-raft-snapshot.secret-id.age"
+]
 // mkSecretsForHost "srv-lx-backup" [
   "hosts/srv-lx-backup/opnsense-api.age"
   "hosts/srv-lx-backup/tailscale.auth-key.age"

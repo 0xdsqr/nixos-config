@@ -58,6 +58,8 @@ in
           passwordAgeFile = ../srv-lx-beacon/restic.password.age;
         };
 
+        dsqr.nixos.tailscale.enable = true;
+
         system.stateVersion = "25.05";
       }
     );
