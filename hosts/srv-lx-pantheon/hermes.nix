@@ -41,6 +41,7 @@ in
 
   dsqr.nixos.hermes.profiles.vanalia = {
     environmentFiles = [ config.age.secrets.hermes-vanalia-environment.path ];
+    settings.terminal.cwd = "/var/lib/hermes/.hermes/profiles/vanalia/workspace";
     environment = {
       DISCORD_ALLOWED_USERS = allowedUsers;
       DISCORD_ALLOWED_CHANNELS = "1465807038587076700";
