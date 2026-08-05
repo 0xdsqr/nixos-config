@@ -6,6 +6,10 @@
 }:
 let
   allowedUsers = "618575437995442197,980636531565949019";
+  model = {
+    default = "gpt-5.6-sol";
+    provider = "openai-codex";
+  };
   package = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.messaging;
 in
 {
@@ -31,6 +35,7 @@ in
 
     addToSystemPackages = true;
     environmentFiles = [ config.age.secrets.hermes-hoo-environment.path ];
+    settings.model = model;
     environment = {
       DISCORD_ALLOWED_USERS = allowedUsers;
       DISCORD_ALLOW_BOTS = "none";
@@ -41,7 +46,10 @@ in
 
   dsqr.nixos.hermes.profiles.vanalia = {
     environmentFiles = [ config.age.secrets.hermes-vanalia-environment.path ];
-    settings.terminal.cwd = "/var/lib/hermes/.hermes/profiles/vanalia/workspace";
+    settings = {
+      inherit model;
+      terminal.cwd = "/var/lib/hermes/.hermes/profiles/vanalia/workspace";
+    };
     environment = {
       DISCORD_ALLOWED_USERS = allowedUsers;
       DISCORD_ALLOWED_CHANNELS = "1465807038587076700";
