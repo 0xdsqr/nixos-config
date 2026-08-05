@@ -45,6 +45,12 @@
       url = "github:zhaofengli/nix-homebrew";
     };
 
+    homebrew-brew = {
+      url = "github:Homebrew/brew/6.0.15";
+
+      flake = false;
+    };
+
     homebrew-core = {
       url = "github:homebrew/homebrew-core";
 

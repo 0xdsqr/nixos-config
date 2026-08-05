@@ -4,6 +4,7 @@
       config,
       inputs,
       lib,
+      pkgs,
       ...
     }:
     let
@@ -12,6 +13,17 @@
       inherit (lib.types) bool nullOr str;
 
       cfg = config.dsqr.darwin.homebrew;
+
+      homebrewVersion = "6.0.15";
+
+      homebrewPackage = pkgs.runCommand "brew-${homebrewVersion}-source" { version = homebrewVersion; } ''
+        cp -R ${inputs.homebrew-brew} "$out"
+        chmod u+w "$out/Library/Homebrew/brew.sh"
+        substituteInPlace "$out/Library/Homebrew/brew.sh" \
+          --replace-fail \
+          'HOMEBREW_VERSION=">=4.3.0 (shallow or no git repository)"' \
+          'HOMEBREW_VERSION="${homebrewVersion}"'
+      '';
     in
     {
       options.dsqr.darwin.homebrew = {
@@ -56,6 +68,8 @@
           enable = true;
           inherit (cfg.nixHomebrew) autoMigrate;
           inherit (cfg) user;
+
+          package = homebrewPackage;
 
           taps."homebrew/homebrew-core" = inputs."homebrew-core";
           taps."homebrew/homebrew-cask" = inputs."homebrew-cask";

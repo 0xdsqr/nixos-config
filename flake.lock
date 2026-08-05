@@ -488,6 +488,23 @@
         "type": "github"
       }
     },
+    "homebrew-brew": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1785710351,
+        "narHash": "sha256-DTL5T9+HlblsnXCEdxRpEo/2NBHD3t48BS7r+PTf090=",
+        "owner": "Homebrew",
+        "repo": "brew",
+        "rev": "7b0f22a4ab77567edef114c8dfc423fb96e2fbaa",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Homebrew",
+        "ref": "6.0.15",
+        "repo": "brew",
+        "type": "github"
+      }
+    },
     "homebrew-cask": {
       "flake": false,
       "locked": {
@@ -913,6 +930,7 @@
         "herdr": "herdr",
         "hermes-agent": "hermes-agent",
         "home-manager": "home-manager",
+        "homebrew-brew": "homebrew-brew",
         "homebrew-cask": "homebrew-cask",
         "homebrew-core": "homebrew-core",
         "i-have-adhd": "i-have-adhd",
