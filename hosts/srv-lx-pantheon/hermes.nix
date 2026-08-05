@@ -1,31 +1,69 @@
-_: {
-  # Intentionally disabled until the Discord bots, channel policy, and agenix
-  # environment files have been created. Each instance runs with isolated
-  # memory, sessions, OAuth state, and resource limits.
-  dsqr.nixos.hermes = {
+{
+  config,
+  inputs,
+  pkgs,
+  ...
+}:
+let
+  allowedUsers = "618575437995442197,980636531565949019";
+  package = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.messaging;
+in
+{
+  age.secrets = {
+    hermes-hoo-environment = {
+      file = ./hermes-hoo.env.age;
+      owner = "hermes";
+      group = "hermes";
+      mode = "0440";
+    };
+
+    hermes-vanalia-environment = {
+      file = ./hermes-vanalia.env.age;
+      owner = "hermes";
+      group = "hermes";
+      mode = "0440";
+    };
+  };
+
+  services.hermes-agent = {
     enable = true;
+    inherit package;
 
-    instances = {
-      hoo = {
-        environmentAgeFile = ./hermes-hoo.env.age;
-        allowedUsers = [
-          "618575437995442197"
-          "980636531565949019"
-        ];
-        freeResponseChannels = [ "1496697794285539348" ];
-      };
+    addToSystemPackages = true;
+    environmentFiles = [ config.age.secrets.hermes-hoo-environment.path ];
+    environment = {
+      DISCORD_ALLOWED_USERS = allowedUsers;
+      DISCORD_ALLOW_BOTS = "none";
+      DISCORD_FREE_RESPONSE_CHANNELS = "1496697794285539348";
+      DISCORD_REQUIRE_MENTION = "true";
+    };
+  };
 
-      vanalia = {
-        environmentAgeFile = ./hermes-vanalia.env.age;
-        allowedUsers = [
-          "618575437995442197"
-          "980636531565949019"
-        ];
-        allowedChannels = [ "1465807038587076700" ];
-        freeResponseChannels = [ "1465807038587076700" ];
-        homeChannel = "1465807038587076700";
-        requireMention = false;
-      };
+  dsqr.nixos.hermes.profiles.vanalia = {
+    environmentFiles = [ config.age.secrets.hermes-vanalia-environment.path ];
+    environment = {
+      DISCORD_ALLOWED_USERS = allowedUsers;
+      DISCORD_ALLOWED_CHANNELS = "1465807038587076700";
+      DISCORD_ALLOW_BOTS = "none";
+      DISCORD_FREE_RESPONSE_CHANNELS = "1465807038587076700";
+      DISCORD_HOME_CHANNEL = "1465807038587076700";
+      DISCORD_REQUIRE_MENTION = "false";
+    };
+  };
+
+  systemd.services = {
+    hermes-agent.serviceConfig = {
+      CPUQuota = "150%";
+      MemoryHigh = "1536M";
+      MemoryMax = "2G";
+      TasksMax = 512;
+    };
+
+    hermes-agent-vanalia.serviceConfig = {
+      CPUQuota = "150%";
+      MemoryHigh = "1536M";
+      MemoryMax = "2G";
+      TasksMax = 512;
     };
   };
 }
