@@ -61,6 +61,10 @@ mkSecretsForHost "srv-lx-beacon" [
   "hosts/srv-lx-mailbox/stalwart-dkim-rsa.key.age"
   "hosts/srv-lx-mailbox/stalwart-dkim-ed25519.key.age"
 ]
+// mkSecretsForHost "srv-lx-pantheon" [
+  "hosts/srv-lx-pantheon/hermes-hoo.env.age"
+  "hosts/srv-lx-pantheon/hermes-vanalia.env.age"
+]
 // mkSecretsForHost "srv-lx-khaos" [
   "hosts/srv-lx-khaos/host.password.age"
   "hosts/srv-lx-khaos/redis.password.age"
