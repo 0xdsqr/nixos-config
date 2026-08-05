@@ -103,6 +103,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    hermes-agent = {
+      url = "github:NousResearch/hermes-agent";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     herdr.url = "github:ogulcancelik/herdr/v0.7.5";
 
     i-have-adhd = {

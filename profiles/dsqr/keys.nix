@@ -13,6 +13,7 @@ let
     srv-lx-khaos = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO96/hopscQBRbeWkv6CCcCNpe/5lwYt13c3bEWBDkyD root@srv-lx-khaos";
     srv-lx-knox = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICXPwoxWYx0xNgSnAR30YX/GWr/aig06ALZT2qD1bufy root@srv-lx-knox";
     srv-lx-mailbox = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDrwjdEz7mbg7E7BO6FqNG4S6eAcx73ktPhniXDwTGBu root@srv-lx-mailbox";
+    srv-lx-pantheon = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDSPSmjR/ZMJtyLttI2rsifudDcA5HtKfJ1V52dcNSHL root@srv-lx-pantheon";
     srv-lx-vault = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEW5iw8i1LW1uscFa9TE+8DPc4FPF67n/LZicWR0OIHz root@srv-lx-vault";
     srv-mini-master = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBuwrWQjAbviB9R1ScthdebOFHR4h9FJ48VanjWfK0c2 root@srv-mini-master";
     srv-mini-node-01 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF74AAT/4nYE0Abn3IdNE15xrHpFWViOMbCd7hKKtbH8 root@srv-mini-node-01";
