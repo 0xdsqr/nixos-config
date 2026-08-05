@@ -48,6 +48,8 @@ in
 
         networking.hostName = hostName;
 
+        hardware.report = ./srv-lx-pantheon.report.json;
+
         system.stateVersion = "25.05";
       }
     );
