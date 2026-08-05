@@ -91,13 +91,10 @@ mkSecretsForHost "srv-lx-beacon" [
 ]
 // mkSharedSecrets [ "hosts/srv-lx-beacon/restic.password.age" ]
 // {
-  "hosts/dev-mbp-personal/tailscale.auth-key.age".publicKeys = admins;
   "hosts/dev-mbp-stablecore/git.config.inc.age".publicKeys = admins;
   "hosts/srv-lx-backup/pgbackrest-repository.env.age".publicKeys = [
     hosts.srv-lx-backup
     hosts.srv-lx-knox
   ]
   ++ admins;
-  "hosts/srv-mini-master/tailscale.auth-key.age".publicKeys = forHost "srv-mini-master";
-  "hosts/srv-mini-node-01/tailscale.auth-key.age".publicKeys = forHost "srv-mini-node-01";
 }
