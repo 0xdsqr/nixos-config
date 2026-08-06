@@ -102,6 +102,8 @@ let
   };
 in
 {
+  services.hermes-agent.extraPackages = [ pkgs.binutils ];
+
   age.secrets.hermes-providers-environment = {
     file = ../hermes-providers.env.age;
     owner = "hermes";
