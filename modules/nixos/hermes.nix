@@ -30,6 +30,8 @@
 
       cfg = config.dsqr.nixos.hermes;
       upstream = config.services.hermes-agent;
+      configMergeScript = pkgs.callPackage (inputs.hermes-agent + /nix/configMergeScript.nix) { };
+      configYamlMode = if upstream.addToSystemPackages then "0660" else "0640";
       profiles = filterAttrs (_: profile: profile.enable) cfg.profiles;
       profileHome = name: "${upstream.stateDir}/.hermes/profiles/${name}";
       profileConfig =
@@ -98,8 +100,9 @@
                 fi
 
                 install -d -o ${upstream.user} -g ${upstream.group} -m 2770 ${home}
-                install -o ${upstream.user} -g ${upstream.group} -m 0640 \
-                  ${profileConfig name profile} ${home}/config.yaml
+                ${configMergeScript} ${profileConfig name profile} ${home}/config.yaml
+                chown ${upstream.user}:${upstream.group} ${home}/config.yaml
+                chmod ${configYamlMode} ${home}/config.yaml
                 ${lib.optionalString (profile.soul != null) /* bash */ ''
                   install -o ${upstream.user} -g ${upstream.group} -m 0640 \
                     ${profileSoul name profile} ${home}/SOUL.md
