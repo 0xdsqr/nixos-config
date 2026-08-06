@@ -42,21 +42,7 @@
         a2a = hermesShared.commonToolsets;
         discord = hermesShared.commonToolsets ++ [ "discord" ];
       };
-      skills = hermesShared.curateSkills [
-        "ascii-art"
-        "blogwatcher"
-        "docx"
-        "gif-search"
-        "google-workspace"
-        "grounded-citations"
-        "humanizer"
-        "llm-wiki"
-        "maps"
-        "ocr-and-documents"
-        "pdf"
-        "songwriting-and-ai-music"
-        "youtube-content"
-      ];
+      skills = hermesShared.curateSkills hermesShared.enabledSkills;
       terminal.cwd = "/var/lib/hermes/.hermes/profiles/vanilla/workspace";
       tts.elevenlabs.voice_id = "21m00Tcm4TlvDq8ikWAM";
     };

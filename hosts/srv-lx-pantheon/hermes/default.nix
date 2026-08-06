@@ -13,6 +13,58 @@ let
     )
   );
   curateSkills = enabled: { disabled = lib.subtractLists enabled bundledSkills; };
+  enabledSkills = [
+    "architecture-diagram"
+    "arxiv"
+    "ascii-art"
+    "ascii-video"
+    "baoyu-infographic"
+    "blogwatcher"
+    "claude-design"
+    "codebase-inspection"
+    "codex"
+    "comfyui"
+    "computer-use"
+    "design-md"
+    "docx"
+    "excalidraw"
+    "gif-search"
+    "github-auth"
+    "github-code-review"
+    "github-issues"
+    "github-pr-workflow"
+    "github-repo-management"
+    "google-workspace"
+    "grounded-citations"
+    "hermes-agent"
+    "hermes-agent-skill-authoring"
+    "humanizer"
+    "llm-wiki"
+    "manim-video"
+    "maps"
+    "nano-pdf"
+    "node-inspect-debugger"
+    "ocr-and-documents"
+    "p5js"
+    "pdf"
+    "plan"
+    "popular-web-designs"
+    "powerpoint"
+    "pretext"
+    "python-debugpy"
+    "requesting-code-review"
+    "research-paper-writing"
+    "simplify-code"
+    "sketch"
+    "songsee"
+    "songwriting-and-ai-music"
+    "spike"
+    "systematic-debugging"
+    "test-driven-development"
+    "touchdesigner-mcp"
+    "xlsx"
+    "youtube-content"
+  ];
   commonToolsets = [
     "a2a"
     "browser"
@@ -118,6 +170,7 @@ in
       commonToolsets
       curateSkills
       display
+      enabledSkills
       model
       providers
       resources

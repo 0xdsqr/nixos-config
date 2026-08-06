@@ -60,30 +60,7 @@
           "discord_admin"
         ];
       };
-      skills = hermesShared.curateSkills [
-        "architecture-diagram"
-        "codex"
-        "codebase-inspection"
-        "computer-use"
-        "excalidraw"
-        "github-auth"
-        "github-code-review"
-        "github-issues"
-        "github-pr-workflow"
-        "github-repo-management"
-        "google-workspace"
-        "grounded-citations"
-        "hermes-agent"
-        "humanizer"
-        "llm-wiki"
-        "ocr-and-documents"
-        "pdf"
-        "plan"
-        "requesting-code-review"
-        "simplify-code"
-        "systematic-debugging"
-        "test-driven-development"
-      ];
+      skills = hermesShared.curateSkills hermesShared.enabledSkills;
       tts.elevenlabs.voice_id = "pNInz6obpgDQGcFmaJgB";
     };
     environment = {
