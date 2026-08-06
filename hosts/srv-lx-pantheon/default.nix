@@ -51,7 +51,14 @@ in
 
         hardware.report = ./srv-lx-pantheon.report.json;
 
-        dsqr.nixos.tailscale.enable = true;
+        dsqr.nixos = {
+          restic = {
+            enable = true;
+            hosts = [ "srv-lx-backup" ];
+            passwordAgeFile = ../srv-lx-beacon/restic.password.age;
+          };
+          tailscale.enable = true;
+        };
 
         system.stateVersion = "25.05";
       }

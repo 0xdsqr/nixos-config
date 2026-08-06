@@ -21,8 +21,9 @@
       hermesShared.providersEnvironmentFile
       config.age.secrets.hermes-hoo-environment.path
     ];
-    settings = lib.recursiveUpdate hermesShared.providers {
+    settings = lib.recursiveUpdate (lib.recursiveUpdate hermesShared.providers hermesShared.cognition) {
       inherit (hermesShared) display model;
+      agent.reasoning_effort = "high";
       a2a_agents.vanilla = {
         url = "http://127.0.0.1:9901";
         timeout = 120;
@@ -59,6 +60,30 @@
           "discord_admin"
         ];
       };
+      skills = hermesShared.curateSkills [
+        "architecture-diagram"
+        "codex"
+        "codebase-inspection"
+        "computer-use"
+        "excalidraw"
+        "github-auth"
+        "github-code-review"
+        "github-issues"
+        "github-pr-workflow"
+        "github-repo-management"
+        "google-workspace"
+        "grounded-citations"
+        "hermes-agent"
+        "humanizer"
+        "llm-wiki"
+        "ocr-and-documents"
+        "pdf"
+        "plan"
+        "requesting-code-review"
+        "simplify-code"
+        "systematic-debugging"
+        "test-driven-development"
+      ];
       tts.elevenlabs.voice_id = "pNInz6obpgDQGcFmaJgB";
     };
     environment = {

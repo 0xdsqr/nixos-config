@@ -17,8 +17,9 @@
       hermesShared.providersEnvironmentFile
       config.age.secrets.hermes-vanilla-environment.path
     ];
-    settings = lib.recursiveUpdate hermesShared.providers {
+    settings = lib.recursiveUpdate (lib.recursiveUpdate hermesShared.providers hermesShared.cognition) {
       inherit (hermesShared) display model;
+      agent.reasoning_effort = "medium";
       a2a_agents.hoo = {
         url = "http://127.0.0.1:9900";
         timeout = 120;
@@ -41,6 +42,21 @@
         a2a = hermesShared.commonToolsets;
         discord = hermesShared.commonToolsets ++ [ "discord" ];
       };
+      skills = hermesShared.curateSkills [
+        "ascii-art"
+        "blogwatcher"
+        "docx"
+        "gif-search"
+        "google-workspace"
+        "grounded-citations"
+        "humanizer"
+        "llm-wiki"
+        "maps"
+        "ocr-and-documents"
+        "pdf"
+        "songwriting-and-ai-music"
+        "youtube-content"
+      ];
       terminal.cwd = "/var/lib/hermes/.hermes/profiles/vanilla/workspace";
       tts.elevenlabs.voice_id = "21m00Tcm4TlvDq8ikWAM";
     };

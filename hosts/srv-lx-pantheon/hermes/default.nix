@@ -7,6 +7,12 @@
 }:
 let
   allowedUsers = "618575437995442197,980636531565949019";
+  bundledSkills = map (path: builtins.baseNameOf (builtins.dirOf path)) (
+    builtins.filter (path: lib.hasSuffix "/SKILL.md" (toString path)) (
+      lib.filesystem.listFilesRecursive (inputs.hermes-agent + /skills)
+    )
+  );
+  curateSkills = enabled: { disabled = lib.subtractLists enabled bundledSkills; };
   commonToolsets = [
     "a2a"
     "browser"
@@ -29,6 +35,7 @@ let
   ];
   display = {
     interim_assistant_messages = false;
+    memory_notifications = false;
     show_commentary = false;
     show_reasoning = false;
     tool_progress = "off";
@@ -36,6 +43,28 @@ let
   model = {
     default = "gpt-5.6-sol";
     provider = "openai-codex";
+  };
+  cognition = {
+    auxiliary.compression = {
+      provider = "main";
+      reasoning_effort = "low";
+    };
+    compression = {
+      enabled = true;
+      threshold = 0.85;
+      target_ratio = 0.20;
+      protect_last_n = 20;
+      min_tail_user_messages = 3;
+      in_place = true;
+      micro_compact = false;
+    };
+    memory = {
+      memory_enabled = true;
+      user_profile_enabled = true;
+      memory_char_limit = 2200;
+      user_char_limit = 1375;
+      write_approval = false;
+    };
   };
   providers = {
     context.engine = "compressor";
@@ -83,7 +112,9 @@ in
   _module.args.hermesShared = {
     inherit
       allowedUsers
+      cognition
       commonToolsets
+      curateSkills
       display
       model
       providers
