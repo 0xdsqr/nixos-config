@@ -206,7 +206,10 @@ let
   };
 in
 {
-  services.hermes-agent.extraPackages = [ pkgs.binutils ];
+  services.hermes-agent.extraPackages = [
+    pkgs.binutils
+    pkgs.xurl
+  ];
 
   age.secrets.hermes-providers-environment = {
     file = ../hermes-providers.env.age;
