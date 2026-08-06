@@ -32,6 +32,7 @@
         "fetch_messages"
         "create_thread"
       ];
+      discord.gateway_restart_notification = false;
       gateway.platforms.a2a = {
         enabled = true;
         extra.port = 9901;
@@ -54,5 +55,8 @@
     };
   };
 
-  systemd.services.hermes-agent-vanilla.serviceConfig = hermesShared.resources;
+  systemd.services.hermes-agent-vanilla = {
+    environment.LD_LIBRARY_PATH = hermesShared.opusLibraryPath;
+    serviceConfig = hermesShared.resources;
+  };
 }

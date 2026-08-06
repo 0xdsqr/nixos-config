@@ -70,5 +70,8 @@
     };
   };
 
-  systemd.services.hermes-agent.serviceConfig = hermesShared.resources;
+  systemd.services.hermes-agent = {
+    environment.LD_LIBRARY_PATH = hermesShared.opusLibraryPath;
+    serviceConfig = hermesShared.resources;
+  };
 }

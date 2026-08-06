@@ -1,6 +1,7 @@
 {
   config,
   inputs,
+  lib,
   pkgs,
   ...
 }:
@@ -89,6 +90,7 @@ in
       resources
       ;
     package = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default;
+    opusLibraryPath = lib.makeLibraryPath [ pkgs.libopus ];
     providersEnvironmentFile = config.age.secrets.hermes-providers-environment.path;
   };
 }
