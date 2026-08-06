@@ -15,10 +15,12 @@
   dsqr.nixos.hermes.profiles.vanilla = {
     environmentFiles = [
       hermesShared.providersEnvironmentFile
+      hermesShared.xmcpEnvironmentFile
       config.age.secrets.hermes-vanilla-environment.path
     ];
     settings = lib.recursiveUpdate (lib.recursiveUpdate hermesShared.providers hermesShared.cognition) {
       inherit (hermesShared) display model;
+      mcp_servers = hermesShared.mcpServers;
       agent.reasoning_effort = "medium";
       a2a_agents.hoo = {
         url = "http://127.0.0.1:9900";

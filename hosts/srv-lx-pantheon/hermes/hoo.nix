@@ -19,10 +19,12 @@
     addToSystemPackages = true;
     environmentFiles = [
       hermesShared.providersEnvironmentFile
+      hermesShared.xmcpEnvironmentFile
       config.age.secrets.hermes-hoo-environment.path
     ];
     settings = lib.recursiveUpdate (lib.recursiveUpdate hermesShared.providers hermesShared.cognition) {
       inherit (hermesShared) display model;
+      mcp_servers = hermesShared.mcpServers;
       agent.reasoning_effort = "high";
       a2a_agents.vanilla = {
         url = "http://127.0.0.1:9901";

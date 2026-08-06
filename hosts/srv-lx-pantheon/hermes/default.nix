@@ -75,6 +75,8 @@ let
     "file"
     "image_gen"
     "memory"
+    "mcp-xapi"
+    "mcp-xdocs"
     "session_search"
     "skills"
     "terminal"
@@ -146,6 +148,58 @@ let
       model = "pixverse-v6";
     };
   };
+  mcpServers = {
+    xapi = {
+      url = "https://api.x.com/mcp";
+      enabled = true;
+      connect_timeout = 30;
+      timeout = 60;
+      supports_parallel_tool_calls = true;
+      headers.Authorization = "Bearer \${X_BEARER_TOKEN}";
+      sampling.enabled = false;
+      elicitation.enabled = false;
+      tools = {
+        include = [
+          "get_news"
+          "get_posts_by_id"
+          "get_posts_by_ids"
+          "get_posts_counts_recent"
+          "get_posts_liking_users"
+          "get_posts_quoted_posts"
+          "get_posts_reposted_by"
+          "get_trends_by_woeid"
+          "get_users_by_id"
+          "get_users_by_username"
+          "get_users_by_usernames"
+          "get_users_mentions"
+          "get_users_posts"
+          "get_users_timeline"
+          "search_news"
+          "search_posts_all"
+          "search_users"
+        ];
+        prompts = false;
+        resources = false;
+      };
+    };
+    xdocs = {
+      url = "https://docs.x.com/mcp";
+      enabled = true;
+      connect_timeout = 30;
+      timeout = 60;
+      supports_parallel_tool_calls = true;
+      sampling.enabled = false;
+      elicitation.enabled = false;
+      tools = {
+        include = [
+          "get_page_x"
+          "search_x"
+        ];
+        prompts = false;
+        resources = false;
+      };
+    };
+  };
   resources = {
     CPUQuota = "150%";
     MemoryHigh = "1536M";
@@ -163,6 +217,13 @@ in
     mode = "0440";
   };
 
+  age.secrets.hermes-xmcp-environment = {
+    file = ../hermes-xmcp.env.age;
+    owner = "hermes";
+    group = "hermes";
+    mode = "0440";
+  };
+
   _module.args.hermesShared = {
     inherit
       allowedUsers
@@ -171,6 +232,7 @@ in
       curateSkills
       display
       enabledSkills
+      mcpServers
       model
       providers
       resources
@@ -178,5 +240,6 @@ in
     package = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default;
     opusLibraryPath = lib.makeLibraryPath [ pkgs.libopus ];
     providersEnvironmentFile = config.age.secrets.hermes-providers-environment.path;
+    xmcpEnvironmentFile = config.age.secrets.hermes-xmcp-environment.path;
   };
 }
