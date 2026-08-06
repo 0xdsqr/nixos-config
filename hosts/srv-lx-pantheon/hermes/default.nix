@@ -19,11 +19,6 @@ let
   };
 in
 {
-  imports = [
-    ./hermes/hoo.nix
-    ./hermes/vanilla.nix
-  ];
-
   _module.args.hermesShared = {
     inherit
       allowedUsers
