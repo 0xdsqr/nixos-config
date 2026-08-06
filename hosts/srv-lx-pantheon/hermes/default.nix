@@ -75,8 +75,6 @@ let
     "file"
     "image_gen"
     "memory"
-    "mcp-xapi"
-    "mcp-xdocs"
     "session_search"
     "skills"
     "terminal"

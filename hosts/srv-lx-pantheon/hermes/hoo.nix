@@ -60,6 +60,8 @@
         discord = hermesShared.commonToolsets ++ [
           "discord"
           "discord_admin"
+          "mcp-xapi"
+          "mcp-xdocs"
         ];
       };
       skills = hermesShared.curateSkills hermesShared.enabledSkills;
