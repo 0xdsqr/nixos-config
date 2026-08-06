@@ -59,6 +59,7 @@ in
             "srv-lx-k8s-master-01"
             "srv-lx-khaos"
             "srv-lx-mailbox"
+            "srv-lx-pantheon"
             "srv-lx-vault"
           ];
         };
