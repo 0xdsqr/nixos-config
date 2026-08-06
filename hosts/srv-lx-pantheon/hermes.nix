@@ -10,6 +10,12 @@ let
     default = "gpt-5.6-sol";
     provider = "openai-codex";
   };
+  display = {
+    interim_assistant_messages = false;
+    show_commentary = false;
+    show_reasoning = false;
+    tool_progress = "off";
+  };
   package = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.messaging;
 in
 {
@@ -21,8 +27,8 @@ in
       mode = "0440";
     };
 
-    hermes-vanalia-environment = {
-      file = ./hermes-vanalia.env.age;
+    hermes-vanilla-environment = {
+      file = ./hermes-vanilla.env.age;
       owner = "hermes";
       group = "hermes";
       mode = "0440";
@@ -35,7 +41,7 @@ in
 
     addToSystemPackages = true;
     environmentFiles = [ config.age.secrets.hermes-hoo-environment.path ];
-    settings.model = model;
+    settings = { inherit display model; };
     environment = {
       DISCORD_ALLOWED_USERS = allowedUsers;
       DISCORD_ALLOW_BOTS = "none";
@@ -44,11 +50,11 @@ in
     };
   };
 
-  dsqr.nixos.hermes.profiles.vanalia = {
-    environmentFiles = [ config.age.secrets.hermes-vanalia-environment.path ];
+  dsqr.nixos.hermes.profiles.vanilla = {
+    environmentFiles = [ config.age.secrets.hermes-vanilla-environment.path ];
     settings = {
-      inherit model;
-      terminal.cwd = "/var/lib/hermes/.hermes/profiles/vanalia/workspace";
+      inherit display model;
+      terminal.cwd = "/var/lib/hermes/.hermes/profiles/vanilla/workspace";
     };
     environment = {
       DISCORD_ALLOWED_USERS = allowedUsers;
@@ -68,7 +74,7 @@ in
       TasksMax = 512;
     };
 
-    hermes-agent-vanalia.serviceConfig = {
+    hermes-agent-vanilla.serviceConfig = {
       CPUQuota = "150%";
       MemoryHigh = "1536M";
       MemoryMax = "2G";

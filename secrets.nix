@@ -63,7 +63,7 @@ mkSecretsForHost "srv-lx-beacon" [
 ]
 // mkSecretsForHost "srv-lx-pantheon" [
   "hosts/srv-lx-pantheon/hermes-hoo.env.age"
-  "hosts/srv-lx-pantheon/hermes-vanalia.env.age"
+  "hosts/srv-lx-pantheon/hermes-vanilla.env.age"
   "hosts/srv-lx-pantheon/tailscale.auth-key.age"
 ]
 // mkSecretsForHost "srv-lx-khaos" [

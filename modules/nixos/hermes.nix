@@ -116,6 +116,7 @@
             wantedBy = [ "multi-user.target" ];
             after = [ "network-online.target" ];
             wants = [ "network-online.target" ];
+            restartTriggers = [ (profileConfig name profile) ];
 
             environment = {
               HOME = upstream.stateDir;
