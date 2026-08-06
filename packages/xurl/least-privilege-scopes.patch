@@ -1,0 +1,74 @@
+diff --git a/auth/auth.go b/auth/auth.go
+index 32a6eaa..40e6cfa 100644
+--- a/auth/auth.go
++++ b/auth/auth.go
+@@ -676,45 +676,13 @@ func generateCodeVerifierAndChallenge() (string, string, error) {
+ }
+ 
+ func getOAuth2Scopes() []string {
+-	readScopes := []string{
++	return []string{
+ 		"tweet.read",
+ 		"users.read",
+ 		"bookmark.read",
+-		"follows.read",
+-		"list.read",
+-		"block.read",
+-		"mute.read",
+-		"like.read",
+-		"users.email",
+-		"dm.read",
+-		"broadcast.read",
+-	}
+-
+-	writeScopes := []string{
+-		"tweet.write",
+-		"tweet.moderate.write",
+-		"follows.write",
+ 		"bookmark.write",
+-		"block.write",
+-		"mute.write",
+-		"like.write",
+-		"list.write",
+-		"media.write",
+-		"dm.write",
+-		"broadcast.write",
+-	}
+-
+-	otherScopes := []string{
+ 		"offline.access",
+-		"space.read",
+ 	}
+-
+-	var scopes []string
+-	scopes = append(scopes, readScopes...)
+-	scopes = append(scopes, writeScopes...)
+-	scopes = append(scopes, otherScopes...)
+-
+-	return scopes
+ }
+ 
+ func openBrowser(url string) error {
+diff --git a/auth/auth_test.go b/auth/auth_test.go
+index ef1aedf..155104c 100644
+--- a/auth/auth_test.go
++++ b/auth/auth_test.go
+@@ -153,11 +153,13 @@ func TestGetOAuth2Scopes(t *testing.T) {
+ 
+ 	assert.NotEmpty(t, scopes, "Expected non-empty scopes")
+ 
+-	// Check for some common scopes
+-	assert.Contains(t, scopes, "tweet.read", "Expected 'tweet.read' scope")
+-	assert.Contains(t, scopes, "users.read", "Expected 'users.read' scope")
+-	assert.Contains(t, scopes, "broadcast.read", "Expected 'broadcast.read' scope")
+-	assert.Contains(t, scopes, "broadcast.write", "Expected 'broadcast.write' scope")
++	assert.ElementsMatch(t, []string{
++		"tweet.read",
++		"users.read",
++		"bookmark.read",
++		"bookmark.write",
++		"offline.access",
++	}, scopes)
+ }
+ 
+ func TestCredentialResolutionPriority(t *testing.T) {

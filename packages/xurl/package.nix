@@ -14,6 +14,8 @@ buildGoModule rec {
     hash = "sha256-dwVBzuUhQpfRWFOZOf1DCGNKoetdZlcretnyv9AShbw=";
   };
 
+  patches = [ ./least-privilege-scopes.patch ];
+
   postPatch = ''
     substituteInPlace api/client_test.go \
       --replace-fail '"xurl/dev"' '"xurl/${version}"'
