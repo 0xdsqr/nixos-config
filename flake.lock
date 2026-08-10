@@ -540,11 +540,11 @@
     "i-have-adhd": {
       "flake": false,
       "locked": {
-        "lastModified": 1786040351,
-        "narHash": "sha256-uwwifEre0HmYpKkBN77NtLzyg8OrGH7NWlT6v40WOSs=",
+        "lastModified": 1786336269,
+        "narHash": "sha256-rs4wsF/O/QlB993mYomKns1ZzcnBZF9C+nAKergfuug=",
         "owner": "ayghri",
         "repo": "i-have-adhd",
-        "rev": "2d19ad205eb1d85fc9c3968bdeba4c2116518685",
+        "rev": "30a743050db79a357111a7fa1f6b41ebc310af02",
         "type": "github"
       },
       "original": {
@@ -779,11 +779,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786215223,
-        "narHash": "sha256-5rDdiSQtIe85Y5nEOeG7vgS6OJucSUZDOhR7i956xw4=",
+        "lastModified": 1786346057,
+        "narHash": "sha256-hB/sIWBGPih3piagNbHVmB1K97M2xh+dqgWQCb4E3rU=",
         "owner": "anomalyco",
         "repo": "opencode",
-        "rev": "38e10eb1408feb700021b8e8766fb0ab41bf84e2",
+        "rev": "941e71dbbb94ea5b32226c2845585992dadb361f",
         "type": "github"
       },
       "original": {
