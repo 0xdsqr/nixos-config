@@ -17,6 +17,7 @@ let
 
   requiredExports = {
     commonModules = [
+      "codex"
       "home-manager"
       "nix"
       "nixpkgs"

@@ -1,4 +1,5 @@
 {
+  config,
   hostMeta ? null,
   hostName ? null,
   lib,
@@ -115,6 +116,8 @@ in
     distributedBuilds = mkDefault true;
     settings = mapAttrs (_: mkDefault) (rootNixSettings // { builders-use-substitutes = true; });
   };
+
+  dsqr.codex.enable = mkDefault config.home-manager.users.dsqr.dsqr.home.codex.enable;
 
   dsqr.security.certificates.homeRootCA.enable = mkDefault true;
 }
