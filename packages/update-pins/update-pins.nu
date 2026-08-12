@@ -1,5 +1,5 @@
 # Bump the pinned versions/hashes of agent packages and skill inputs.
-#   update-pins [claude-code|codex|codexbar|opencode|pi|skills|all]
+#   update-pins [claude-code|codex|opencode|pi|skills|all]
 
 const FAKE = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 
@@ -53,14 +53,6 @@ def build-got [attr: string] {
   parse-got ($res.stdout + $res.stderr)
 }
 
-# Hash a fetchzip source on any platform (matches the darwin-only package output).
-def fetchzip-hash [url: string] {
-  let root = (repo-root)
-  let expr = $"let pkgs = import \(builtins.getFlake \"($root)\"\).inputs.nixpkgs {}; in pkgs.fetchzip { url = \"($url)\"; hash = \"($FAKE)\"; stripRoot = false; }"
-  let res = (do { ^nix build --impure --no-link --expr $expr } | complete)
-  parse-got $res.stderr
-}
-
 def update-claude-code [] {
   let file = $"(repo-root)/packages/agents/claude-code/package.nix"
   let base = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases"
@@ -104,20 +96,6 @@ def update-codex [] {
   replace-field $file "cargoHash" (parse-got $cargo.stderr)
 }
 
-def update-codexbar [] {
-  let file = $"(repo-root)/packages/agents/codex/bar.nix"
-  let latest = (gh-json "repos/steipete/CodexBar/releases/latest" | get tag_name | str replace --regex '^v' '')
-  let current = (nix-field $file "version")
-  if $latest == $current {
-    print $"codexbar up to date \(($current)\)"
-    return
-  }
-  print $"codexbar ($current) -> ($latest)"
-  let url = $"https://github.com/steipete/CodexBar/releases/download/v($latest)/CodexBar-macos-universal-($latest).zip"
-  replace-field $file "version" $latest
-  replace-field $file "hash" (fetchzip-hash $url)
-}
-
 def update-pi [] {
   let pkg = $"(repo-root)/packages/agents/pi/package.nix"
 
@@ -152,20 +130,18 @@ def main [pkg: string = "all"] {
   match $pkg {
     "claude-code" => { update-claude-code }
     "codex" => { update-codex }
-    "codexbar" => { update-codexbar }
     "opencode" => { update-opencode }
     "pi" => { update-pi }
     "skills" => { update-skills }
     "all" => {
       update-claude-code
       update-codex
-      update-codexbar
       update-opencode
       update-pi
       update-skills
     }
     _ => {
-      print "usage: update-pins [claude-code|codex|codexbar|opencode|pi|skills|all]"
+      print "usage: update-pins [claude-code|codex|opencode|pi|skills|all]"
       exit 1
     }
   }

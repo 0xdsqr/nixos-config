@@ -10,8 +10,7 @@
       inherit (lib.lists) singleton;
       inherit (lib.modules) mkIf;
       inherit (lib.options) mkEnableOption mkOption;
-      inherit (lib.meta) getExe;
-      inherit (lib.types) package;
+      inherit (lib.types) str;
 
       cfg = config.dsqr.home.desktop.codexbar;
       inherit (pkgs.stdenv.hostPlatform) isDarwin;
@@ -24,10 +23,10 @@
           default = true;
         };
 
-        package = mkOption {
-          type = package;
-          default = pkgs.codexbar;
-          description = "CodexBar package to install.";
+        applicationPath = mkOption {
+          type = str;
+          default = "/Applications/CodexBar.app";
+          description = "Path to the CodexBar application bundle.";
         };
       };
 
@@ -37,12 +36,10 @@
           message = "dsqr.home.desktop.codexbar requires Darwin.";
         };
 
-        home.packages = mkIf isDarwin (singleton cfg.package);
-
         launchd.agents.codexbar = mkIf (isDarwin && cfg.launchd.enable) {
           enable = true;
           config = {
-            ProgramArguments = [ (getExe cfg.package) ];
+            ProgramArguments = [ "${cfg.applicationPath}/Contents/MacOS/CodexBar" ];
             KeepAlive = {
               Crashed = true;
               SuccessfulExit = false;

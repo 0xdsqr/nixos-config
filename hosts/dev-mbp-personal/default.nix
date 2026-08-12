@@ -43,6 +43,7 @@ in
           security.certificates.homeRootCA.systemKeychain.enable = true;
 
           desktop = {
+            codexbar.enable = true;
             dock.enable = true;
             fileExplorer.enable = true;
             hygiene.enable = true;
@@ -124,8 +125,7 @@ in
 
             desktop = {
               browsers.googleChrome.enable = true;
-              # Temporarily disabled: macOS rejects the packaged app bundle as damaged.
-              codexbar.enable = false;
+              codexbar.enable = true;
               hammerspoon.enable = true;
               windowManager.enable = true;
             };
