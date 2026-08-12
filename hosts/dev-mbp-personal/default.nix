@@ -124,7 +124,8 @@ in
 
             desktop = {
               browsers.googleChrome.enable = true;
-              codexbar.enable = true;
+              # Temporarily disabled: macOS rejects the packaged app bundle as damaged.
+              codexbar.enable = false;
               hammerspoon.enable = true;
               windowManager.enable = true;
             };
