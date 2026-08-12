@@ -8,7 +8,12 @@
   ...
 }:
 let
-  inherit (lib.attrsets) filterAttrs mapAttrs removeAttrs;
+  inherit (lib.attrsets)
+    attrByPath
+    filterAttrs
+    mapAttrs
+    removeAttrs
+    ;
   inherit (lib.lists) optional;
   inherit (lib.modules) mkAfter mkDefault;
 
@@ -117,7 +122,17 @@ in
     settings = mapAttrs (_: mkDefault) (rootNixSettings // { builders-use-substitutes = true; });
   };
 
-  dsqr.codex.enable = mkDefault config.home-manager.users.dsqr.dsqr.home.codex.enable;
+  dsqr.codex.enable = mkDefault (
+    attrByPath [
+      "home-manager"
+      "users"
+      "dsqr"
+      "dsqr"
+      "home"
+      "codex"
+      "enable"
+    ] false config
+  );
 
   dsqr.security.certificates.homeRootCA.enable = mkDefault true;
 }
