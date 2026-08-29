@@ -8,6 +8,12 @@ let
     srv-lx-beacon = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEg0Wa1hKeMF7yipTmlxdC+ZIiY9sEvlG5wgqX76/64k root@srv-lx-beacon";
     srv-lx-gateway = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEu2uKz+OGZmCnECDZ3OMItW3rTInjNEFxgB4p5oDqxn root@srv-lx-gateway";
     srv-lx-k8s-master-01 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBa0ivhIPpBU+lTUGz9/uK6eQd9rT9Y3UrSn55sMkmpe root@srv-lx-k8s-master-01";
+    srv-lx-k8s-indigo-control-01 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKwGjJi5Ydu3CrTNQ7+KIatmfgDf/jT2exH9Y6F0PQJK root@srv-lx-k8s-indigo-control-01";
+    srv-lx-k8s-indigo-control-02 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMazXWFJO25M1h3XSK27CJCW+y0dqaGwy3jOq+p/z//f root@srv-lx-k8s-indigo-control-02";
+    srv-lx-k8s-indigo-control-03 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINt0GwaHjzmWSvuZdIK1DzNKeGaoZm22t96E42FluK5b root@srv-lx-k8s-indigo-control-03";
+    srv-lx-k8s-indigo-worker-01 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICOn91Jrxjf0Ac1P7irBuOWRWh4Mz9SSRIGEpMumQhta root@srv-lx-k8s-indigo-worker-01";
+    srv-lx-k8s-indigo-worker-02 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINdr30XrgO1KaUTn8PyAZwYMN1eO6QUsHjQEL5OgreQ5 root@srv-lx-k8s-indigo-worker-02";
+    srv-lx-k8s-indigo-worker-03 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH3LCSbsUhSv3lDiFdBlxwoAkSCzVoCLsnHW3cBvCZV8 root@srv-lx-k8s-indigo-worker-03";
     srv-lx-k8s-node-01 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHB7+jrInU41DpDuFMzvyYDgpOkE2duOjn8Hg93wAQ9L root@srv-lx-k8s-node-01";
     srv-lx-k8s-node-02 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILCoB+PBfoAJ60/vxDhBOaeUDIMWESfYyWgHgKNK9LGL root@srv-lx-k8s-node-02";
     srv-lx-khaos = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO96/hopscQBRbeWkv6CCcCNpe/5lwYt13c3bEWBDkyD root@srv-lx-khaos";

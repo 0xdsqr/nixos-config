@@ -43,6 +43,12 @@ mkSecretsForHost "srv-lx-beacon" [
   "hosts/srv-lx-k8s-master-01/host.password.age"
   "hosts/srv-lx-k8s-master-01/tailscale.auth-key.age"
 ]
+// mkSecretsForHost "srv-lx-k8s-indigo-control-01" [ "hosts/srv-lx-k8s-indigo-control-01/tailscale.auth-key.age" ]
+// mkSecretsForHost "srv-lx-k8s-indigo-control-02" [ "hosts/srv-lx-k8s-indigo-control-02/tailscale.auth-key.age" ]
+// mkSecretsForHost "srv-lx-k8s-indigo-control-03" [ "hosts/srv-lx-k8s-indigo-control-03/tailscale.auth-key.age" ]
+// mkSecretsForHost "srv-lx-k8s-indigo-worker-01" [ "hosts/srv-lx-k8s-indigo-worker-01/tailscale.auth-key.age" ]
+// mkSecretsForHost "srv-lx-k8s-indigo-worker-02" [ "hosts/srv-lx-k8s-indigo-worker-02/tailscale.auth-key.age" ]
+// mkSecretsForHost "srv-lx-k8s-indigo-worker-03" [ "hosts/srv-lx-k8s-indigo-worker-03/tailscale.auth-key.age" ]
 // mkSecretsForHost "srv-lx-k8s-node-01" [
   "hosts/srv-lx-k8s-node-01/host.password.age"
   "hosts/srv-lx-k8s-node-01/tailscale.auth-key.age"
