@@ -5,7 +5,7 @@
       inherit (lib.modules) mkDefault mkIf;
       inherit (lib.options) mkEnableOption mkOption;
       inherit (lib.lists) singleton;
-      inherit (lib.types) nullOr path;
+      inherit (lib.types) enum nullOr path;
       cfg = config.dsqr.nixos.tailscale;
       hasAuthKey = cfg.authKeyAgeFile != null && builtins.pathExists cfg.authKeyAgeFile;
     in
@@ -17,6 +17,16 @@
           type = nullOr path;
           default = null;
           description = "Encrypted age file containing the Tailscale auth key.";
+        };
+
+        firewallMode = mkOption {
+          type = enum [
+            "auto"
+            "iptables"
+            "nftables"
+          ];
+          default = if config.networking.nftables.enable then "nftables" else "iptables";
+          description = "Firewall backend used by tailscaled for its own packet-filter rules.";
         };
       };
 
@@ -36,9 +46,7 @@
 
         networking.firewall.trustedInterfaces = singleton "ts0";
 
-        systemd.services.tailscaled.serviceConfig.Environment = mkIf config.networking.nftables.enable [
-          "TS_DEBUG_FIREWALL_MODE=nftables"
-        ];
+        systemd.services.tailscaled.serviceConfig.Environment = [ "TS_DEBUG_FIREWALL_MODE=${cfg.firewallMode}" ];
 
         # The upstream autoconnect helper waits for the daemon's BackendState to
         # become Running. During a switch that also restarts networking, the
