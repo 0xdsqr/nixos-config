@@ -54,9 +54,6 @@ jobs:
       - name: Build and cache agent packages
         run: |
           packages=(claude-code codex pi)
-          if [ "${{ matrix.system }}" = "aarch64-darwin" ]; then
-            packages+=(codexbar)
-          fi
           targets=()
           for pkg in "${packages[@]}"; do
             targets+=(".#packages.${{ matrix.system }}.$pkg")
