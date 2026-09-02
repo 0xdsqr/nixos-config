@@ -11,7 +11,10 @@ in
   ];
 
   dsqr.nixos = {
-    kubeadm.enable = true;
+    kubeadm = {
+      enable = true;
+      kubelet.serverTlsBootstrap = true;
+    };
 
     # Cilium and Tailscale must share the iptables-nft compatibility layer.
     # NixOS still owns the host firewall through native nftables.

@@ -72,6 +72,38 @@
         apiVersion = "kubelet.config.k8s.io/v1beta1";
         cgroupDriver = "systemd";
         kind = "KubeletConfiguration";
+        serverTLSBootstrap = cfg.kubelet.serverTlsBootstrap;
+      };
+
+      reconcileKubeletServerTlsBootstrap = pkgs.writeShellApplication {
+        name = "reconcile-kubelet-server-tls-bootstrap";
+        runtimeInputs = [
+          pkgs.coreutils
+          pkgs.yq-go
+        ];
+        text = ''
+          config=/var/lib/kubelet/config.yaml
+
+          # kubeadm materializes this file outside the Nix store. Reconcile the
+          # field before every kubelet start so joins and kubeadm upgrades cannot
+          # silently restore self-signed serving certificates.
+          if [[ ! -f "$config" ]]; then
+            exit 0
+          fi
+
+          temporary="$(mktemp --tmpdir=/var/lib/kubelet .config.yaml.XXXXXX)"
+          trap 'rm -f "$temporary"' EXIT
+          yq eval '.serverTLSBootstrap = true' "$config" > "$temporary"
+          chown --reference="$config" "$temporary"
+          chmod --reference="$config" "$temporary"
+
+          if cmp --silent "$config" "$temporary"; then
+            exit 0
+          fi
+
+          mv "$temporary" "$config"
+          trap - EXIT
+        '';
       };
 
       kubeVipManifest =
@@ -207,6 +239,12 @@
           type = bool;
           default = false;
           description = "Whether this node initializes the cluster control plane.";
+        };
+
+        kubelet.serverTlsBootstrap = mkOption {
+          type = bool;
+          default = false;
+          description = "Request rotating kubelet serving certificates from the cluster CA.";
         };
 
         cluster = {
@@ -482,6 +520,7 @@
             "network-online.target"
             "containerd.service"
           ];
+          preStart = mkIf cfg.kubelet.serverTlsBootstrap "${lib.getExe reconcileKubeletServerTlsBootstrap}";
 
           serviceConfig = {
             Environment = [
