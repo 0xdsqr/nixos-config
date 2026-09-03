@@ -7,13 +7,14 @@
       ...
     }:
     let
-      inherit (lib.attrsets) attrByPath optionalAttrs;
+      inherit (lib.attrsets) attrByPath optionalAttrs recursiveUpdate;
       inherit (lib.lists) singleton;
       inherit (lib.modules) mkIf;
       inherit (lib.options) mkEnableOption mkOption;
       inherit (lib.types) package;
 
       cfg = config.dsqr.home.claudeCode;
+      jsonFormat = pkgs.formats.json { };
       herdrCfg = attrByPath [ "dsqr" "home" "desktop" "ghostty" "herdr" ] {
         enable = false;
         integrations = {
@@ -24,6 +25,24 @@
       herdrIntegrationEnabled =
         herdrCfg.enable && herdrCfg.integrations.claude.enable && herdrCfg.integrations.artifacts != null;
       herdrHook = "${config.xdg.configHome}/claude-code/hooks/herdr-agent-state.sh";
+
+      baseSettings = {
+        "$schema" = "https://json.schemastore.org/claude-code-settings.json";
+      }
+      // optionalAttrs herdrIntegrationEnabled {
+        hooks.SessionStart = [
+          {
+            hooks = [
+              {
+                command = "bash '${herdrHook}' session";
+                timeout = 10;
+                type = "command";
+              }
+            ];
+            matcher = "*";
+          }
+        ];
+      };
 
       gitWorkflowInstructions = ''
         # Claude Code Preferences
@@ -114,6 +133,16 @@
           default = pkgs.claude-code;
           description = "Claude Code package to install.";
         };
+
+        settings = mkOption {
+          inherit (jsonFormat) type;
+          default = { };
+          description = ''
+            Settings merged over the module defaults and written to Claude Code's
+            user configuration. Attribute sets merge recursively; lists are
+            replaced, so overriding `hooks` drops the module-managed hooks.
+          '';
+        };
       };
 
       config = mkIf cfg.enable {
@@ -136,24 +165,8 @@
           source = "${herdrCfg.integrations.artifacts}/claude/hooks/herdr-agent-state.sh";
         };
 
-        xdg.configFile."claude-code/settings.json".text = builtins.toJSON (
-          {
-            "$schema" = "https://json.schemastore.org/claude-code-settings.json";
-          }
-          // optionalAttrs herdrIntegrationEnabled {
-            hooks.SessionStart = [
-              {
-                hooks = [
-                  {
-                    command = "bash '${herdrHook}' session";
-                    timeout = 10;
-                    type = "command";
-                  }
-                ];
-                matcher = "*";
-              }
-            ];
-          }
+        xdg.configFile."claude-code/settings.json".source = jsonFormat.generate "claude-code-settings.json" (
+          recursiveUpdate baseSettings cfg.settings
         );
       };
     };
