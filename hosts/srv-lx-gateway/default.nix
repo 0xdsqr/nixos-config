@@ -75,6 +75,11 @@ in
                 hostHeader = "argocd.hub-a.home.arpa";
                 tlsServerName = "argocd.hub-a.home.arpa";
               };
+              "argocd.indigo.home.arpa" = {
+                upstream = "https://10.10.80.200";
+                hostHeader = "argocd.indigo.home.arpa";
+                tlsServerName = "argocd.indigo.home.arpa";
+              };
               "exo.home.arpa" = {
                 upstream = "http://10.10.30.100:52415";
                 basicAuth.users.dsqr = "$argon2id$v=19$m=47104,t=1,p=1$LNbI6VnTETiB3C4XeCVUxg$PcF044tqYCRPvimP8U0uV0bBAvjPaV3gLzeQvSz6pZw";

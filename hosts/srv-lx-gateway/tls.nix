@@ -18,6 +18,7 @@ in
     issuePath = "pki_int/issue/gateway-caddy-home-arpa";
     commonName = "argocd.hub-a.home.arpa";
     altNames = [
+      "argocd.indigo.home.arpa"
       "exo.home.arpa"
       "exo.service.home.arpa"
       "grafana.home.arpa"
