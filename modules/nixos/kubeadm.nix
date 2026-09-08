@@ -9,11 +9,12 @@
 
     let
       inherit (lib.lists) optionals;
-      inherit (lib.modules) mkIf;
+      inherit (lib.modules) mkIf mkMerge;
       inherit (lib.options) mkEnableOption mkOption;
       inherit (lib.types)
         bool
         enum
+        listOf
         nullOr
         package
         port
@@ -21,6 +22,27 @@
         ;
 
       cfg = config.dsqr.nixos.kubeadm;
+
+      ipv4Address = lib.types.strMatching "([0-9]{1,3}\\.){3}[0-9]{1,3}";
+      ipv4Subnet = lib.types.strMatching "([0-9]{1,3}\\.){3}[0-9]{1,3}/([0-9]|[12][0-9]|3[0-2])";
+      firewallSources = values: lib.concatStringsSep ", " (lib.unique values);
+
+      # This is host-input filtering, not a replacement for pod network policy.
+      # Pod-to-node requests can arrive with their pod IP or a node SNAT address
+      # (observed for Indigo Metrics Server), so retain both explicit sources.
+      nodeFirewallRules = ''
+        ip saddr { ${
+          firewallSources (cfg.nodeFirewall.nodeAddresses ++ cfg.nodeFirewall.podSubnets)
+        } } tcp dport { 4240, 10250 } counter accept comment "Kubernetes kubelet and Cilium health peers"
+        ip saddr { ${firewallSources cfg.nodeFirewall.nodeAddresses} } udp dport 8472 counter accept comment "Cilium VXLAN node peers"
+      ''
+      + lib.optionalString (cfg.role == "control-plane") ''
+        ip saddr { ${firewallSources cfg.nodeFirewall.controlPlaneAddresses} } tcp dport { 2379, 2380 } counter accept comment "Stacked etcd control-plane peers"
+      ''
+      + lib.optionalString (builtins.elem cfg.nodeAddress cfg.nodeFirewall.memberlistAddresses) ''
+        ip saddr { ${firewallSources cfg.nodeFirewall.memberlistAddresses} } tcp dport 7946 counter accept comment "MetalLB memberlist peers"
+        ip saddr { ${firewallSources cfg.nodeFirewall.memberlistAddresses} } udp dport 7946 counter accept comment "MetalLB memberlist peers"
+      '';
 
       # Used only by nodes explicitly opted into routingCompatibility below.
       # Include the proxy return path through Cilium's internal devices, without
@@ -235,6 +257,34 @@
           Requires Cilium SourceIPVerification; roll out per node after validation
         '';
 
+        nodeFirewall = {
+          enable = mkEnableOption "Restrict Kubernetes internal host ports to explicit IPv4 peers";
+
+          nodeAddresses = mkOption {
+            type = listOf ipv4Address;
+            default = [ ];
+            description = "All cluster node IPv4 addresses, including this node; used for VXLAN, health and SNATed kubelet requests.";
+          };
+
+          controlPlaneAddresses = mkOption {
+            type = listOf ipv4Address;
+            default = [ ];
+            description = "Stacked-etcd control-plane IPv4 addresses; only these peers receive etcd access.";
+          };
+
+          memberlistAddresses = mkOption {
+            type = listOf ipv4Address;
+            default = [ ];
+            description = "MetalLB speaker IPv4 addresses. Memberlist is opened only on nodes in this list.";
+          };
+
+          podSubnets = mkOption {
+            type = listOf ipv4Subnet;
+            default = [ ];
+            description = "Cluster pod IPv4 CIDRs allowed to reach kubelet and Cilium health; pod policy remains a separate layer.";
+          };
+        };
+
         role = mkOption {
           type = nullOr (enum [
             "control-plane"
@@ -398,6 +448,25 @@
         assertions = [
           {
             assertion =
+              !cfg.nodeFirewall.enable
+              || (
+                config.networking.firewall.enable
+                && config.networking.nftables.enable
+                && cfg.role != null
+                && builtins.elem cfg.nodeAddress cfg.nodeFirewall.nodeAddresses
+                && cfg.nodeFirewall.podSubnets != [ ]
+                && cfg.nodeFirewall.controlPlaneAddresses != [ ]
+                && lib.all (address: builtins.elem address cfg.nodeFirewall.nodeAddresses) (
+                  cfg.nodeFirewall.controlPlaneAddresses ++ cfg.nodeFirewall.memberlistAddresses
+                )
+                && (
+                  cfg.role != "control-plane" || builtins.elem cfg.nodeAddress cfg.nodeFirewall.controlPlaneAddresses
+                )
+              );
+            message = "Restricted Kubernetes node firewall requires native nftables, a node role, this node in nodeAddresses, podSubnets, and control-plane/memberlist peers drawn from nodeAddresses.";
+          }
+          {
+            assertion =
               !cfg.ciliumProxyFirewall.routingCompatibility.enable
               || (cfg.ciliumProxyFirewall.enable && config.networking.nftables.enable);
             message = "Cilium proxy routing compatibility requires ciliumProxyFirewall.enable and the native nftables firewall.";
@@ -472,14 +541,17 @@
           # so redirected DNS/L7 traffic reaches the local policy proxy.
           # This is a kernel packet mark, not an externally supplied IP field;
           # it does not open the proxy's dynamic port to ordinary host traffic.
-          extraInputRules = mkIf (cfg.ciliumProxyFirewall.enable && config.networking.nftables.enable) (
-            if cfg.ciliumProxyFirewall.routingCompatibility.enable then
-              ciliumProxyRoutingRules
-            else
-              ''
-                meta mark & 0x00000f00 == 0x00000200 counter accept comment "Cilium policy proxy traffic"
-              ''
-          );
+          extraInputRules = mkMerge [
+            (mkIf (cfg.ciliumProxyFirewall.enable && config.networking.nftables.enable) (
+              if cfg.ciliumProxyFirewall.routingCompatibility.enable then
+                ciliumProxyRoutingRules
+              else
+                ''
+                  meta mark & 0x00000f00 == 0x00000200 counter accept comment "Cilium policy proxy traffic"
+                ''
+            ))
+            (mkIf cfg.nodeFirewall.enable nodeFirewallRules)
+          ];
 
           # TPROXY policy-routes these marked packets to a local socket before
           # input. The normal reverse-path lookup rejects that local route,
@@ -488,19 +560,23 @@
           # retain the existing behavior on nodes not explicitly opted in.
           extraReversePathFilterRules = mkIf cfg.ciliumProxyFirewall.routingCompatibility.enable ciliumProxyRoutingRules;
 
-          allowedTCPPorts = [
-            10250
-            4240
-            7946
-          ]
-          ++ optionals (cfg.role == "control-plane") [
-            2379
-            2380
-            6443
-            10257
-            10259
-          ];
-          allowedUDPPorts = [
+          allowedTCPPorts =
+            optionals (!cfg.nodeFirewall.enable) [
+              10250
+              4240
+              7946
+            ]
+            # Keep existing API client access until its separate access review.
+            # SSH and trusted Tailscale interfaces are owned by their own modules.
+            ++ optionals (cfg.role == "control-plane" && cfg.nodeFirewall.enable) [ cfg.cluster.apiPort ]
+            ++ optionals (cfg.role == "control-plane" && !cfg.nodeFirewall.enable) [
+              2379
+              2380
+              6443
+              10257
+              10259
+            ];
+          allowedUDPPorts = optionals (!cfg.nodeFirewall.enable) [
             7946
             8472
           ];

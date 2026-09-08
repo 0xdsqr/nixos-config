@@ -37,7 +37,10 @@ in
       { ... }: {
         imports =
           modules
-          ++ [ ../../profiles/kubernetes/nixos.nix ]
+          ++ [
+            ../../profiles/kubernetes/nixos.nix
+            ../../profiles/kubernetes/indigo-firewall.nix
+          ]
           ++ self.lib.collectNix {
             path = ./.;
             exclude = path: path == ./default.nix;
@@ -55,6 +58,9 @@ in
             # First validation node: TCP/UDP DNS, endpoint recreation, Tailscale
             # restart and isolated egress enforcement passed before rollout.
             ciliumProxyFirewall.routingCompatibility.enable = true;
+
+            # First source-restricted node firewall; validate before other nodes opt in.
+            nodeFirewall.enable = true;
 
             cluster = {
               name = "indigo";
