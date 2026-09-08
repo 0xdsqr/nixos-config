@@ -13,6 +13,7 @@ in
   dsqr.nixos = {
     kubeadm = {
       enable = true;
+      ciliumProxyFirewall.enable = true;
       kubelet.serverTlsBootstrap = true;
     };
 

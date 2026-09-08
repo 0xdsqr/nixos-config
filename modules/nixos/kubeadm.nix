@@ -220,6 +220,8 @@
       options.dsqr.nixos.kubeadm = {
         enable = mkEnableOption "Enable the shared kubeadm node baseline";
 
+        ciliumProxyFirewall.enable = mkEnableOption "Allow Cilium-marked proxy traffic through the native nftables host firewall";
+
         role = mkOption {
           type = nullOr (enum [
             "control-plane"
@@ -442,6 +444,15 @@
         };
 
         networking.firewall = {
+          # Cilium's CILIUM_INPUT accept in iptables-nft does not bypass a
+          # separate nftables base chain. Mirror its to-proxy mark/mask here
+          # so redirected DNS/L7 traffic reaches the local policy proxy.
+          # This is a kernel packet mark, not an externally supplied IP field;
+          # it does not open the proxy's dynamic port to ordinary host traffic.
+          extraInputRules = mkIf (cfg.ciliumProxyFirewall.enable && config.networking.nftables.enable) ''
+            meta mark & 0x00000f00 == 0x00000200 counter accept comment "Cilium policy proxy traffic"
+          '';
+
           allowedTCPPorts = [
             10250
             4240
