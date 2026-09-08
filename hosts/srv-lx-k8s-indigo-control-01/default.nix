@@ -37,7 +37,10 @@ in
       { ... }: {
         imports =
           modules
-          ++ [ ../../profiles/kubernetes/nixos.nix ]
+          ++ [
+            ../../profiles/kubernetes/nixos.nix
+            ../../profiles/kubernetes/indigo-firewall.nix
+          ]
           ++ self.lib.collectNix {
             path = ./.;
             exclude = path: path == ./default.nix;
@@ -54,6 +57,9 @@ in
 
             # Indigo-only opt-in, validated first on worker-03.
             ciliumProxyFirewall.routingCompatibility.enable = true;
+
+            # Shared source restrictions validated first on Indigo worker-03.
+            nodeFirewall.enable = true;
             bootstrap = true;
 
             cluster = {

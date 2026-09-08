@@ -3,7 +3,7 @@ import { readdirSync } from "node:fs";
 import test from "node:test";
 import { inventory, moduleSource, read, renderRules } from "./helpers/kubeadm-firewall.mjs";
 
-test("internal-port restrictions are default-off with only worker03 opted in", () => {
+test("internal-port restrictions are default-off with only the six Indigo nodes opted in", () => {
   assert.match(moduleSource, /nodeFirewall = \{\s*enable = mkEnableOption/);
   assert.match(moduleSource, /!cfg\.nodeFirewall\.enable\s*\|\|/);
   assert.match(moduleSource, /builtins\.elem cfg\.nodeAddress cfg\.nodeFirewall\.nodeAddresses/);
@@ -11,9 +11,18 @@ test("internal-port restrictions are default-off with only worker03 opted in", (
   const optedIn = hosts.filter(({ name }) => {
     try { return /nodeFirewall\.enable = true;/.test(read(`hosts/${name}/default.nix`)); }
     catch (error) { if (error.code === "ENOENT") return false; throw error; }
-  }).map(({ name }) => name);
-  assert.deepEqual(optedIn, ["srv-lx-k8s-indigo-worker-03"]);
-  assert.match(read("hosts/srv-lx-k8s-indigo-worker-03/default.nix"), /profiles\/kubernetes\/indigo-firewall\.nix/);
+  }).map(({ name }) => name).sort();
+  assert.deepEqual(optedIn, [
+    "srv-lx-k8s-indigo-control-01",
+    "srv-lx-k8s-indigo-control-02",
+    "srv-lx-k8s-indigo-control-03",
+    "srv-lx-k8s-indigo-worker-01",
+    "srv-lx-k8s-indigo-worker-02",
+    "srv-lx-k8s-indigo-worker-03",
+  ]);
+  for (const host of optedIn) {
+    assert.match(read(`hosts/${host}/default.nix`), /profiles\/kubernetes\/indigo-firewall\.nix/);
+  }
   assert.doesNotMatch(read("profiles/kubernetes/nixos.nix"), /nodeFirewall|indigo-firewall/);
 });
 
