@@ -125,6 +125,7 @@ buildNpmPackage {
   buildPhase = ''
     runHook preBuild
 
+    npx tsgo -p packages/chord/tsconfig.build.json
     npx tsgo -p packages/telemetry/tsconfig.build.json
     npx tsgo -p packages/ai/tsconfig.build.json
     npx tsgo -p packages/tui/tsconfig.build.json
@@ -145,7 +146,7 @@ buildNpmPackage {
     mkdir -p "$out/share/pi/extensions"
     cp -r ${extensions}/. "$out/share/pi/extensions/"
 
-    for src in packages/ai packages/agent packages/client packages/protocol packages/telemetry packages/tui; do
+    for src in packages/chord packages/ai packages/agent packages/client packages/protocol packages/telemetry packages/tui; do
       pkg="$(node -e "console.log(JSON.parse(require('fs').readFileSync('$src/package.json', 'utf8')).name)")"
       target="$nm/$pkg"
       rm -rf "$target"

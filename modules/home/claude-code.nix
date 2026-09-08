@@ -7,7 +7,7 @@
       ...
     }:
     let
-      inherit (lib.attrsets) attrByPath optionalAttrs recursiveUpdate;
+      inherit (lib.attrsets) recursiveUpdate;
       inherit (lib.lists) singleton;
       inherit (lib.modules) mkIf;
       inherit (lib.options) mkEnableOption mkOption;
@@ -15,33 +15,8 @@
 
       cfg = config.dsqr.home.claudeCode;
       jsonFormat = pkgs.formats.json { };
-      herdrCfg = attrByPath [ "dsqr" "home" "desktop" "ghostty" "herdr" ] {
-        enable = false;
-        integrations = {
-          claude.enable = false;
-          artifacts = null;
-        };
-      } config;
-      herdrIntegrationEnabled =
-        herdrCfg.enable && herdrCfg.integrations.claude.enable && herdrCfg.integrations.artifacts != null;
-      herdrHook = "${config.xdg.configHome}/claude-code/hooks/herdr-agent-state.sh";
-
       baseSettings = {
         "$schema" = "https://json.schemastore.org/claude-code-settings.json";
-      }
-      // optionalAttrs herdrIntegrationEnabled {
-        hooks.SessionStart = [
-          {
-            hooks = [
-              {
-                command = "bash '${herdrHook}' session";
-                timeout = 10;
-                type = "command";
-              }
-            ];
-            matcher = "*";
-          }
-        ];
       };
 
       gitWorkflowInstructions = ''
@@ -139,8 +114,8 @@
           default = { };
           description = ''
             Settings merged over the module defaults and written to Claude Code's
-            user configuration. Attribute sets merge recursively; lists are
-            replaced, so overriding `hooks` drops the module-managed hooks.
+            user configuration. Attribute sets merge recursively and Nix module
+            definitions of lists are combined.
           '';
         };
       };
@@ -161,13 +136,10 @@
         xdg.configFile."claude-code/commands/commit.md".text = commitCommand;
         xdg.configFile."claude-code/commands/commit-push-pr.md".text = commitPushPrCommand;
 
-        xdg.configFile."claude-code/hooks/herdr-agent-state.sh" = mkIf herdrIntegrationEnabled {
-          source = "${herdrCfg.integrations.artifacts}/claude/hooks/herdr-agent-state.sh";
-        };
-
         xdg.configFile."claude-code/settings.json".source = jsonFormat.generate "claude-code-settings.json" (
           recursiveUpdate baseSettings cfg.settings
         );
+
       };
     };
 }

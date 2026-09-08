@@ -64,6 +64,8 @@ in
         ];
 
         home-manager.users.dsqr = {
+          imports = [ ../../profiles/dsqr/herdr.nix ];
+
           programs.pi = {
             enable = true;
             models.providers.exo = {
@@ -94,8 +96,6 @@ in
           };
 
           dsqr.home = {
-            desktop.ghostty.herdr.enable = true;
-
             agentSkills = {
               git-workflow.targets = [ "claude" ];
               i-have-adhd.targets = [

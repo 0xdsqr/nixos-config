@@ -7,8 +7,7 @@
       ...
     }:
     let
-      inherit (lib.lists) singleton;
-      inherit (lib.modules) mkIf;
+      inherit (lib.modules) mkDefault mkIf;
       inherit (lib.options) mkEnableOption mkOption;
       inherit (lib.types) package;
 
@@ -28,15 +27,15 @@
       };
 
       config = mkIf cfg.enable {
-        home.packages = singleton cfg.package;
+        programs.opencode = {
+          enable = true;
+          inherit (cfg) package;
+          settings.autoupdate = mkDefault false;
+        };
 
         xdg.configFile."opencode/README.md".text =
           "Drop OpenCode config and helpers here when you want them managed declaratively.\n";
 
-        xdg.configFile."opencode/opencode.json".text = builtins.toJSON {
-          "$schema" = "https://opencode.ai/config.json";
-          autoupdate = false;
-        };
       };
     };
 }
