@@ -51,6 +51,9 @@ in
           kubeadm = {
             role = "control-plane";
             nodeAddress = "10.10.80.100";
+
+            # Indigo-only opt-in, validated first on worker-03.
+            ciliumProxyFirewall.routingCompatibility.enable = true;
             bootstrap = true;
 
             cluster = {

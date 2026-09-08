@@ -52,6 +52,9 @@ in
             role = "worker";
             nodeAddress = "10.10.80.104";
 
+            # Indigo-only opt-in, validated first on worker-03.
+            ciliumProxyFirewall.routingCompatibility.enable = true;
+
             cluster = {
               name = "indigo";
               apiEndpoint = "10.10.80.10:6443";

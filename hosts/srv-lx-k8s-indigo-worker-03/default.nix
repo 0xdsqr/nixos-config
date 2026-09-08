@@ -52,6 +52,10 @@ in
             role = "worker";
             nodeAddress = "10.10.80.105";
 
+            # First validation node: TCP/UDP DNS, endpoint recreation, Tailscale
+            # restart and isolated egress enforcement passed before rollout.
+            ciliumProxyFirewall.routingCompatibility.enable = true;
+
             cluster = {
               name = "indigo";
               apiEndpoint = "10.10.80.10:6443";

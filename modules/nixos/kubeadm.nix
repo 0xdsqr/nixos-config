@@ -22,6 +22,14 @@
 
       cfg = config.dsqr.nixos.kubeadm;
 
+      # Used only by nodes explicitly opted into routingCompatibility below.
+      # Include the proxy return path through Cilium's internal devices, without
+      # trusting entire interfaces or opening dynamic proxy ports to the LAN.
+      ciliumProxyRoutingRules = ''
+        iifname "lxc*" meta mark & 0x00000f00 == 0x00000200 counter accept comment "Cilium endpoint policy proxy"
+        iifname { "cilium_host", "cilium_net", "cilium_vxlan" } meta mark & 0x00000f00 == 0x00000200 counter accept comment "Cilium internal policy proxy"
+      '';
+
       yaml = pkgs.formats.yaml { };
 
       renderYaml =
@@ -222,6 +230,11 @@
 
         ciliumProxyFirewall.enable = mkEnableOption "Allow Cilium-marked proxy traffic through the native nftables host firewall";
 
+        ciliumProxyFirewall.routingCompatibility.enable = mkEnableOption ''
+          Opt this node into interface-scoped Cilium veth proxy routing compatibility.
+          Requires Cilium SourceIPVerification; roll out per node after validation
+        '';
+
         role = mkOption {
           type = nullOr (enum [
             "control-plane"
@@ -384,6 +397,12 @@
       config = mkIf cfg.enable {
         assertions = [
           {
+            assertion =
+              !cfg.ciliumProxyFirewall.routingCompatibility.enable
+              || (cfg.ciliumProxyFirewall.enable && config.networking.nftables.enable);
+            message = "Cilium proxy routing compatibility requires ciliumProxyFirewall.enable and the native nftables firewall.";
+          }
+          {
             assertion = cfg.role == null || cfg.nodeAddress != null;
             message = "dsqr.nixos.kubeadm.nodeAddress must be set for role-aware Kubernetes nodes.";
           }
@@ -426,7 +445,9 @@
         ];
 
         environment.etc = {
-          "default/kubelet" = mkIf (cfg.nodeAddress != null) { text = "KUBELET_EXTRA_ARGS=--node-ip=${cfg.nodeAddress}"; };
+          "default/kubelet" = mkIf (cfg.nodeAddress != null) {
+            text = "KUBELET_EXTRA_ARGS=--node-ip=${cfg.nodeAddress}";
+          };
 
           "kubernetes/kubeadm/init.yaml" = mkIf cfg.bootstrap {
             source = pkgs.concatText "kubeadm-init.yaml" [
@@ -440,7 +461,9 @@
             source = kubeVipManifest "/etc/kubernetes/super-admin.conf";
           };
 
-          "kubernetes/kube-vip/steady.yaml" = mkIf cfg.kubeVip.enable { source = kubeVipManifest "/etc/kubernetes/admin.conf"; };
+          "kubernetes/kube-vip/steady.yaml" = mkIf cfg.kubeVip.enable {
+            source = kubeVipManifest "/etc/kubernetes/admin.conf";
+          };
         };
 
         networking.firewall = {
@@ -449,9 +472,21 @@
           # so redirected DNS/L7 traffic reaches the local policy proxy.
           # This is a kernel packet mark, not an externally supplied IP field;
           # it does not open the proxy's dynamic port to ordinary host traffic.
-          extraInputRules = mkIf (cfg.ciliumProxyFirewall.enable && config.networking.nftables.enable) ''
-            meta mark & 0x00000f00 == 0x00000200 counter accept comment "Cilium policy proxy traffic"
-          '';
+          extraInputRules = mkIf (cfg.ciliumProxyFirewall.enable && config.networking.nftables.enable) (
+            if cfg.ciliumProxyFirewall.routingCompatibility.enable then
+              ciliumProxyRoutingRules
+            else
+              ''
+                meta mark & 0x00000f00 == 0x00000200 counter accept comment "Cilium policy proxy traffic"
+              ''
+          );
+
+          # TPROXY policy-routes these marked packets to a local socket before
+          # input. The normal reverse-path lookup rejects that local route,
+          # so preserve Cilium's to-proxy traffic at this earlier hook too.
+          # Keep reverse-path filtering enabled for all unmarked traffic and
+          # retain the existing behavior on nodes not explicitly opted in.
+          extraReversePathFilterRules = mkIf cfg.ciliumProxyFirewall.routingCompatibility.enable ciliumProxyRoutingRules;
 
           allowedTCPPorts = [
             10250
@@ -480,6 +515,15 @@
           "net.ipv4.ip_forward" = 1;
           "net.bridge.bridge-nf-call-iptables" = 1;
           "net.bridge.bridge-nf-call-ip6tables" = 1;
+
+          # Tailscale sets global src_valid_mark. Cilium's marked TPROXY lookup
+          # can then classify legitimate pod sources as local, even when
+          # rp_filter=0. Scope accept_local to Cilium endpoint veths only; keep
+          # Cilium SourceIPVerification enabled and leave LAN/Tailscale/global
+          # settings untouched. Cilium owns accept_local on its cilium_* links.
+          # systemd-sysctl applies this glob at activation/boot and the standard
+          # udev rule reapplies it when new endpoint interfaces appear.
+          "net.ipv4.conf.lxc*.accept_local" = mkIf cfg.ciliumProxyFirewall.routingCompatibility.enable 1;
         };
 
         swapDevices = [ ];
