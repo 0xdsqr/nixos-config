@@ -44,10 +44,10 @@ jobs:
           declare -A package_files=(
             [claude-code]="packages/agents/claude-code/package.nix"
             [codex]="packages/agents/codex/cli.nix"
-            [codexbar]="packages/agents/codex/bar.nix"
             [pi]="packages/agents/pi/package.nix"
+            [t3code]="packages/agents/t3code/package.nix"
           )
-          for pkg in claude-code codex codexbar pi; do
+          for pkg in claude-code codex pi t3code; do
             file="${package_files[$pkg]}"
             git diff --quiet -- "$file" && continue
             version="$(sed -n 's/.*version = "\([^"]*\)".*/\1/p' "$file" | head -1)"

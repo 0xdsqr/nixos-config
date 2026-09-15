@@ -1,5 +1,5 @@
 # Bump the pinned versions/hashes of agent packages and skill inputs.
-#   update-pins [claude-code|codex|opencode|pi|skills|all]
+#   update-pins [claude-code|codex|opencode|pi|t3code|skills|all]
 
 const FAKE = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 
@@ -121,6 +121,31 @@ def update-opencode [] {
   ^nix flake update --flake (repo-root) opencode
 }
 
+def update-t3code [] {
+  let file = $"(repo-root)/packages/agents/t3code/package.nix"
+  let tag = (gh-json "repos/pingdotgg/t3code/releases/latest" | get tag_name)
+  let latest = ($tag | str replace --regex '^v' '')
+  let current = (nix-field $file "version")
+  if $latest == $current {
+    print $"t3code up to date \(($current)\)"
+    return
+  }
+
+  print $"t3code ($current) -> ($latest)"
+  let original = (open --raw $file)
+  try {
+    replace-field $file "version" $latest
+    replace-field $file "hash" (gh-prefetch "pingdotgg" "t3code" $tag)
+    replace-field $file "pnpmDepsHash" $FAKE
+    replace-field $file "pnpmDepsHash" (build-got "t3code.unwrapped.pnpmDeps")
+    replace-field $file "cargoHash" $FAKE
+    replace-field $file "cargoHash" (build-got "t3code.resourceMonitor.cargoDeps")
+  } catch {|err|
+    $original | save --force --raw $file
+    error make { msg: $"T3 Code update failed; restored previous pins: ($err.msg)" }
+  }
+}
+
 def update-skills [] {
   print "updating agent skill inputs"
   ^nix flake update --flake (repo-root) i-have-adhd
@@ -132,16 +157,18 @@ def main [pkg: string = "all"] {
     "codex" => { update-codex }
     "opencode" => { update-opencode }
     "pi" => { update-pi }
+    "t3code" => { update-t3code }
     "skills" => { update-skills }
     "all" => {
       update-claude-code
       update-codex
       update-opencode
       update-pi
+      update-t3code
       update-skills
     }
     _ => {
-      print "usage: update-pins [claude-code|codex|opencode|pi|skills|all]"
+      print "usage: update-pins [claude-code|codex|opencode|pi|t3code|skills|all]"
       exit 1
     }
   }

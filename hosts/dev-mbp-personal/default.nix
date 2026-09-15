@@ -96,6 +96,8 @@ in
           };
 
           dsqr.home = {
+            t3code.enable = true;
+
             agentSkills = {
               git-workflow.targets = [ "claude" ];
               i-have-adhd.targets = [

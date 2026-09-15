@@ -53,7 +53,7 @@ jobs:
         run: nix store ping --store https://cache.flakehub.com
       - name: Build and cache agent packages
         run: |
-          packages=(claude-code codex pi)
+          packages=(claude-code codex pi t3code)
           targets=()
           for pkg in "${packages[@]}"; do
             targets+=(".#packages.${{ matrix.system }}.$pkg")
