@@ -7,11 +7,18 @@
       ...
     }:
     let
-      inherit (lib.modules) mkIf;
+      inherit (lib.attrsets) mapAttrsToList;
+      inherit (lib.modules) mkDefault mkIf;
       inherit (lib.options) mkEnableOption mkOption;
-      inherit (lib.types) package;
+      inherit (lib.types)
+        attrsOf
+        nullOr
+        package
+        str
+        ;
 
       cfg = config.dsqr.home.codex;
+      codexHome = config.home.sessionVariables.CODEX_HOME or "${config.home.homeDirectory}/.codex";
     in
     {
       options.dsqr.home.codex = {
@@ -24,12 +31,34 @@
           default = pkgs.codex;
           description = "Codex package to install.";
         };
+
+        desktop.keybindings = mkOption {
+          type = attrsOf (nullOr str);
+          default = { };
+          example = {
+            openAvatarOverlay = "Ctrl+Alt+Command+Space";
+          };
+          description = ''
+            Codex desktop command shortcuts managed in CODEX_HOME/keybindings.json.
+            Override individual commands here; null disables a command's shortcut.
+            Unlisted commands retain Codex's defaults. While this file is managed,
+            change shortcuts in Nix rather than the app's settings.
+          '';
+        };
       };
 
       config = mkIf cfg.enable {
+        dsqr.home.codex.desktop.keybindings = mkIf pkgs.stdenv.isDarwin {
+          openAvatarOverlay = mkDefault "Ctrl+Alt+Command+Space";
+        };
+
         programs.codex = {
           enable = true;
           inherit (cfg) package;
+        };
+
+        home.file."${codexHome}/keybindings.json" = mkIf (cfg.desktop.keybindings != { }) {
+          text = builtins.toJSON (mapAttrsToList (command: key: { inherit command key; }) cfg.desktop.keybindings);
         };
 
         xdg.configFile = {
