@@ -7,6 +7,13 @@ let
 
   forAllHosts = all;
 
+  encryptionSecrets = builtins.listToAttrs (
+    builtins.map (cluster: {
+      name = cluster.file;
+      value.publicKeys = cluster.publicKeys;
+    }) (builtins.attrValues (import ./profiles/kubernetes/encryption-recipients.nix))
+  );
+
   mkSecretsForHost =
     hostName: secretFiles:
     builtins.listToAttrs (
@@ -98,6 +105,7 @@ mkSecretsForHost "srv-lx-beacon" [
   "hosts/srv-lx-backup/tailscale.auth-key.age"
 ]
 // mkSharedSecrets [ "hosts/srv-lx-beacon/restic.password.age" ]
+// encryptionSecrets
 // {
   "hosts/dev-mbp-stablecore/git.config.inc.age".publicKeys = admins;
   "hosts/srv-lx-backup/pgbackrest-repository.env.age".publicKeys = [
