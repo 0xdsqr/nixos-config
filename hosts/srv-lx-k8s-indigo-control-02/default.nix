@@ -54,6 +54,7 @@ in
           kubeadm = {
             role = "control-plane";
             coreDnsHardening.enable = true;
+            apiServerHardening.enable = true;
             nodeAddress = "10.10.80.101";
 
             # Indigo-only opt-in, validated first on worker-03.

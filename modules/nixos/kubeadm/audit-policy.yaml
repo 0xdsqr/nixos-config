@@ -1,0 +1,13 @@
+apiVersion: audit.k8s.io/v1
+kind: Policy
+# Log completed requests and the start of long-running watches, not duplicate
+# RequestReceived events. Metadata never includes request/response bodies.
+omitStages:
+  - RequestReceived
+omitManagedFields: true
+rules:
+  # Suppress GET health-probe paths; resource/API requests still log.
+  - level: None
+    verbs: [get]
+    nonResourceURLs: [/healthz, /healthz/*, /livez, /livez/*, /readyz, /readyz/*]
+  - level: Metadata

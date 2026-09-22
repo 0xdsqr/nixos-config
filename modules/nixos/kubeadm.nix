@@ -86,7 +86,56 @@
       });
 
       kubeadmClusterConfig = renderYaml "kubeadm-cluster.yaml" {
-        apiServer.certSANs = [ cfg.cluster.apiVip ];
+        apiServer = {
+          certSANs = [ cfg.cluster.apiVip ];
+        } // lib.optionalAttrs cfg.apiServerHardening.enable {
+          extraArgs = [
+            {
+              name = "kubelet-certificate-authority";
+              value = "/etc/kubernetes/pki/ca.crt";
+            }
+            {
+              name = "audit-policy-file";
+              value = "/etc/kubernetes/audit/policy.yaml";
+            }
+            {
+              name = "audit-log-path";
+              value = "/var/log/kubernetes/audit/audit.log";
+            }
+            {
+              name = "audit-log-mode";
+              value = "blocking";
+            }
+            {
+              name = "audit-log-maxage";
+              value = "14";
+            }
+            {
+              name = "audit-log-maxbackup";
+              value = "10";
+            }
+            {
+              name = "audit-log-maxsize";
+              value = "100";
+            }
+          ];
+          extraVolumes = [
+            {
+              name = "audit-policy";
+              hostPath = "/etc/kubernetes/audit/policy.yaml";
+              mountPath = "/etc/kubernetes/audit/policy.yaml";
+              readOnly = true;
+              pathType = "File";
+            }
+            {
+              name = "audit-logs";
+              hostPath = "/var/log/kubernetes/audit";
+              mountPath = "/var/log/kubernetes/audit";
+              readOnly = false;
+              pathType = "Directory";
+            }
+          ];
+        };
         apiVersion = "kubeadm.k8s.io/v1beta4";
         clusterName = cfg.cluster.name;
         controlPlaneEndpoint = cfg.cluster.apiEndpoint;
@@ -310,6 +359,12 @@
 
         coreDnsHardening.enable = mkEnableOption "Persist the non-root CoreDNS seccomp patch for kubeadm init and upgrades";
 
+        apiServerHardening.enable = mkEnableOption ''
+          Verify kubelet serving certificates and prepare bounded metadata-only API audit logging.
+          Requires CA-signed serving certificates on every node. Existing control planes
+          activate the generated configuration explicitly, one API server at a time
+        '';
+
         kubelet.serverTlsBootstrap = mkOption {
           type = bool;
           default = false;
@@ -452,6 +507,18 @@
         assertions = [
           {
             assertion =
+              !cfg.apiServerHardening.enable
+              || (
+                cfg.role == "control-plane"
+                && cfg.kubelet.serverTlsBootstrap
+                && cfg.cluster.apiVip != null
+                && cfg.cluster.podSubnet != null
+                && cfg.cluster.serviceSubnet != null
+              );
+            message = "API server hardening requires a control-plane node with kubelet serving certificate bootstrapping; validate CA-signed serving certificates on all cluster nodes before activation.";
+          }
+          {
+            assertion =
               !cfg.nodeFirewall.enable
               || (
                 config.networking.firewall.enable
@@ -518,6 +585,23 @@
         ];
 
         environment.etc = {
+          "kubernetes/audit/policy.yaml" = mkIf cfg.apiServerHardening.enable {
+            source = ./kubeadm/audit-policy.yaml;
+          };
+
+          # Install only: switching NixOS never rewrites a running static Pod.
+          # Reconfigure with `kubeadm init phase control-plane apiserver --config
+          # /etc/kubernetes/kubeadm/control-plane.yaml` on one node at a time.
+          # After validation, `kubeadm init phase upload-config kubeadm --config
+          # /etc/kubernetes/kubeadm/control-plane.yaml` persists ClusterConfiguration
+          # for future joins/upgrades. This does not upload kubelet configuration.
+          "kubernetes/kubeadm/control-plane.yaml" = mkIf cfg.apiServerHardening.enable {
+            source = pkgs.concatText "kubeadm-control-plane.yaml" [
+              kubeadmConfig
+              kubeadmClusterConfig
+            ];
+          };
+
           # Keep CoreDNS owned by kubeadm. Existing clusters apply this same
           # strategic patch once; future init reads patches from init.yaml.
           "kubernetes/kubeadm/patches/corednsdeployment-security+strategic.yaml" =
@@ -659,7 +743,13 @@
           };
         };
 
-        systemd.tmpfiles.rules = [ "d /var/lib/kubelet 0755 root root -" ];
+        systemd.tmpfiles.rules = [ "d /var/lib/kubelet 0755 root root -" ]
+          ++ optionals cfg.apiServerHardening.enable [
+            # The API server rotates its own audit files; do not add logrotate.
+            # Directory mode protects request metadata, including usernames/URIs.
+            "d /var/log/kubernetes 0755 root root -"
+            "d /var/log/kubernetes/audit 0700 root root -"
+          ];
 
         systemd.services.kubelet = {
           description = "Kubernetes Kubelet";
