@@ -63,7 +63,7 @@
           ${pkgs.gnused}/bin/sed '/^%YAML /d' ${source} > "$out"
         '';
 
-      kubeadmConfig = renderYaml "kubeadm-init.yaml" {
+      kubeadmConfig = renderYaml "kubeadm-init.yaml" ({
         apiVersion = "kubeadm.k8s.io/v1beta4";
         kind = "InitConfiguration";
         localAPIEndpoint = {
@@ -81,7 +81,9 @@
           name = config.networking.hostName;
         };
         timeouts.controlPlaneComponentHealthCheck = "4m0s";
-      };
+      } // lib.optionalAttrs cfg.coreDnsHardening.enable {
+        patches.directory = "/etc/kubernetes/kubeadm/patches";
+      });
 
       kubeadmClusterConfig = renderYaml "kubeadm-cluster.yaml" {
         apiServer.certSANs = [ cfg.cluster.apiVip ];
@@ -306,6 +308,8 @@
           description = "Whether this node initializes the cluster control plane.";
         };
 
+        coreDnsHardening.enable = mkEnableOption "Persist the non-root CoreDNS seccomp patch for kubeadm init and upgrades";
+
         kubelet.serverTlsBootstrap = mkOption {
           type = bool;
           default = false;
@@ -514,6 +518,26 @@
         ];
 
         environment.etc = {
+          # Keep CoreDNS owned by kubeadm. Existing clusters apply this same
+          # strategic patch once; future init reads patches from init.yaml.
+          "kubernetes/kubeadm/patches/corednsdeployment-security+strategic.yaml" =
+            mkIf (cfg.coreDnsHardening.enable && cfg.role == "control-plane") {
+              source = ./kubeadm/corednsdeployment-security+strategic.yaml;
+            };
+
+          # Upgrade commands must pass --config /etc/kubernetes/kubeadm/upgrade.yaml
+          # (or --patches /etc/kubernetes/kubeadm/patches) to preserve this setting.
+          # Publishing these files never runs an upgrade or restarts DNS.
+          "kubernetes/kubeadm/upgrade.yaml" =
+            mkIf (cfg.coreDnsHardening.enable && cfg.role == "control-plane") {
+              source = renderYaml "kubeadm-upgrade.yaml" {
+                apiVersion = "kubeadm.k8s.io/v1beta4";
+                kind = "UpgradeConfiguration";
+                apply.patches.directory = "/etc/kubernetes/kubeadm/patches";
+                node.patches.directory = "/etc/kubernetes/kubeadm/patches";
+              };
+            };
+
           "default/kubelet" = mkIf (cfg.nodeAddress != null) {
             text = "KUBELET_EXTRA_ARGS=--node-ip=${cfg.nodeAddress}";
           };
