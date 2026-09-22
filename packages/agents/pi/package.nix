@@ -13,10 +13,10 @@
   writeText,
 }:
 let
-  version = "0.86.1";
-  hash = "sha256-/7+VoRfXdeOwtiNXQYOKg5OHeKuNLIHfODGDNBhWop0=";
-  modelDataHash = "sha256-88Nb88YGsJ9iupLSx8ieY+DKGAdUcBAtVWVoTFJLfv0=";
-  npmDepsHash = "sha256-CYpq0qC9dhhYXuQ3sARLgGV3K8ze2NbPg3bQqLJ9WSI=";
+  version = "0.87.0";
+  hash = "sha256-7YkIA5IEs4U0qnoaO3IzlY+p/M7j30fSVelLeyoV+F8=";
+  modelDataHash = "sha256-8q353oCdA192+NrfPRSHIOvu9GBqhIqzbug02JWugS8=";
+  npmDepsHash = "sha256-XR76B9zonZjX0Q+ROtN3zWVxD1t518bzF4L/HsYAdW4=";
 
   themeFiles = lib.mapAttrs (name: definition: writeText "${name}.json" (builtins.toJSON definition)) (import ./themes);
   themes = linkFarm "pi-themes-${version}" (
