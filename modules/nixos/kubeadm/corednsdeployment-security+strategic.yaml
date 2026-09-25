@@ -4,8 +4,24 @@ metadata:
   name: coredns
   namespace: kube-system
 spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   template:
     spec:
+      # Keep kubeadm's affinity/tolerations; require two eligible hostname
+      # domains so a second replica cannot silently co-locate on one node.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          minDomains: 2
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          nodeTaintsPolicy: Honor
+          labelSelector:
+            matchLabels:
+              k8s-app: kube-dns
       securityContext:
         # Matches the existing CoreDNS 1.14.2 distroless nonroot identity.
         runAsNonRoot: true

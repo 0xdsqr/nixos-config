@@ -32,3 +32,11 @@ test("CoreDNS patch preserves its identity and DNS binding without replacing the
   }
   assert.doesNotMatch(patch, /image:|replicas:|hostNetwork:|automountServiceAccountToken:|args:|command:/);
 });
+
+test("CoreDNS availability preserves replicas and networking while preventing voluntary rollout loss", () => {
+  const patch = read("modules/nixos/kubeadm/corednsdeployment-security+strategic.yaml");
+  for (const field of ["type: RollingUpdate", "maxSurge: 1", "maxUnavailable: 0", "maxSkew: 1", "minDomains: 2", "topologyKey: kubernetes.io/hostname", "whenUnsatisfiable: DoNotSchedule", "nodeTaintsPolicy: Honor", "k8s-app: kube-dns"]) {
+    assert.ok(patch.includes(field), field);
+  }
+  assert.doesNotMatch(patch, /replicas:|tolerations:|nodeSelector:|affinity:|hostNetwork:|dnsPolicy:|image:/);
+});
