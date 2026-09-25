@@ -28,9 +28,11 @@ test("API arguments verify kubelet identity and bound local audit storage", () =
     "audit-log-maxage": "14",
     "audit-log-maxbackup": "10",
     "audit-log-maxsize": "100",
+    "encryption-provider-config": "/run/kubernetes-encryption/${cfg.encryption.stage}.json",
+    "encryption-provider-config-automatic-reload": "false",
   });
   assert.match(apiServer, /certSANs = \[ cfg.cluster.apiVip \]/);
-  assert.doesNotMatch(apiServer, /anonymous-auth|authorization-mode|encryption-provider|insecure/);
+  assert.doesNotMatch(apiServer, /anonymous-auth|authorization-mode|insecure/);
 });
 
 test("audit mounts are least-privilege and logs live outside the Nix store", () => {

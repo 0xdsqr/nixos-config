@@ -118,6 +118,15 @@
               name = "audit-log-maxsize";
               value = "100";
             }
+          ] ++ optionals cfg.encryption.enable [
+            {
+              name = "encryption-provider-config";
+              value = "/run/kubernetes-encryption/${cfg.encryption.stage}.json";
+            }
+            {
+              name = "encryption-provider-config-automatic-reload";
+              value = "false";
+            }
           ];
           extraVolumes = [
             {
@@ -132,6 +141,14 @@
               hostPath = "/var/log/kubernetes/audit";
               mountPath = "/var/log/kubernetes/audit";
               readOnly = false;
+              pathType = "Directory";
+            }
+          ] ++ optionals cfg.encryption.enable [
+            {
+              name = "encryption-config";
+              hostPath = "/run/kubernetes-encryption";
+              mountPath = "/run/kubernetes-encryption";
+              readOnly = true;
               pathType = "Directory";
             }
           ];

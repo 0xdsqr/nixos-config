@@ -40,6 +40,7 @@ in
           ++ [
             ../../profiles/kubernetes/nixos.nix
             ../../profiles/kubernetes/indigo-firewall.nix
+            ../../profiles/kubernetes/indigo-encryption.nix
           ]
           ++ self.lib.collectNix {
             path = ./.;
