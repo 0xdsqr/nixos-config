@@ -90,6 +90,12 @@
           certSANs = [ cfg.cluster.apiVip ];
         } // lib.optionalAttrs cfg.apiServerHardening.enable {
           extraArgs = [
+            # Upstream Metrics Server HA guidance: balance aggregated API
+            # requests across ready endpoints instead of the Service VIP.
+            {
+              name = "enable-aggregator-routing";
+              value = "true";
+            }
             {
               name = "kubelet-certificate-authority";
               value = "/etc/kubernetes/pki/ca.crt";

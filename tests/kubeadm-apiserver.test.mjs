@@ -21,6 +21,7 @@ test("API hardening is opt-in and enabled only on the three Indigo control plane
 
 test("API arguments verify kubelet identity and bound local audit storage", () => {
   assert.deepEqual(args, {
+    "enable-aggregator-routing": "true",
     "kubelet-certificate-authority": "/etc/kubernetes/pki/ca.crt",
     "audit-policy-file": "/etc/kubernetes/audit/policy.yaml",
     "audit-log-path": "/var/log/kubernetes/audit/audit.log",
