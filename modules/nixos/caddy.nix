@@ -35,23 +35,29 @@
         if configuredStaticCertificate then "tls ${certificateCfg.certFile} ${certificateCfg.keyFile}" else "tls internal";
 
       mkReverseProxy =
-        route:
+        route: retryReads:
         let
           hasHostHeader = route.hostHeader != null;
           hasFailover = route.failover.upstreams != [ ];
           hasTransportConfig = route.tlsInsecureSkipVerify || route.tlsServerName != null;
           upstreams = concatStringsSep " " ([ route.upstream ] ++ route.failover.upstreams);
         in
-        if !hasHostHeader && !hasFailover && !hasTransportConfig then
+        if !hasHostHeader && !hasFailover && !hasTransportConfig && !retryReads then
           "reverse_proxy ${upstreams}"
         else
           ''
-            reverse_proxy ${upstreams} {
+            reverse_proxy ${optionalString retryReads "@retryableReads "}${upstreams} {
               ${optionalString hasHostHeader "header_up Host ${route.hostHeader}"}
               ${optionalString hasFailover ''
                 lb_policy first
                 health_uri ${route.failover.healthUri}
-                lb_try_duration ${route.failover.tryDuration}
+                ${optionalString (!retryReads) "lb_try_duration ${route.failover.tryDuration}"}
+              ''}
+              ${optionalString retryReads ''
+                lb_retries 2
+                lb_try_duration 2s
+                lb_try_interval 250ms
+                lb_retry_match method GET HEAD
               ''}
               ${optionalString hasTransportConfig ''
                 transport http {
@@ -81,8 +87,12 @@
             ''}
 
             @internal remote_ip ${internalSourceRanges}
+            ${optionalString route.retryReadRequests "@retryableReads method GET HEAD"}
             handle @internal {
-              ${mkReverseProxy route}
+              # A separate method-matched handler also excludes writes from
+              # connection-failure retries, which bypass lb_retry_match.
+              ${optionalString route.retryReadRequests (mkReverseProxy route true)}
+              ${mkReverseProxy route false}
             }
 
             respond 403
@@ -162,6 +172,12 @@
                 description = "Primary HTTP upstream target for this virtual host.";
                 example = "http://10.10.30.102:8000";
               };
+
+              retryReadRequests = mkEnableOption ''
+                up to two proxy retries for GET/HEAD only, with a two-second
+                retry-selection budget and 250ms interval. Other methods keep
+                their existing behavior; this is not a total request timeout
+              '';
 
               failover = {
                 upstreams = mkOption {

@@ -79,6 +79,8 @@ in
                 upstream = "https://10.10.80.200";
                 hostHeader = "argocd.indigo.home.arpa";
                 tlsServerName = "argocd.indigo.home.arpa";
+                # Retry safe reads across a MetalLB VIP handoff; never replay writes.
+                retryReadRequests = true;
               };
               "exo.home.arpa" = {
                 upstream = "http://10.10.30.100:52415";
