@@ -61,6 +61,9 @@ in
             # Shared source restrictions validated first on Indigo worker-03.
             nodeFirewall.enable = true;
 
+            # Runtime default and recreated Envoy/MetalLB validated on worker-03.
+            kubelet.seccompDefault = true;
+
             cluster = {
               name = "indigo";
               apiEndpoint = "10.10.80.10:6443";

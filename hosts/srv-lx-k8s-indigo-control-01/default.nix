@@ -65,6 +65,9 @@ in
             nodeFirewall.enable = true;
             bootstrap = true;
 
+            # Control-plane canary passed with recreated Cilium Envoy and kube-vip.
+            kubelet.seccompDefault = true;
+
             cluster = {
               name = "indigo";
               apiEndpoint = "10.10.80.10:6443";

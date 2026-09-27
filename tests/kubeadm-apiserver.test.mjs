@@ -5,6 +5,7 @@ import test from "node:test";
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const source = read("modules/nixos/kubeadm.nix");
 const policy = read("modules/nixos/kubeadm/audit-policy.yaml");
+const authentication = read("modules/nixos/kubeadm/authentication-config.yaml");
 const apiServer = source.split("kubeadmClusterConfig =")[1].split('apiVersion = "kubeadm.k8s.io/v1beta4";')[0];
 const args = Object.fromEntries([...apiServer.matchAll(/name = "([a-z-]+)";\s*value = "([^"]+)";/g)].map((m) => [m[1], m[2]]));
 
@@ -22,6 +23,7 @@ test("API hardening is opt-in and enabled only on the three Indigo control plane
 test("API arguments verify kubelet identity and bound local audit storage", () => {
   assert.deepEqual(args, {
     "enable-aggregator-routing": "true",
+    "authentication-config": "/etc/kubernetes/authentication/config.yaml",
     "kubelet-certificate-authority": "/etc/kubernetes/pki/ca.crt",
     "audit-policy-file": "/etc/kubernetes/audit/policy.yaml",
     "audit-log-path": "/var/log/kubernetes/audit/audit.log",
@@ -34,6 +36,23 @@ test("API arguments verify kubelet identity and bound local audit storage", () =
   });
   assert.match(apiServer, /certSANs = \[ cfg.cluster.apiVip \]/);
   assert.doesNotMatch(apiServer, /anonymous-auth|authorization-mode|insecure/);
+});
+
+test("anonymous authentication is limited to exact health paths without changing credential authentication", () => {
+  const config = authentication.replace(/^\s*#.*$/gm, "").trim();
+  assert.equal(config, [
+    "apiVersion: apiserver.config.k8s.io/v1",
+    "kind: AuthenticationConfiguration",
+    "anonymous:",
+    "  enabled: true",
+    "  conditions:",
+    "    - path: /livez",
+    "    - path: /readyz",
+    "    - path: /healthz",
+  ].join("\n"));
+  assert.match(apiServer, /name = "authentication-config";\s*hostPath = "\/etc\/kubernetes\/authentication\/config.yaml";\s*mountPath = "\/etc\/kubernetes\/authentication\/config.yaml";\s*readOnly = true;\s*pathType = "File";/);
+  assert.match(source, /"kubernetes\/authentication\/config.yaml" = mkIf cfg.apiServerHardening.enable \{\s*source = .\/kubeadm\/authentication-config.yaml;/);
+  assert.doesNotMatch(apiServer, /anonymous-auth|client-ca-file|service-account-issuer|oidc-/);
 });
 
 test("audit mounts are least-privilege and logs live outside the Nix store", () => {

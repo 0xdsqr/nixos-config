@@ -62,6 +62,10 @@ in
             # First source-restricted node firewall; validate before other nodes opt in.
             nodeFirewall.enable = true;
 
+            # Seccomp defaulting canary passed with recreated Envoy and MetalLB.
+            # Control-plane workloads were validated separately on control-01.
+            kubelet.seccompDefault = true;
+
             cluster = {
               name = "indigo";
               apiEndpoint = "10.10.80.10:6443";

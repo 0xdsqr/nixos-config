@@ -64,6 +64,9 @@ in
             # Shared source restrictions validated first on Indigo worker-03.
             nodeFirewall.enable = true;
 
+            # Recreated Cilium Envoy and kube-vip validated on control-01.
+            kubelet.seccompDefault = true;
+
             cluster = {
               name = "indigo";
               apiEndpoint = "10.10.80.10:6443";

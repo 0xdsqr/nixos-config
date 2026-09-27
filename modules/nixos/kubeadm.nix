@@ -97,6 +97,10 @@
               value = "true";
             }
             {
+              name = "authentication-config";
+              value = "/etc/kubernetes/authentication/config.yaml";
+            }
+            {
               name = "kubelet-certificate-authority";
               value = "/etc/kubernetes/pki/ca.crt";
             }
@@ -135,6 +139,13 @@
             }
           ];
           extraVolumes = [
+            {
+              name = "authentication-config";
+              hostPath = "/etc/kubernetes/authentication/config.yaml";
+              mountPath = "/etc/kubernetes/authentication/config.yaml";
+              readOnly = true;
+              pathType = "File";
+            }
             {
               name = "audit-policy";
               hostPath = "/etc/kubernetes/audit/policy.yaml";
@@ -383,7 +394,8 @@
         coreDnsHardening.enable = mkEnableOption "Persist the non-root CoreDNS seccomp patch for kubeadm init and upgrades";
 
         apiServerHardening.enable = mkEnableOption ''
-          Verify kubelet serving certificates and prepare bounded metadata-only API audit logging.
+          Restrict anonymous authentication to health endpoints, verify kubelet serving
+          certificates, and prepare bounded metadata-only API audit logging.
           Requires CA-signed serving certificates on every node. Existing control planes
           activate the generated configuration explicitly, one API server at a time
         '';
@@ -392,6 +404,20 @@
           type = bool;
           default = false;
           description = "Request rotating kubelet serving certificates from the cluster CA.";
+        };
+
+        kubelet.seccompDefault = mkOption {
+          type = nullOr bool;
+          default = null;
+          description = ''
+            Per-node default for containers without an explicit seccomp profile.
+            True selects RuntimeDefault; false disables this node-local flag.
+            Kubernetes ORs the flag with the config-file setting, so rollback
+            also requires seccompDefault to be false in kubeadm's config file.
+            Null leaves kubeadm's setting untouched. Roll out to a canary first;
+            existing containers need recreation to exercise the new default.
+            Explicit workload profiles and privileged exceptions are preserved.
+          '';
         };
 
         cluster = {
@@ -529,6 +555,10 @@
       config = mkIf cfg.enable {
         assertions = [
           {
+            assertion = cfg.kubelet.seccompDefault == null || cfg.nodeAddress != null;
+            message = "Per-node seccomp defaulting requires dsqr.nixos.kubeadm.nodeAddress for the managed kubelet environment.";
+          }
+          {
             assertion =
               !cfg.apiServerHardening.enable
               || (
@@ -608,6 +638,10 @@
         ];
 
         environment.etc = {
+          "kubernetes/authentication/config.yaml" = mkIf cfg.apiServerHardening.enable {
+            source = ./kubeadm/authentication-config.yaml;
+          };
+
           "kubernetes/audit/policy.yaml" = mkIf cfg.apiServerHardening.enable {
             source = ./kubeadm/audit-policy.yaml;
           };
@@ -646,7 +680,13 @@
             };
 
           "default/kubelet" = mkIf (cfg.nodeAddress != null) {
-            text = "KUBELET_EXTRA_ARGS=--node-ip=${cfg.nodeAddress}";
+            # Keep this node-local, rather than changing the cluster-wide
+            # kubelet ConfigMap during a canary rollout. Kubernetes ORs this
+            # flag with the config-file value; /configz reports only the latter.
+            # Validate actual runtime enforcement, not just /configz.
+            text = "KUBELET_EXTRA_ARGS=--node-ip=${cfg.nodeAddress}"
+              + lib.optionalString (cfg.kubelet.seccompDefault != null)
+                " --seccomp-default=${lib.boolToString cfg.kubelet.seccompDefault}";
           };
 
           "kubernetes/kubeadm/init.yaml" = mkIf cfg.bootstrap {
@@ -789,6 +829,12 @@
             "containerd.service"
           ];
           preStart = mkIf cfg.kubelet.serverTlsBootstrap "${lib.getExe reconcileKubeletServerTlsBootstrap}";
+          # EnvironmentFile contents alone are not part of the unit text.
+          # Restart kubelet when the managed canary setting changes, including
+          # rollback to false/null. This does not restart containerd or drain pods.
+          restartTriggers = optionals (cfg.kubelet.seccompDefault != null && cfg.nodeAddress != null) [
+            config.environment.etc."default/kubelet".source
+          ];
 
           serviceConfig = {
             Environment = [
