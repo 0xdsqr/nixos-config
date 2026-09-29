@@ -881,6 +881,11 @@
         };
 
         systemd.tmpfiles.rules = [ "d /var/lib/kubelet 0755 root root -" ]
+          ++ optionals cfg.kubelet.workerHardening.enable [
+            # kubeadm configures this watch path on workers too. Keep it empty
+            # and root-only; creating the directory never adds/removes manifests.
+            "d /etc/kubernetes/manifests 0700 root root -"
+          ]
           ++ optionals cfg.apiServerHardening.enable [
             # The API server rotates its own audit files; do not add logrotate.
             # Directory mode protects request metadata, including usernames/URIs.

@@ -52,6 +52,11 @@ test("runtime overlay is private, restarts on change, and disabling restores the
   assert.doesNotMatch(clusterConfig, /workerHardening|kubeReserved|podPidsLimit/);
 });
 
+test("hardened workers get a root-only static-Pod watch directory without changing control planes or its contents", () => {
+  assert.match(source, /optionals cfg.kubelet.workerHardening.enable \[\s*#(?:[^\n]*\n\s*#)*[^\n]*\n\s*"d \/etc\/kubernetes\/manifests 0700 root root -"\s*\]/);
+  assert.doesNotMatch(source, /["'](?:r|R|D) \/etc\/kubernetes\/manifests/);
+});
+
 const hasTools = spawnSync("yq", ["--version"], { encoding: "utf8" }).status === 0
   && spawnSync("chown", ["--version"], { encoding: "utf8" }).status === 0;
 
