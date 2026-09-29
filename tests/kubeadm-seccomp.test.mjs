@@ -10,7 +10,7 @@ test("seccomp default is an optional per-node boolean with an explicit rollback"
   assert.match(source, /lib.optionalString \(cfg.kubelet.seccompDefault != null\)\s*" --seccomp-default=\$\{lib.boolToString cfg.kubelet.seccompDefault\}"/);
 });
 
-test("seccomp defaulting is scoped to all six Indigo nodes and no other hosts", () => {
+test("seccomp defaulting is scoped to all nine declared Indigo nodes and no other hosts", () => {
   const enabled = readdirSync(new URL("../hosts/", import.meta.url)).filter((name) => {
     try { return /kubelet.seccompDefault = true;/.test(read(`hosts/${name}/default.nix`)); }
     catch (error) { if (error.code === "ENOENT") return false; throw error; }
@@ -22,6 +22,9 @@ test("seccomp defaulting is scoped to all six Indigo nodes and no other hosts", 
     "srv-lx-k8s-indigo-worker-01",
     "srv-lx-k8s-indigo-worker-02",
     "srv-lx-k8s-indigo-worker-03",
+    "srv-lx-k8s-indigo-worker-04",
+    "srv-lx-k8s-indigo-worker-05",
+    "srv-lx-k8s-indigo-worker-06",
   ]);
 });
 

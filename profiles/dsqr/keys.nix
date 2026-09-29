@@ -14,6 +14,9 @@ let
     srv-lx-k8s-indigo-worker-01 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICOn91Jrxjf0Ac1P7irBuOWRWh4Mz9SSRIGEpMumQhta root@srv-lx-k8s-indigo-worker-01";
     srv-lx-k8s-indigo-worker-02 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINdr30XrgO1KaUTn8PyAZwYMN1eO6QUsHjQEL5OgreQ5 root@srv-lx-k8s-indigo-worker-02";
     srv-lx-k8s-indigo-worker-03 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH3LCSbsUhSv3lDiFdBlxwoAkSCzVoCLsnHW3cBvCZV8 root@srv-lx-k8s-indigo-worker-03";
+    srv-lx-k8s-indigo-worker-04 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIODjJ9mCibNNGbIhIlmqfCLIR4ri3oalJOawdTQLfuX6 root@srv-lx-k8s-indigo-worker-04";
+    srv-lx-k8s-indigo-worker-05 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDfGBYTIdr4UYL5pmASzmis7ZmTD4X2h7C7zE7sb+NXP root@srv-lx-k8s-indigo-worker-05";
+    srv-lx-k8s-indigo-worker-06 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDrJV0vaV3p860XGVRNMt/cnxB6tnn1nYuiTRFB3Y1kt root@srv-lx-k8s-indigo-worker-06";
     srv-lx-k8s-node-01 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHB7+jrInU41DpDuFMzvyYDgpOkE2duOjn8Hg93wAQ9L root@srv-lx-k8s-node-01";
     srv-lx-k8s-node-02 = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILCoB+PBfoAJ60/vxDhBOaeUDIMWESfYyWgHgKNK9LGL root@srv-lx-k8s-node-02";
     srv-lx-khaos = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO96/hopscQBRbeWkv6CCcCNpe/5lwYt13c3bEWBDkyD root@srv-lx-khaos";

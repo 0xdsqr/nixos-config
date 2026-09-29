@@ -8,7 +8,7 @@ const module = read("modules/nixos/kubeadm.nix");
 
 // Fast source-contract tests, not a substitute for Nix evaluation or live
 // endpoint-recreation / TCP+UDP DNS tests after the first node is rebuilt.
-test("proxy routing compatibility is default-off and only the six Indigo nodes opt in", () => {
+test("proxy routing compatibility is default-off and only the nine declared Indigo nodes opt in", () => {
   assert.match(module, /routingCompatibility\.enable = mkEnableOption/);
   assert.match(module, /!cfg\.ciliumProxyFirewall\.routingCompatibility\.enable\s*\|\|/);
   assert.doesNotMatch(read("profiles/kubernetes/nixos.nix"), /routingCompatibility/);
@@ -33,6 +33,9 @@ test("proxy routing compatibility is default-off and only the six Indigo nodes o
     "srv-lx-k8s-indigo-worker-01",
     "srv-lx-k8s-indigo-worker-02",
     "srv-lx-k8s-indigo-worker-03",
+    "srv-lx-k8s-indigo-worker-04",
+    "srv-lx-k8s-indigo-worker-05",
+    "srv-lx-k8s-indigo-worker-06",
   ]);
 });
 

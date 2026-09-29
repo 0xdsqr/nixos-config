@@ -3,7 +3,7 @@ import { readdirSync } from "node:fs";
 import test from "node:test";
 import { inventory, moduleSource, read, renderRules } from "./helpers/kubeadm-firewall.mjs";
 
-test("internal-port restrictions are default-off with only the six Indigo nodes opted in", () => {
+test("internal-port restrictions are default-off with only the nine declared Indigo nodes opted in", () => {
   assert.match(moduleSource, /nodeFirewall = \{\s*enable = mkEnableOption/);
   assert.match(moduleSource, /!cfg\.nodeFirewall\.enable\s*\|\|/);
   assert.match(moduleSource, /builtins\.elem cfg\.nodeAddress cfg\.nodeFirewall\.nodeAddresses/);
@@ -19,6 +19,9 @@ test("internal-port restrictions are default-off with only the six Indigo nodes 
     "srv-lx-k8s-indigo-worker-01",
     "srv-lx-k8s-indigo-worker-02",
     "srv-lx-k8s-indigo-worker-03",
+    "srv-lx-k8s-indigo-worker-04",
+    "srv-lx-k8s-indigo-worker-05",
+    "srv-lx-k8s-indigo-worker-06",
   ]);
   for (const host of optedIn) {
     assert.match(read(`hosts/${host}/default.nix`), /profiles\/kubernetes\/indigo-firewall\.nix/);
@@ -26,9 +29,9 @@ test("internal-port restrictions are default-off with only the six Indigo nodes 
   assert.doesNotMatch(read("profiles/kubernetes/nixos.nix"), /nodeFirewall|indigo-firewall/);
 });
 
-test("shared Indigo peer inventory matches its six declared nodes and roles", () => {
+test("shared Indigo peer inventory matches its nine declared nodes and roles", () => {
   const nodes = [], controls = [], workers = [];
-  for (const role of ["control", "worker"]) for (const suffix of ["01", "02", "03"]) {
+  for (const role of ["control", "worker"]) for (const suffix of (role === "control" ? ["01", "02", "03"] : ["01", "02", "03", "04", "05", "06"])) {
     const source = read(`hosts/srv-lx-k8s-indigo-${role}-${suffix}/default.nix`);
     const address = source.match(/nodeAddress = "([0-9.]+)";/)[1];
     nodes.push(address);
@@ -48,7 +51,7 @@ test("worker rules limit kubelet, health, VXLAN and memberlist without etcd expo
   assert.match(lines[1], /udp dport 8472/);
   assert.doesNotMatch(lines[1], /10\.80\.0\.0\/16/);
   for (const line of lines.slice(2)) {
-    assert.match(line, /^ip saddr \{ 10\.10\.80\.103, 10\.10\.80\.104, 10\.10\.80\.105 \}/);
+    assert.match(line, /^ip saddr \{ 10\.10\.80\.103, 10\.10\.80\.104, 10\.10\.80\.105, 10\.10\.80\.106, 10\.10\.80\.107, 10\.10\.80\.108 \}/);
     assert.match(line, /dport 7946/);
   }
   assert.doesNotMatch(rules, /2379|2380|10257|10259|0\.0\.0\.0\/0/);
