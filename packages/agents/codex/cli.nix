@@ -6,17 +6,17 @@
   stdenv,
 }:
 let
-  version = "0.158.0";
+  version = "0.159.0";
   rustyV8Version = "150.4.0";
 
   src = fetchFromGitHub {
     owner = "openai";
     repo = "codex";
     tag = "rust-v${version}";
-    hash = "sha256-6ogqs75pG4+hxG6RqwBwJPWd3wGks2wBID/epha9+Ds=";
+    hash = "sha256-rtYsWjG56SagT5cWt22//vyqvD0QBKSHRdRhzHQB4CQ=";
   };
 
-  cargoHash = "sha256-D8+caV6Q9H2JnZNhazV1kqgV0dePh3qQyXnRMgeSYak=";
+  cargoHash = "sha256-3X4gmzAZG10DDcI667k9Zf+r3IvzeAAWD1NbTdQZyGY=";
 
   rustyV8Archive = fetchurl {
     name = "librusty_v8-${rustyV8Version}";
