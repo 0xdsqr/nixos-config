@@ -55,6 +55,7 @@ in
           kubeadm = {
             role = "control-plane";
             coreDnsHardening.enable = true;
+            coreDnsHardening.platformPool = true;
             apiServerHardening.enable = true;
             nodeAddress = "10.10.80.102";
 

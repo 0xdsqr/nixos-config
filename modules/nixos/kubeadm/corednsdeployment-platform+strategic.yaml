@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coredns
+  namespace: kube-system
+spec:
+  template:
+    spec:
+      nodeSelector:
+        platform.dsqr.dev/node-pool: platform
+      # Strategic merge replaces this list: retain kubeadm's system tolerations.
+      tolerations:
+        - key: CriticalAddonsOnly
+          operator: Exists
+        - key: node-role.kubernetes.io/control-plane
+          effect: NoSchedule
+        - key: platform.dsqr.dev/dedicated
+          operator: Equal
+          value: platform
+          effect: NoSchedule

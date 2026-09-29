@@ -392,6 +392,7 @@
         };
 
         coreDnsHardening.enable = mkEnableOption "Persist the non-root CoreDNS seccomp patch for kubeadm init and upgrades";
+        coreDnsHardening.platformPool = mkEnableOption "Place CoreDNS on the labelled platform pool; label three workers before applying this patch";
 
         apiServerHardening.enable = mkEnableOption ''
           Restrict anonymous authentication to health endpoints, verify kubelet serving
@@ -664,6 +665,11 @@
           "kubernetes/kubeadm/patches/corednsdeployment-security+strategic.yaml" =
             mkIf (cfg.coreDnsHardening.enable && cfg.role == "control-plane") {
               source = ./kubeadm/corednsdeployment-security+strategic.yaml;
+            };
+
+          "kubernetes/kubeadm/patches/corednsdeployment-platform+strategic.yaml" =
+            mkIf (cfg.coreDnsHardening.enable && cfg.coreDnsHardening.platformPool && cfg.role == "control-plane") {
+              source = ./kubeadm/corednsdeployment-platform+strategic.yaml;
             };
 
           # Upgrade commands must pass --config /etc/kubernetes/kubeadm/upgrade.yaml
