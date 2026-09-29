@@ -221,6 +221,28 @@
         '';
       };
 
+      workerRuntimeOverlay = pkgs.writeText "kubelet-worker-runtime.json" (
+        builtins.toJSON {
+          inherit (cfg.kubelet.workerHardening) kubeReserved systemReserved podPidsLimit;
+          enforceNodeAllocatable = [ "pods" ];
+          shutdownGracePeriod = "${toString cfg.kubelet.workerHardening.shutdownGraceSeconds}s";
+          shutdownGracePeriodCriticalPods = "${toString cfg.kubelet.workerHardening.criticalShutdownGraceSeconds}s";
+        }
+      );
+      prepareWorkerConfig = pkgs.writeShellApplication {
+        name = "prepare-kubelet-worker-config";
+        runtimeInputs = [
+          pkgs.coreutils
+          pkgs.yq-go
+        ];
+        text = builtins.readFile ./kubeadm/prepare-worker-config.sh;
+      };
+      effectiveKubeletConfig =
+        if cfg.kubelet.workerHardening.enable then
+          "/run/kubelet/worker-config.yaml"
+        else
+          "/var/lib/kubelet/config.yaml";
+
       kubeVipManifest =
         kubeconfig:
         renderYaml "kube-vip.yaml" {
@@ -419,6 +441,35 @@
             existing containers need recreation to exercise the new default.
             Explicit workload profiles and privileged exceptions are preserved.
           '';
+        };
+
+        kubelet.workerHardening = {
+          enable = mkEnableOption "Worker-only runtime resource, PID and graceful shutdown baseline";
+          kubeReserved = mkOption {
+            type = lib.types.attrsOf str;
+            default = { };
+            description = "Resource headroom for kubelet/containerd; not a hard service cgroup limit.";
+          };
+          systemReserved = mkOption {
+            type = lib.types.attrsOf str;
+            default = { };
+            description = "Resource headroom for the OS and host services.";
+          };
+          podPidsLimit = mkOption {
+            type = lib.types.ints.positive;
+            default = 4096;
+            description = "Maximum processes/threads per Pod; size for the intended workload mix.";
+          };
+          shutdownGraceSeconds = mkOption {
+            type = lib.types.ints.positive;
+            default = 420;
+            description = "Total orderly shutdown budget, including critical Pods.";
+          };
+          criticalShutdownGraceSeconds = mkOption {
+            type = lib.types.ints.positive;
+            default = 60;
+            description = "Final portion of the shutdown budget reserved for critical Pods.";
+          };
         };
 
         cluster = {
@@ -636,7 +687,23 @@
             assertion = !cfg.kubeVip.enable || cfg.kubeVip.interface != null;
             message = "kube-vip requires dsqr.nixos.kubeadm.kubeVip.interface.";
           }
+          {
+            assertion = !cfg.kubelet.workerHardening.enable || cfg.role == "worker";
+            message = "The worker runtime baseline must not be enabled on control planes.";
+          }
+          {
+            assertion =
+              !cfg.kubelet.workerHardening.enable
+              ||
+                cfg.kubelet.workerHardening.criticalShutdownGraceSeconds
+                < cfg.kubelet.workerHardening.shutdownGraceSeconds;
+            message = "Critical shutdown time must be shorter than total shutdown time.";
+          }
         ];
+
+        services.logind.settings.Login.InhibitDelayMaxSec = mkIf cfg.kubelet.workerHardening.enable (
+          cfg.kubelet.workerHardening.shutdownGraceSeconds + 30
+        );
 
         environment.etc = {
           "kubernetes/authentication/config.yaml" = mkIf cfg.apiServerHardening.enable {
@@ -834,15 +901,19 @@
             "network-online.target"
             "containerd.service"
           ];
-          preStart = mkIf cfg.kubelet.serverTlsBootstrap "${lib.getExe reconcileKubeletServerTlsBootstrap}";
+          preStart =
+            lib.optionalString cfg.kubelet.serverTlsBootstrap "${lib.getExe reconcileKubeletServerTlsBootstrap}\n"
+            + lib.optionalString cfg.kubelet.workerHardening.enable "${lib.getExe prepareWorkerConfig} /var/lib/kubelet/config.yaml ${workerRuntimeOverlay} /run/kubelet/worker-config.yaml\n";
           # EnvironmentFile contents alone are not part of the unit text.
           # Restart kubelet when the managed canary setting changes, including
           # rollback to false/null. This does not restart containerd or drain pods.
           restartTriggers = optionals (cfg.kubelet.seccompDefault != null && cfg.nodeAddress != null) [
             config.environment.etc."default/kubelet".source
-          ];
+          ] ++ optionals cfg.kubelet.workerHardening.enable [ workerRuntimeOverlay ];
 
           serviceConfig = {
+            RuntimeDirectory = mkIf cfg.kubelet.workerHardening.enable "kubelet";
+            RuntimeDirectoryMode = mkIf cfg.kubelet.workerHardening.enable "0700";
             Environment = [
               "KUBELET_KUBEADM_ARGS="
               "KUBELET_EXTRA_ARGS="
@@ -853,7 +924,7 @@
             ];
             Restart = "always";
             RestartSec = 5;
-            ExecStart = "${cfg.packages.kubernetes}/bin/kubelet --bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf --config=/var/lib/kubelet/config.yaml $KUBELET_KUBEADM_ARGS $KUBELET_EXTRA_ARGS";
+            ExecStart = "${cfg.packages.kubernetes}/bin/kubelet --bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf --config=${effectiveKubeletConfig} $KUBELET_KUBEADM_ARGS $KUBELET_EXTRA_ARGS";
           };
         };
       };
