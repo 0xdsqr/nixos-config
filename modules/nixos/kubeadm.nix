@@ -194,6 +194,7 @@
         name = "reconcile-kubelet-server-tls-bootstrap";
         runtimeInputs = [
           pkgs.coreutils
+          pkgs.diffutils
           pkgs.yq-go
         ];
         text = ''

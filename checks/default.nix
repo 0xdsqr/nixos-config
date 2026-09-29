@@ -250,6 +250,12 @@ in
           ${lib.getExe nushellHomeConfig.programs.nushell.package} --version > "$out/version.txt"
         '';
       }
+      // lib.optionalAttrs (system == "x86_64-linux") {
+        kubelet-worker-config = import ./kubelet-worker-config.nix {
+          inherit pkgs;
+          workerConfig = self.nixosConfigurations.srv-lx-k8s-indigo-worker-04.config;
+        };
+      }
       // lib.optionalAttrs pkgs.stdenv.isDarwin {
         nushell-zsh-bootstrap =
           let

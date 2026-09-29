@@ -1,0 +1,19 @@
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+authentication:
+  anonymous:
+    enabled: false
+  webhook:
+    enabled: true
+authorization:
+  mode: Webhook
+cgroupDriver: systemd
+clusterDNS:
+  - 10.81.0.10
+clusterDomain: cluster.local
+rotateCertificates: true
+serverTLSBootstrap: true
+resolvConf: /etc/resolv.conf
+evictionHard:
+  memory.available: 100Mi
+  nodefs.available: 10%

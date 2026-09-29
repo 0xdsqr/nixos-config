@@ -13,7 +13,10 @@ temporary=$(mktemp "${output}.XXXXXX")
 trap 'rm -f "$temporary"' EXIT
 # Preserve kubeadm's networking, authentication, rotation and other fields.
 # A separate /run file makes disabling this overlay a clean configuration rollback.
-yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' "$base" "$overlay" > "$temporary"
+# JSON input can give the merged YAML a flow-style root ({unquoted: keys}).
+# Kubernetes detects the leading brace as JSON and rejects that YAML form.
+# Emit strict JSON explicitly; Kubernetes accepts it regardless of file suffix.
+yq eval-all -o=json 'select(fileIndex == 0) * select(fileIndex == 1)' "$base" "$overlay" > "$temporary"
 yq -e '.kind == "KubeletConfiguration" and .authentication.anonymous.enabled == false and .authorization.mode == "Webhook"' "$temporary" >/dev/null
 chown --reference="$base" "$temporary"
 chmod 0600 "$temporary"

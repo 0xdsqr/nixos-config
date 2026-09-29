@@ -11,6 +11,12 @@ const read = (path) => readFileSync(join(root, path), "utf8");
 const source = read("modules/nixos/kubeadm.nix");
 const profile = read("profiles/kubernetes/indigo-worker-hardening.nix");
 
+test("TLS reconciliation declares cmp's package instead of relying on the host PATH", () => {
+  const reconcile = source.split("reconcileKubeletServerTlsBootstrap = pkgs.writeShellApplication {")[1].split("workerRuntimeOverlay =")[0];
+  assert.match(reconcile, /pkgs.diffutils/);
+  assert.match(reconcile, /cmp --silent/);
+});
+
 test("only the six Indigo workers import the resource profile", () => {
   const selected = readdirSync(join(root, "hosts")).filter((name) => {
     try { return read(`hosts/${name}/default.nix`).includes("../../profiles/kubernetes/indigo-worker-hardening.nix"); }
@@ -69,9 +75,8 @@ test("runtime generator preserves kubeadm fields, permissions and last-good outp
   };
   const run = (input = base, destination = output) => spawnSync("bash", [join(root, "modules/nixos/kubeadm/prepare-worker-config.sh"), input, overlay, destination], { encoding: "utf8" });
   const decoded = () => {
-    const result = spawnSync("yq", ["-o=json", ".", output], { encoding: "utf8" });
-    assert.equal(result.status, 0, result.stderr);
-    return JSON.parse(result.stdout);
+    // Parse the bytes kubelet receives, not a repaired yq re-serialization.
+    return JSON.parse(readFileSync(output, "utf8"));
   };
   try {
     writeFileSync(base, JSON.stringify(original));
@@ -87,6 +92,15 @@ test("runtime generator preserves kubeadm fields, permissions and last-good outp
     result = run();
     assert.equal(result.status, 0, result.stderr);
     assert.equal(readFileSync(output, "utf8"), first);
+    // kubeadm writes block YAML, while Nix writes a JSON overlay. This mixed
+    // input combination produced flow YAML that yq accepted but kubelet rejected.
+    const block = spawnSync("yq", ["-p=json", "-o=yaml", ".", base], { encoding: "utf8" });
+    assert.equal(block.status, 0, block.stderr);
+    assert.match(block.stdout, /^apiVersion:/);
+    writeFileSync(base, block.stdout);
+    assert.equal(run().status, 0);
+    assert.deepEqual(decoded(), { ...original, ...settings });
+    assert.equal(readFileSync(base, "utf8"), block.stdout);
     writeFileSync(overlay, JSON.stringify({ ...settings, podPidsLimit: 8192 }));
     assert.equal(run().status, 0);
     assert.equal(decoded().podPidsLimit, 8192);
