@@ -58,4 +58,4 @@ jobs:
           for pkg in "${packages[@]}"; do
             targets+=(".#packages.${{ matrix.system }}.$pkg")
           done
-          nix build --accept-flake-config --print-out-paths "${targets[@]}"
+          nix build --accept-flake-config --print-out-paths --keep-going --log-lines 500 "${targets[@]}"
