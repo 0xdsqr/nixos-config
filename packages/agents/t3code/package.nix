@@ -28,6 +28,8 @@ let
       # The desktop build compiles a libsecret helper (native/browser-secret) on Linux.
       nativeBuildInputs = prev.nativeBuildInputs ++ lib.optionals stdenv.hostPlatform.isLinux [ pkg-config ];
       buildInputs = (prev.buildInputs or [ ]) ++ lib.optionals stdenv.hostPlatform.isLinux [ libsecret ];
+      # pnpm's default reporter collapses vp's task output, hiding build errors in CI logs.
+      npm_config_reporter = "append-only";
       pnpmDeps = fetchPnpmDeps {
         pnpm = pnpm_11;
         inherit (final)
