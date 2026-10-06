@@ -8,6 +8,7 @@
   pkg-config,
   pnpm_11,
   rustPlatform,
+  spdx-license-list-data,
 }:
 let
   version = "0.0.45";
@@ -28,6 +29,14 @@ let
       # The desktop build compiles a libsecret helper (native/browser-secret) on Linux.
       nativeBuildInputs = prev.nativeBuildInputs ++ lib.optionals stdenv.hostPlatform.isLinux [ pkg-config ];
       buildInputs = (prev.buildInputs or [ ]) ++ lib.optionals stdenv.hostPlatform.isLinux [ libsecret ];
+      # The third-party-licenses plugin downloads SPDX texts during the build, which
+      # the sandbox blocks; seed its cache from nixpkgs for whatever version it pins.
+      preBuild = ''
+        spdxVersion=$(sed -n 's/^const SPDX_LICENSE_LIST_VERSION = "\(.*\)";$/\1/p' scripts/lib/third-party-licenses.ts)
+        mkdir -p ".generated/third-party-licenses/spdx/$spdxVersion"
+        cp ${spdx-license-list-data.json}/json/details/*.json ".generated/third-party-licenses/spdx/$spdxVersion/"
+      ''
+      + prev.preBuild;
       # pnpmBuildHook's recursive `pnpm run --filter=...` collapses vp's task output,
       # hiding build errors; run the same root script directly so it streams.
       buildPhase = ''
