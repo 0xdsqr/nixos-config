@@ -72,10 +72,18 @@ def update-claude-code [] {
 
 def update-codex [] {
   let file = $"(repo-root)/packages/agents/codex/cli.nix"
+  let targets = {
+    aarch64-darwin: "aarch64-apple-darwin"
+    x86_64-linux: "x86_64-unknown-linux-musl"
+    aarch64-linux: "aarch64-unknown-linux-musl"
+  }
+  # Newest stable release whose prebuilt binaries are already uploaded for every target.
+  let assets = ($targets | values | each {|t| $"codex-($t).tar.gz"})
   let latest = (
     gh-json "repos/openai/codex/releases?per_page=30"
+    | where {|r| (not $r.prerelease) and ($r.tag_name =~ '^rust-v[0-9]+\.[0-9]+\.[0-9]+$')}
+    | where {|r| $assets | all {|a| $a in ($r.assets | get name)}}
     | get tag_name
-    | where {|t| $t =~ '^rust-v[0-9]+\.[0-9]+\.[0-9]+$'}
     | each {|t| $t | str replace 'rust-v' ''}
     | sort --natural
     | last
@@ -86,14 +94,11 @@ def update-codex [] {
     return
   }
   print $"codex ($current) -> ($latest)"
-  let root = (repo-root)
   replace-field $file "version" $latest
-  replace-field $file "hash" $FAKE
-  replace-field $file "cargoHash" $FAKE
-  let src = (do { ^nix build $"($root)#codex" --no-link } | complete)
-  replace-field $file "hash" (parse-got $src.stderr)
-  let cargo = (do { ^nix build $"($root)#codex" --no-link } | complete)
-  replace-field $file "cargoHash" (parse-got $cargo.stderr)
+  $targets | transpose system target | each {|row|
+    let url = $"https://github.com/openai/codex/releases/download/rust-v($latest)/codex-($row.target).tar.gz"
+    replace-field $file $row.system (^nix store prefetch-file --json $url | from json | get hash)
+  } | ignore
 }
 
 def update-pi [] {
