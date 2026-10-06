@@ -1,7 +1,11 @@
 {
+  lib,
+  stdenv,
   t3code,
   fetchFromGitHub,
   fetchPnpmDeps,
+  libsecret,
+  pkg-config,
   pnpm_11,
   rustPlatform,
 }:
@@ -19,8 +23,11 @@ let
   };
 
   unwrapped = t3code.unwrapped.overrideAttrs (
-    final: _: {
+    final: prev: {
       inherit version src;
+      # The desktop build compiles a libsecret helper (native/browser-secret) on Linux.
+      nativeBuildInputs = prev.nativeBuildInputs ++ lib.optionals stdenv.hostPlatform.isLinux [ pkg-config ];
+      buildInputs = (prev.buildInputs or [ ]) ++ lib.optionals stdenv.hostPlatform.isLinux [ libsecret ];
       pnpmDeps = fetchPnpmDeps {
         pnpm = pnpm_11;
         inherit (final)
