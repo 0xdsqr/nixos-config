@@ -1,6 +1,11 @@
 {
   flake.nixosModules.kubeadm-encryption =
-    { config, lib, pkgs, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     let
       inherit (lib) mkEnableOption mkOption mkIf;
       kubeadm = config.dsqr.nixos.kubeadm;
@@ -26,7 +31,11 @@
           description = "Age-encrypted cluster keyring; never a plaintext key or provider configuration.";
         };
         stage = mkOption {
-          type = lib.types.enum [ "read-compatible" "encrypt" "enforced" ];
+          type = lib.types.enum [
+            "read-compatible"
+            "encrypt"
+            "enforced"
+          ];
           default = "read-compatible";
           description = ''
             Start read-compatible on ALL API servers, then enable encrypt on each.
@@ -40,8 +49,8 @@
       config = mkIf cfg.enable {
         assertions = [
           {
-            assertion = kubeadm.enable && kubeadm.role == "control-plane"
-              && kubeadm.apiServerHardening.enable && kubeadm.cluster.name != null;
+            assertion =
+              kubeadm.enable && kubeadm.role == "control-plane" && kubeadm.apiServerHardening.enable && kubeadm.cluster.name != null;
             message = "Secrets encryption requires a named, hardened kubeadm control plane.";
           }
           {

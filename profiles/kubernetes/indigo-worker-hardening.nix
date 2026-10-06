@@ -1,5 +1,4 @@
-{ lib, ... }:
-{
+{ lib, ... }: {
   # Current worker size: 4 vCPU / 8 GiB. Override per resource for larger hosts.
   # These reduce Pod allocatable capacity; they do not hard-cap host daemons.
   dsqr.nixos.kubeadm.kubelet.workerHardening = {

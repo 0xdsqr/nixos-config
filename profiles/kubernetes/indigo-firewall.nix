@@ -1,5 +1,4 @@
-{ ... }:
-{
+_: {
   # Cluster peer inventory is shared; individual hosts opt in after validation.
   # Keep API client access and Tailscale configuration outside this rollout.
   dsqr.nixos.kubeadm.nodeFirewall = {

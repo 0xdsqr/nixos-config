@@ -63,32 +63,34 @@
           ${pkgs.gnused}/bin/sed '/^%YAML /d' ${source} > "$out"
         '';
 
-      kubeadmConfig = renderYaml "kubeadm-init.yaml" ({
-        apiVersion = "kubeadm.k8s.io/v1beta4";
-        kind = "InitConfiguration";
-        localAPIEndpoint = {
-          advertiseAddress = cfg.nodeAddress;
-          bindPort = cfg.cluster.apiPort;
-        };
-        nodeRegistration = {
-          criSocket = "unix:///run/containerd/containerd.sock";
-          kubeletExtraArgs = [
-            {
-              name = "node-ip";
-              value = cfg.nodeAddress;
-            }
-          ];
-          name = config.networking.hostName;
-        };
-        timeouts.controlPlaneComponentHealthCheck = "4m0s";
-      } // lib.optionalAttrs cfg.coreDnsHardening.enable {
-        patches.directory = "/etc/kubernetes/kubeadm/patches";
-      });
+      kubeadmConfig = renderYaml "kubeadm-init.yaml" (
+        {
+          apiVersion = "kubeadm.k8s.io/v1beta4";
+          kind = "InitConfiguration";
+          localAPIEndpoint = {
+            advertiseAddress = cfg.nodeAddress;
+            bindPort = cfg.cluster.apiPort;
+          };
+          nodeRegistration = {
+            criSocket = "unix:///run/containerd/containerd.sock";
+            kubeletExtraArgs = [
+              {
+                name = "node-ip";
+                value = cfg.nodeAddress;
+              }
+            ];
+            name = config.networking.hostName;
+          };
+          timeouts.controlPlaneComponentHealthCheck = "4m0s";
+        }
+        // lib.optionalAttrs cfg.coreDnsHardening.enable { patches.directory = "/etc/kubernetes/kubeadm/patches"; }
+      );
 
       kubeadmClusterConfig = renderYaml "kubeadm-cluster.yaml" {
         apiServer = {
           certSANs = [ cfg.cluster.apiVip ];
-        } // lib.optionalAttrs cfg.apiServerHardening.enable {
+        }
+        // lib.optionalAttrs cfg.apiServerHardening.enable {
           extraArgs = [
             # Upstream Metrics Server HA guidance: balance aggregated API
             # requests across ready endpoints instead of the Service VIP.
@@ -128,7 +130,8 @@
               name = "audit-log-maxsize";
               value = "100";
             }
-          ] ++ optionals cfg.encryption.enable [
+          ]
+          ++ optionals cfg.encryption.enable [
             {
               name = "encryption-provider-config";
               value = "/run/kubernetes-encryption/${cfg.encryption.stage}.json";
@@ -160,7 +163,8 @@
               readOnly = false;
               pathType = "Directory";
             }
-          ] ++ optionals cfg.encryption.enable [
+          ]
+          ++ optionals cfg.encryption.enable [
             {
               name = "encryption-config";
               hostPath = "/run/kubernetes-encryption";
@@ -239,10 +243,7 @@
         text = builtins.readFile ./kubeadm/prepare-worker-config.sh;
       };
       effectiveKubeletConfig =
-        if cfg.kubelet.workerHardening.enable then
-          "/run/kubelet/worker-config.yaml"
-        else
-          "/var/lib/kubelet/config.yaml";
+        if cfg.kubelet.workerHardening.enable then "/run/kubelet/worker-config.yaml" else "/var/lib/kubelet/config.yaml";
 
       kubeVipManifest =
         kubeconfig:
@@ -636,9 +637,7 @@
                 && lib.all (address: builtins.elem address cfg.nodeFirewall.nodeAddresses) (
                   cfg.nodeFirewall.controlPlaneAddresses ++ cfg.nodeFirewall.memberlistAddresses
                 )
-                && (
-                  cfg.role != "control-plane" || builtins.elem cfg.nodeAddress cfg.nodeFirewall.controlPlaneAddresses
-                )
+                && (cfg.role != "control-plane" || builtins.elem cfg.nodeAddress cfg.nodeFirewall.controlPlaneAddresses)
               );
             message = "Restricted Kubernetes node firewall requires native nftables, a node role, this node in nodeAddresses, podSubnets, and control-plane/memberlist peers drawn from nodeAddresses.";
           }
@@ -695,9 +694,7 @@
           {
             assertion =
               !cfg.kubelet.workerHardening.enable
-              ||
-                cfg.kubelet.workerHardening.criticalShutdownGraceSeconds
-                < cfg.kubelet.workerHardening.shutdownGraceSeconds;
+              || cfg.kubelet.workerHardening.criticalShutdownGraceSeconds < cfg.kubelet.workerHardening.shutdownGraceSeconds;
             message = "Critical shutdown time must be shorter than total shutdown time.";
           }
         ];
@@ -711,9 +708,7 @@
             source = ./kubeadm/authentication-config.yaml;
           };
 
-          "kubernetes/audit/policy.yaml" = mkIf cfg.apiServerHardening.enable {
-            source = ./kubeadm/audit-policy.yaml;
-          };
+          "kubernetes/audit/policy.yaml" = mkIf cfg.apiServerHardening.enable { source = ./kubeadm/audit-policy.yaml; };
 
           # Install only: switching NixOS never rewrites a running static Pod.
           # Reconfigure with `kubeadm init phase control-plane apiserver --config
@@ -730,37 +725,36 @@
 
           # Keep CoreDNS owned by kubeadm. Existing clusters apply this same
           # strategic patch once; future init reads patches from init.yaml.
-          "kubernetes/kubeadm/patches/corednsdeployment-security+strategic.yaml" =
-            mkIf (cfg.coreDnsHardening.enable && cfg.role == "control-plane") {
-              source = ./kubeadm/corednsdeployment-security+strategic.yaml;
-            };
+          "kubernetes/kubeadm/patches/corednsdeployment-security+strategic.yaml" = mkIf (
+            cfg.coreDnsHardening.enable && cfg.role == "control-plane"
+          ) { source = ./kubeadm/corednsdeployment-security+strategic.yaml; };
 
-          "kubernetes/kubeadm/patches/corednsdeployment-platform+strategic.yaml" =
-            mkIf (cfg.coreDnsHardening.enable && cfg.coreDnsHardening.platformPool && cfg.role == "control-plane") {
-              source = ./kubeadm/corednsdeployment-platform+strategic.yaml;
-            };
+          "kubernetes/kubeadm/patches/corednsdeployment-platform+strategic.yaml" = mkIf (
+            cfg.coreDnsHardening.enable && cfg.coreDnsHardening.platformPool && cfg.role == "control-plane"
+          ) { source = ./kubeadm/corednsdeployment-platform+strategic.yaml; };
 
           # Upgrade commands must pass --config /etc/kubernetes/kubeadm/upgrade.yaml
           # (or --patches /etc/kubernetes/kubeadm/patches) to preserve this setting.
           # Publishing these files never runs an upgrade or restarts DNS.
-          "kubernetes/kubeadm/upgrade.yaml" =
-            mkIf (cfg.coreDnsHardening.enable && cfg.role == "control-plane") {
-              source = renderYaml "kubeadm-upgrade.yaml" {
-                apiVersion = "kubeadm.k8s.io/v1beta4";
-                kind = "UpgradeConfiguration";
-                apply.patches.directory = "/etc/kubernetes/kubeadm/patches";
-                node.patches.directory = "/etc/kubernetes/kubeadm/patches";
-              };
+          "kubernetes/kubeadm/upgrade.yaml" = mkIf (cfg.coreDnsHardening.enable && cfg.role == "control-plane") {
+            source = renderYaml "kubeadm-upgrade.yaml" {
+              apiVersion = "kubeadm.k8s.io/v1beta4";
+              kind = "UpgradeConfiguration";
+              apply.patches.directory = "/etc/kubernetes/kubeadm/patches";
+              node.patches.directory = "/etc/kubernetes/kubeadm/patches";
             };
+          };
 
           "default/kubelet" = mkIf (cfg.nodeAddress != null) {
             # Keep this node-local, rather than changing the cluster-wide
             # kubelet ConfigMap during a canary rollout. Kubernetes ORs this
             # flag with the config-file value; /configz reports only the latter.
             # Validate actual runtime enforcement, not just /configz.
-            text = "KUBELET_EXTRA_ARGS=--node-ip=${cfg.nodeAddress}"
-              + lib.optionalString (cfg.kubelet.seccompDefault != null)
-                " --seccomp-default=${lib.boolToString cfg.kubelet.seccompDefault}";
+            text =
+              "KUBELET_EXTRA_ARGS=--node-ip=${cfg.nodeAddress}"
+              + lib.optionalString (
+                cfg.kubelet.seccompDefault != null
+              ) " --seccomp-default=${lib.boolToString cfg.kubelet.seccompDefault}";
           };
 
           "kubernetes/kubeadm/init.yaml" = mkIf cfg.bootstrap {
@@ -775,9 +769,7 @@
             source = kubeVipManifest "/etc/kubernetes/super-admin.conf";
           };
 
-          "kubernetes/kube-vip/steady.yaml" = mkIf cfg.kubeVip.enable {
-            source = kubeVipManifest "/etc/kubernetes/admin.conf";
-          };
+          "kubernetes/kube-vip/steady.yaml" = mkIf cfg.kubeVip.enable { source = kubeVipManifest "/etc/kubernetes/admin.conf"; };
         };
 
         networking.firewall = {
@@ -880,18 +872,20 @@
           };
         };
 
-        systemd.tmpfiles.rules = [ "d /var/lib/kubelet 0755 root root -" ]
-          ++ optionals cfg.kubelet.workerHardening.enable [
-            # kubeadm configures this watch path on workers too. Keep it empty
-            # and root-only; creating the directory never adds/removes manifests.
-            "d /etc/kubernetes/manifests 0700 root root -"
-          ]
-          ++ optionals cfg.apiServerHardening.enable [
-            # The API server rotates its own audit files; do not add logrotate.
-            # Directory mode protects request metadata, including usernames/URIs.
-            "d /var/log/kubernetes 0755 root root -"
-            "d /var/log/kubernetes/audit 0700 root root -"
-          ];
+        systemd.tmpfiles.rules = [
+          "d /var/lib/kubelet 0755 root root -"
+        ]
+        ++ optionals cfg.kubelet.workerHardening.enable [
+          # kubeadm configures this watch path on workers too. Keep it empty
+          # and root-only; creating the directory never adds/removes manifests.
+          "d /etc/kubernetes/manifests 0700 root root -"
+        ]
+        ++ optionals cfg.apiServerHardening.enable [
+          # The API server rotates its own audit files; do not add logrotate.
+          # Directory mode protects request metadata, including usernames/URIs.
+          "d /var/log/kubernetes 0755 root root -"
+          "d /var/log/kubernetes/audit 0700 root root -"
+        ];
 
         systemd.services.kubelet = {
           description = "Kubernetes Kubelet";
@@ -913,9 +907,11 @@
           # EnvironmentFile contents alone are not part of the unit text.
           # Restart kubelet when the managed canary setting changes, including
           # rollback to false/null. This does not restart containerd or drain pods.
-          restartTriggers = optionals (cfg.kubelet.seccompDefault != null && cfg.nodeAddress != null) [
-            config.environment.etc."default/kubelet".source
-          ] ++ optionals cfg.kubelet.workerHardening.enable [ workerRuntimeOverlay ];
+          restartTriggers =
+            optionals (cfg.kubelet.seccompDefault != null && cfg.nodeAddress != null) [
+              config.environment.etc."default/kubelet".source
+            ]
+            ++ optionals cfg.kubelet.workerHardening.enable [ workerRuntimeOverlay ];
 
           serviceConfig = {
             RuntimeDirectory = mkIf cfg.kubelet.workerHardening.enable "kubelet";

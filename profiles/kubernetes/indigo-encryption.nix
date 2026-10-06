@@ -1,5 +1,4 @@
-{ ... }:
-{
+_: {
   dsqr.nixos.kubeadm.encryption = {
     enable = true;
     keyringFile = ./indigo-encryption-keyring.age;

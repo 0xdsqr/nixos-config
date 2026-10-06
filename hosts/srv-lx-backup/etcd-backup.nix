@@ -4,8 +4,6 @@ in
 {
   dsqr.nixos.etcdBackup.collector = {
     enable = true;
-    jobs.indigo = {
-      inherit (inventory) sourceAddress sourceHostPublicKey;
-    };
+    jobs.indigo = { inherit (inventory) sourceAddress sourceHostPublicKey; };
   };
 }
