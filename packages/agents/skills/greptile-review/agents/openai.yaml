@@ -1,0 +1,7 @@
+interface:
+  display_name: "Greptile Review"
+  short_description: "Loop on Greptile PR/MR reviews until 5/5"
+  default_prompt: "Use $greptile-review to push this branch and loop on Greptile's review until it scores 5/5."
+
+policy:
+  allow_implicit_invocation: false
