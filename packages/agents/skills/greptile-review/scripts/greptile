@@ -5,7 +5,7 @@
 #   greptile threads         unresolved Greptile review threads
 #   greptile reply ID TEXT   reply inside a thread
 #   greptile resolve ID      resolve a thread
-#   greptile retrigger       ask Greptile for a fresh review; prints the request time
+#   greptile tag             comment the Greptile mention on the PR/MR; prints the time
 #   greptile wait SINCE      block until a summary newer than SINCE (ISO-8601) exists
 #
 # Every command prints JSON. The forge comes from `origin` (override with
@@ -104,7 +104,7 @@ gh_resolve() {
     }' --jq '.data.resolveReviewThread.thread'
 }
 
-gh_retrigger() {
+gh_tag() {
   gh pr comment "$(gh_pr | jq -r .number)" --body "${GREPTILE_TRIGGER:-@greptileai}" >/dev/null
 }
 
@@ -160,7 +160,7 @@ gl_resolve() {
     | jq '{id, resolved: .notes[0].resolved}'
 }
 
-gl_retrigger() {
+gl_tag() {
   glab mr note "$(gl_mr | jq -r .iid)" --message "${GREPTILE_TRIGGER:-@greptile review}" >/dev/null
 }
 
@@ -186,9 +186,9 @@ case "$cmd" in
     [[ $# -eq 1 ]] || die "usage: greptile resolve THREAD_ID"
     "${p}_resolve" "$1"
     ;;
-  retrigger)
+  tag)
     at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-    "${p}_retrigger"
+    "${p}_tag"
     jq -n --arg at "$at" '{requested_at: $at}'
     ;;
   wait)
@@ -209,5 +209,5 @@ case "$cmd" in
       sleep "${GREPTILE_POLL_INTERVAL:-30}"
     done
     ;;
-  *) die "usage: greptile status|threads|reply|resolve|retrigger|wait" ;;
+  *) die "usage: greptile status|threads|reply|resolve|tag|wait" ;;
 esac

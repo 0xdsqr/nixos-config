@@ -18,7 +18,7 @@ command prints JSON:
 | `threads` | Unresolved Greptile threads: `id`, `path`, `line`, `body` |
 | `reply ID TEXT` | Reply inside a thread |
 | `resolve ID` | Resolve a thread |
-| `retrigger` | Ask Greptile for a new review; returns `requested_at` |
+| `tag` | Comment the Greptile mention on the PR/MR to request a review; returns `requested_at` |
 | `wait SINCE` | Block until a summary newer than `SINCE` exists, then print `status` |
 
 ## Settings
@@ -34,11 +34,12 @@ Take these from the user's request, otherwise use the defaults:
 ## Workflow
 
 1. Confirm the branch is not the default branch and that a PR/MR exists. If
-   none exists, open one with `gh pr create` or `glab mr create` following the
-   repository's conventions.
+   none exists, open one with an available create-MR or create-PR skill (for
+   example `create-mr`); without one, use `gh pr create` or `glab mr create`
+   following the repository's conventions.
 2. Commit pending work with a Conventional Commit message and push. Follow the
    repository's git rules; never force-push unless the user asked.
-3. Run `greptile retrigger`, then `greptile wait <requested_at>`. Keep the
+3. Run `greptile tag`, then `greptile wait <requested_at>`. Keep the
    returned status as this round's result.
 4. Stop and report if `notice` is set (credit limit, reviews disabled) or the
    wait times out.
