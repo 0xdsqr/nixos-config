@@ -2,7 +2,7 @@
   "id": null,
   "uid": "indigo-overview",
   "title": "K8s - Indigo - Overview",
-  "description": "Indigo cluster inventory, scheduling health, host capacity and journal coverage.",
+  "description": "Indigo cluster inventory, scheduling health, host capacity, journal coverage and CoreDNS metrics.",
   "tags": [
     "dsqr-labs",
     "indigo"
@@ -857,6 +857,307 @@
               "__name__": true
             }
           }
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "title": "CoreDNS scrape targets up / expected 2",
+      "description": "Successful metrics scrapes, not an end-to-end DNS probe. A missing replica lowers the count; an entirely missing job shows No data. OPNsense/Unbound is not included.",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 40,
+        "w": 24,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No data",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "red"
+              },
+              {
+                "value": 2,
+                "color": "green"
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "last"
+          ],
+          "fields": ""
+        },
+        "orientation": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(up{cluster=\"indigo\",job=\"coredns\"})",
+          "instant": true,
+          "range": false
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "title": "CoreDNS requests / second",
+      "description": "Five-minute request rate per resolver pod. Missing metrics remain gaps.",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 44,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "noValue": "No data",
+          "min": 0,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 8,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by(pod)(rate(coredns_dns_requests_total{cluster=\"indigo\",job=\"coredns\"}[5m]))",
+          "legendFormat": "{{pod}}",
+          "range": true,
+          "instant": false
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "title": "CoreDNS responses by code / second",
+      "description": "Five-minute response rate across both replicas. NXDOMAIN means a name did not exist; it is not automatically an outage. SERVFAIL/REFUSED appear when exported. Absent codes are not synthesized as healthy zeros.",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 44,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "noValue": "No data",
+          "min": 0,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 8,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by(rcode)(rate(coredns_dns_responses_total{cluster=\"indigo\",job=\"coredns\"}[5m]))",
+          "legendFormat": "{{rcode}}",
+          "range": true,
+          "instant": false
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "title": "CoreDNS p95 query duration",
+      "description": "Estimated 95th percentile from histogram buckets over five minutes, calculated independently per resolver pod. Idle windows can have no value.",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 52,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "No data",
+          "min": 0,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 8,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "histogram_quantile(0.95,sum by(pod,le)(rate(coredns_dns_request_duration_seconds_bucket{cluster=\"indigo\",job=\"coredns\"}[5m])))",
+          "legendFormat": "{{pod}}",
+          "range": true,
+          "instant": false
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "title": "CoreDNS cache hit ratio",
+      "description": "Cache hits divided by cache requests over five minutes, per resolver pod. No traffic or missing counters remain undefined, not 0% or 100%.",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 52,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "noValue": "No data",
+          "min": 0,
+          "max": 1,
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 8,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by(pod)(rate(coredns_cache_hits_total{cluster=\"indigo\",job=\"coredns\"}[5m])) / sum by(pod)(rate(coredns_cache_requests_total{cluster=\"indigo\",job=\"coredns\"}[5m]))",
+          "legendFormat": "{{pod}}",
+          "range": true,
+          "instant": false
         }
       ]
     }
