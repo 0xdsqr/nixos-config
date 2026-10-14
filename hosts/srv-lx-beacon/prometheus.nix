@@ -18,6 +18,9 @@ _: {
     listenAddress = "0.0.0.0";
     port = 9090;
     retentionTime = "14d";
+    # Initial four rules only. Prometheus evaluates them locally; notification
+    # delivery remains deferred (no Alertmanager/contact point added here).
+    ruleFiles = [ ./core-alerts.rules.json ];
     webExternalUrl = "https://prometheus.home.arpa/";
     remoteWrite = [
       {

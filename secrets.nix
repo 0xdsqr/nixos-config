@@ -34,11 +34,13 @@ let
 
 in
 mkSecretsForHost "srv-lx-beacon" [
+  "hosts/srv-lx-beacon/restic-repository.password.age"
   "hosts/srv-lx-beacon/host.password.age"
   "hosts/srv-lx-beacon/grafana.secret-key.age"
   "hosts/srv-lx-beacon/grafana.admin.password.age"
   "hosts/srv-lx-beacon/grafana.database.password.age"
   "hosts/srv-lx-beacon/tailscale.auth-key.age"
+  "hosts/srv-lx-beacon/telemetry-pki.secret-id.age"
 ]
 // mkSecretsForHost "srv-lx-gateway" [
   "hosts/srv-lx-gateway/caddy-pki.secret-id.age"
@@ -50,15 +52,42 @@ mkSecretsForHost "srv-lx-beacon" [
   "hosts/srv-lx-k8s-master-01/host.password.age"
   "hosts/srv-lx-k8s-master-01/tailscale.auth-key.age"
 ]
-// mkSecretsForHost "srv-lx-k8s-indigo-control-01" [ "hosts/srv-lx-k8s-indigo-control-01/tailscale.auth-key.age" ]
-// mkSecretsForHost "srv-lx-k8s-indigo-control-02" [ "hosts/srv-lx-k8s-indigo-control-02/tailscale.auth-key.age" ]
-// mkSecretsForHost "srv-lx-k8s-indigo-control-03" [ "hosts/srv-lx-k8s-indigo-control-03/tailscale.auth-key.age" ]
-// mkSecretsForHost "srv-lx-k8s-indigo-worker-01" [ "hosts/srv-lx-k8s-indigo-worker-01/tailscale.auth-key.age" ]
-// mkSecretsForHost "srv-lx-k8s-indigo-worker-02" [ "hosts/srv-lx-k8s-indigo-worker-02/tailscale.auth-key.age" ]
-// mkSecretsForHost "srv-lx-k8s-indigo-worker-03" [ "hosts/srv-lx-k8s-indigo-worker-03/tailscale.auth-key.age" ]
-// mkSecretsForHost "srv-lx-k8s-indigo-worker-04" [ "hosts/srv-lx-k8s-indigo-worker-04/tailscale.auth-key.age" ]
-// mkSecretsForHost "srv-lx-k8s-indigo-worker-05" [ "hosts/srv-lx-k8s-indigo-worker-05/tailscale.auth-key.age" ]
-// mkSecretsForHost "srv-lx-k8s-indigo-worker-06" [ "hosts/srv-lx-k8s-indigo-worker-06/tailscale.auth-key.age" ]
+// mkSecretsForHost "srv-lx-k8s-indigo-control-01" [
+  "hosts/srv-lx-k8s-indigo-control-01/tailscale.auth-key.age"
+  "hosts/srv-lx-k8s-indigo-control-01/telemetry-pki.secret-id.age"
+]
+// mkSecretsForHost "srv-lx-k8s-indigo-control-02" [
+  "hosts/srv-lx-k8s-indigo-control-02/tailscale.auth-key.age"
+  "hosts/srv-lx-k8s-indigo-control-02/telemetry-pki.secret-id.age"
+]
+// mkSecretsForHost "srv-lx-k8s-indigo-control-03" [
+  "hosts/srv-lx-k8s-indigo-control-03/tailscale.auth-key.age"
+  "hosts/srv-lx-k8s-indigo-control-03/telemetry-pki.secret-id.age"
+]
+// mkSecretsForHost "srv-lx-k8s-indigo-worker-01" [
+  "hosts/srv-lx-k8s-indigo-worker-01/tailscale.auth-key.age"
+  "hosts/srv-lx-k8s-indigo-worker-01/telemetry-pki.secret-id.age"
+]
+// mkSecretsForHost "srv-lx-k8s-indigo-worker-02" [
+  "hosts/srv-lx-k8s-indigo-worker-02/tailscale.auth-key.age"
+  "hosts/srv-lx-k8s-indigo-worker-02/telemetry-pki.secret-id.age"
+]
+// mkSecretsForHost "srv-lx-k8s-indigo-worker-03" [
+  "hosts/srv-lx-k8s-indigo-worker-03/tailscale.auth-key.age"
+  "hosts/srv-lx-k8s-indigo-worker-03/telemetry-pki.secret-id.age"
+]
+// mkSecretsForHost "srv-lx-k8s-indigo-worker-04" [
+  "hosts/srv-lx-k8s-indigo-worker-04/tailscale.auth-key.age"
+  "hosts/srv-lx-k8s-indigo-worker-04/telemetry-pki.secret-id.age"
+]
+// mkSecretsForHost "srv-lx-k8s-indigo-worker-05" [
+  "hosts/srv-lx-k8s-indigo-worker-05/tailscale.auth-key.age"
+  "hosts/srv-lx-k8s-indigo-worker-05/telemetry-pki.secret-id.age"
+]
+// mkSecretsForHost "srv-lx-k8s-indigo-worker-06" [
+  "hosts/srv-lx-k8s-indigo-worker-06/tailscale.auth-key.age"
+  "hosts/srv-lx-k8s-indigo-worker-06/telemetry-pki.secret-id.age"
+]
 // mkSecretsForHost "srv-lx-k8s-node-01" [
   "hosts/srv-lx-k8s-node-01/host.password.age"
   "hosts/srv-lx-k8s-node-01/tailscale.auth-key.age"

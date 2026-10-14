@@ -22,6 +22,7 @@
       inherit (lib.types)
         attrsOf
         bool
+        enum
         float
         listOf
         nullOr
@@ -60,23 +61,22 @@
             ${pkgs.coreutils}/bin/rm -f ${escapeShellArg (cacheFile certificate)}
           fi
         '';
+      waitForMaterial = pkgs.writeShellApplication {
+        name = "wait-for-vault-certificate-material";
+        runtimeInputs = [ pkgs.coreutils ];
+        text = builtins.readFile ./vault-certificates/wait-for-material.sh;
+      };
       readinessScript =
         name: certificate:
         pkgs.writeShellScript "wait-for-vault-certificate-${name}" ''
-          for _ in {1..60}; do
-            if [[
-              -s ${escapeShellArg (cacheFile certificate)}
-              && -s ${escapeShellArg certificate.certificateFile}
-              && -s ${escapeShellArg certificate.privateKeyFile}
-            ]]; then
-              exit 0
-            fi
-
-            sleep 1
-          done
-
-          echo "Timed out waiting for Vault Agent to render certificate ${escapeShellArg name}." >&2
-          exit 1
+          exec ${lib.getExe waitForMaterial} \
+            ${escapeShellArg certificate.owner} \
+            ${escapeShellArg certificate.group} \
+            ${escapeShellArg certificate.certificateMode} \
+            ${escapeShellArg certificate.privateKeyMode} \
+            ${escapeShellArg (cacheFile certificate)} \
+            ${escapeShellArg certificate.certificateFile} \
+            ${escapeShellArg certificate.privateKeyFile}
         '';
       secretName = name: "vaultCertificate-${name}SecretId";
       roleIdFile = name: certificate: pkgs.writeText "vault-certificate-${name}-role-id" certificate.roleId;
@@ -257,6 +257,15 @@
                   description = "Systemd unit reloaded after certificate rotation.";
                 };
 
+                reloadAction = mkOption {
+                  type = enum [
+                    "try-reload-or-restart"
+                    "try-restart"
+                  ];
+                  default = "try-reload-or-restart";
+                  description = "Action on certificate rotation; try-restart forces consumers to reread key material without starting inactive units.";
+                };
+
                 requireCertificateForUnitStart = mkOption {
                   type = bool;
                   default = true;
@@ -322,7 +331,7 @@
                   command = [
                     "${pkgs.systemd}/bin/systemctl"
                     "--no-block"
-                    "try-reload-or-restart"
+                    certificate.reloadAction
                     certificate.reloadUnit
                   ];
                   command_timeout = "30s";

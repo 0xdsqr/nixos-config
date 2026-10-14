@@ -1,0 +1,70 @@
+{
+	admin @ADMIN@
+	auto_https off
+	servers {
+		protocols h1 h2
+	}
+}
+
+https://beacon-telemetry.service.home.arpa:@PORT@ {
+	bind @BIND@
+	tls @CERT@ @KEY@ {
+		client_auth {
+			mode require_and_verify
+			trust_pool file @CLIENT_CA@
+		}
+	}
+
+	# Require the dedicated collector identity, not merely any home-CA certificate.
+	@collector expression {http.request.tls.client.san.dns_names.0} == "indigo.telemetry-client.home.arpa"
+	handle @collector {
+		request_body {
+			max_size 32MB
+		}
+		@metrics {
+			method POST
+			path /api/v1/write
+		}
+		handle @metrics {
+			reverse_proxy @PROMETHEUS@
+		}
+		@logs {
+			method POST
+			path /loki/api/v1/push
+		}
+		handle @logs {
+			reverse_proxy @LOKI@
+		}
+		@traces {
+			method POST
+			path /v1/traces
+		}
+		handle @traces {
+			reverse_proxy @TEMPO@
+		}
+		respond 404
+	}
+	# Enrolled hosts only: OS metrics and journals, no trace or query access.
+	@hostTelemetry expression {http.request.tls.client.san.dns_names.0} in ["srv-lx-k8s-indigo-control-01.telemetry-client.home.arpa","srv-lx-k8s-indigo-control-02.telemetry-client.home.arpa","srv-lx-k8s-indigo-control-03.telemetry-client.home.arpa","srv-lx-k8s-indigo-worker-01.telemetry-client.home.arpa","srv-lx-k8s-indigo-worker-02.telemetry-client.home.arpa","srv-lx-k8s-indigo-worker-03.telemetry-client.home.arpa","srv-lx-k8s-indigo-worker-04.telemetry-client.home.arpa","srv-lx-k8s-indigo-worker-05.telemetry-client.home.arpa","srv-lx-k8s-indigo-worker-06.telemetry-client.home.arpa"]
+	handle @hostTelemetry {
+		request_body {
+			max_size 32MB
+		}
+		@hostMetrics {
+			method POST
+			path /api/v1/write
+		}
+		handle @hostMetrics {
+			reverse_proxy @PROMETHEUS@
+		}
+		@hostLogs {
+			method POST
+			path /loki/api/v1/push
+		}
+		handle @hostLogs {
+			reverse_proxy @LOKI@
+		}
+		respond 404
+	}
+	respond 403
+}

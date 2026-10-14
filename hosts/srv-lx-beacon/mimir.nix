@@ -48,7 +48,17 @@ in
         data_dir = "/var/lib/mimir/compactor";
       };
 
-      limits.compactor_blocks_retention_period = "336h";
+      limits = {
+        compactor_blocks_retention_period = "336h";
+        # Single shared tenant on the 8 GiB Beacon host. October 5 measurement:
+        # ~252k active Prometheus series before Indigo source filtering, ~191k
+        # projected afterwards; ~10k appended samples/s before filtering.
+        # Keep finite headroom for churn, additional core scrapes, and WAL replay.
+        # These are admission budgets, not a memory reservation or HA guarantee.
+        max_global_series_per_user = 300000;
+        ingestion_rate = 20000;
+        ingestion_burst_size = 200000;
+      };
 
       ingester.ring = {
         kvstore.store = "inmemory";

@@ -28,7 +28,7 @@ pkgs.runCommand "kubelet-worker-config-decoder-test"
     ];
   }
   ''
-    cp ${../tests/fixtures/kubelet-worker.yaml} base.yaml
+    cp ${./fixtures/kubelet-worker.yaml} base.yaml
     chmod 0600 base.yaml
 
     # Reproduce the old mixed-YAML/JSON failure with the actual pinned kubelet.

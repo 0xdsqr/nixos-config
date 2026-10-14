@@ -53,7 +53,9 @@ in
           restic = {
             enable = true;
             hosts = [ "srv-lx-backup" ];
-            passwordAgeFile = ./restic.password.age;
+            # This repository predates the shared password change. Keep its
+            # original password isolated; other hosts still use the shared file.
+            passwordAgeFile = ./restic-repository.password.age;
           };
           tailscale.enable = true;
           user.enable = true;
@@ -85,7 +87,9 @@ in
 
         networking.firewall.extraInputRules = ''
           ip saddr { 10.10.30.0/24, 10.10.60.100/32 } tcp dport { 8000, 9090, 3100, 4040, 4317, 4318, 9009 } accept
-          ip saddr 10.10.10.1/32 tcp dport 1514 accept
+          # OPNsense sends over its directly connected SERVERS interface,
+          # not its MGMT address. Keep this plaintext syslog exception scoped.
+          iifname "ens18" ip saddr 10.10.30.1/32 ip daddr 10.10.30.102 tcp dport 1514 accept
           iifname "tailscale0" ip saddr 100.125.141.48/32 tcp dport 1515 accept
         '';
         networking.dhcpcd.wait = "ipv4";

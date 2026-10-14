@@ -52,6 +52,14 @@
         iifname { "cilium_host", "cilium_net", "cilium_vxlan" } meta mark & 0x00000f00 == 0x00000200 counter accept comment "Cilium internal policy proxy"
       '';
 
+      # Separate opt-in from cluster peer ports. These sources identify the
+      # collector's hosting pool, not its Kubernetes ServiceAccount/pod labels.
+      nodeMetricsFirewallRules = ''
+        ip saddr { ${
+          firewallSources (cfg.nodeFirewall.metrics.sourceNodeAddresses ++ cfg.nodeFirewall.metrics.sourcePodSubnets)
+        } } tcp dport { ${lib.concatStringsSep ", " (map toString (lib.unique cfg.nodeFirewall.metrics.tcpPorts))} } counter accept comment "Kubernetes platform pool metrics"
+      '';
+
       yaml = pkgs.formats.yaml { };
 
       renderYaml =
@@ -392,6 +400,25 @@
             default = [ ];
             description = "Cluster pod IPv4 CIDRs allowed to reach kubelet and Cilium health; pod policy remains a separate layer.";
           };
+
+          metrics = {
+            enable = mkEnableOption "Allow selected host metrics ports from the collector's hosting pool";
+            sourceNodeAddresses = mkOption {
+              type = listOf ipv4Address;
+              default = [ ];
+              description = "Collector pool node addresses for SNATed scrapes; must belong to nodeAddresses.";
+            };
+            sourcePodSubnets = mkOption {
+              type = listOf ipv4Subnet;
+              default = [ ];
+              description = "Collector pool Pod CIDRs. Revalidate after replacing nodes or moving collectors; this is not pod-identity authorization.";
+            };
+            tcpPorts = mkOption {
+              type = listOf port;
+              default = [ ];
+              description = "Host metrics TCP ports needed on this node; no Service, listener or collector is created.";
+            };
+          };
         };
 
         role = mkOption {
@@ -643,6 +670,19 @@
           }
           {
             assertion =
+              !cfg.nodeFirewall.metrics.enable
+              || (
+                cfg.nodeFirewall.enable
+                && cfg.nodeFirewall.metrics.tcpPorts != [ ]
+                && cfg.nodeFirewall.metrics.sourceNodeAddresses != [ ]
+                && cfg.nodeFirewall.metrics.sourcePodSubnets != [ ]
+                && lib.all (address: builtins.elem address cfg.nodeFirewall.nodeAddresses) cfg.nodeFirewall.metrics.sourceNodeAddresses
+                && lib.all (subnet: !(lib.hasSuffix "/0" subnet)) cfg.nodeFirewall.metrics.sourcePodSubnets
+              );
+            message = "Host metrics require the restricted node firewall, explicit ports, cluster-node sources and non-default-route Pod CIDRs.";
+          }
+          {
+            assertion =
               !cfg.ciliumProxyFirewall.routingCompatibility.enable
               || (cfg.ciliumProxyFirewall.enable && config.networking.nftables.enable);
             message = "Cilium proxy routing compatibility requires ciliumProxyFirewall.enable and the native nftables firewall.";
@@ -788,6 +828,7 @@
                 ''
             ))
             (mkIf cfg.nodeFirewall.enable nodeFirewallRules)
+            (mkIf cfg.nodeFirewall.metrics.enable nodeMetricsFirewallRules)
           ];
 
           # TPROXY policy-routes these marked packets to a local socket before

@@ -1,0 +1,68 @@
+{
+  "groups": [
+    {
+      "name": "dsqr-labs-basic",
+      "interval": "30s",
+      "rules": [
+        {
+          "alert": "DSQRLabsHostTelemetryMissing",
+          "expr": "absent_over_time(node_uname_info{host=\"srv-lx-k8s-indigo-control-01\"}[5m]) or absent_over_time(node_uname_info{host=\"srv-lx-k8s-indigo-control-02\"}[5m]) or absent_over_time(node_uname_info{host=\"srv-lx-k8s-indigo-control-03\"}[5m]) or absent_over_time(node_uname_info{host=\"srv-lx-k8s-indigo-worker-01\"}[5m]) or absent_over_time(node_uname_info{host=\"srv-lx-k8s-indigo-worker-02\"}[5m]) or absent_over_time(node_uname_info{host=\"srv-lx-k8s-indigo-worker-03\"}[5m]) or absent_over_time(node_uname_info{host=\"srv-lx-k8s-indigo-worker-04\"}[5m]) or absent_over_time(node_uname_info{host=\"srv-lx-k8s-indigo-worker-05\"}[5m]) or absent_over_time(node_uname_info{host=\"srv-lx-k8s-indigo-worker-06\"}[5m]) or absent_over_time(node_uname_info{host=\"srv-lx-mailbox\"}[5m]) or absent_over_time(node_uname_info{host=\"srv-lx-gateway\"}[5m]) or absent_over_time(node_uname_info{host=\"srv-lx-beacon\"}[5m]) or absent_over_time(node_uname_info{host=\"srv-lx-knox\"}[5m]) or absent_over_time(node_uname_info{host=\"srv-lx-khaos\"}[5m]) or absent_over_time(node_uname_info{host=\"srv-lx-vault\"}[5m]) or absent_over_time(node_uname_info{host=\"srv-lx-pantheon\"}[5m]) or absent_over_time(node_uname_info{host=\"srv-lx-backup\"}[5m]) or absent_over_time(node_uname_info{host=\"pve\"}[5m]) or absent_over_time(node_uname_info{host=\"opnsense\"}[5m])",
+          "for": "5m",
+          "labels": {
+            "scope": "dsqr-labs",
+            "severity": "warning"
+          },
+          "annotations": {
+            "summary": "Host telemetry missing: {{ $labels.host }}",
+            "description": "No host identity samples for 5 minutes, sustained for another 5 minutes. Check host reachability, Alloy, its certificate and Beacon ingestion; absence is not proof the host is powered off.",
+            "dashboard_url": "https://grafana.home.arpa/d/dsqr-infra-overview"
+          }
+        },
+        {
+          "alert": "IndigoNodeNotReady",
+          "expr": "max by(node) (kube_node_status_condition{cluster=\"indigo\",condition=\"Ready\",status=\"true\"}) < 1",
+          "for": "5m",
+          "labels": {
+            "scope": "dsqr-labs",
+            "severity": "warning",
+            "cluster": "indigo"
+          },
+          "annotations": {
+            "summary": "Indigo node is not Ready: {{ $labels.node }}",
+            "description": "Ready has remained false or unknown for 5 minutes. Check node conditions, kubelet and networking before taking action. Missing node-status metrics are not evaluated by this rule.",
+            "dashboard_url": "https://grafana.home.arpa/d/indigo-overview"
+          }
+        },
+        {
+          "alert": "IndigoArgoApplicationUnhealthy",
+          "expr": "max by(namespace,name) (argocd_app_info{cluster=\"indigo\",health_status=~\"Degraded|Missing\"}) == 1",
+          "for": "10m",
+          "labels": {
+            "scope": "dsqr-labs",
+            "severity": "warning",
+            "cluster": "indigo"
+          },
+          "annotations": {
+            "summary": "Argo application unhealthy: {{ $labels.namespace }}/{{ $labels.name }}",
+            "description": "Argo reports Degraded or Missing for 10 minutes. Inspect application conditions and affected workloads. OutOfSync alone is deliberately excluded; do not automatically sync or prune.",
+            "dashboard_url": "https://grafana.home.arpa/d/indigo-argocd"
+          }
+        },
+        {
+          "alert": "DSQRLabsRootDiskSpaceLow",
+          "expr": "max by(host) ((node_filesystem_avail_bytes{host=~\"srv-lx-k8s-indigo-control-01|srv-lx-k8s-indigo-control-02|srv-lx-k8s-indigo-control-03|srv-lx-k8s-indigo-worker-01|srv-lx-k8s-indigo-worker-02|srv-lx-k8s-indigo-worker-03|srv-lx-k8s-indigo-worker-04|srv-lx-k8s-indigo-worker-05|srv-lx-k8s-indigo-worker-06|srv-lx-mailbox|srv-lx-gateway|srv-lx-beacon|srv-lx-knox|srv-lx-khaos|srv-lx-vault|srv-lx-pantheon|srv-lx-backup|pve\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{host=~\"srv-lx-k8s-indigo-control-01|srv-lx-k8s-indigo-control-02|srv-lx-k8s-indigo-control-03|srv-lx-k8s-indigo-worker-01|srv-lx-k8s-indigo-worker-02|srv-lx-k8s-indigo-worker-03|srv-lx-k8s-indigo-worker-04|srv-lx-k8s-indigo-worker-05|srv-lx-k8s-indigo-worker-06|srv-lx-mailbox|srv-lx-gateway|srv-lx-beacon|srv-lx-knox|srv-lx-khaos|srv-lx-vault|srv-lx-pantheon|srv-lx-backup|pve\",mountpoint=\"/\",fstype!~\"tmpfs|overlay\"} < 0.10) and on(host,instance,device,mountpoint,fstype) (node_filesystem_readonly{host=~\"srv-lx-k8s-indigo-control-01|srv-lx-k8s-indigo-control-02|srv-lx-k8s-indigo-control-03|srv-lx-k8s-indigo-worker-01|srv-lx-k8s-indigo-worker-02|srv-lx-k8s-indigo-worker-03|srv-lx-k8s-indigo-worker-04|srv-lx-k8s-indigo-worker-05|srv-lx-k8s-indigo-worker-06|srv-lx-mailbox|srv-lx-gateway|srv-lx-beacon|srv-lx-knox|srv-lx-khaos|srv-lx-vault|srv-lx-pantheon|srv-lx-backup|pve\",mountpoint=\"/\"} == 0))",
+          "for": "15m",
+          "labels": {
+            "scope": "dsqr-labs",
+            "severity": "warning"
+          },
+          "annotations": {
+            "summary": "Root filesystem below 10% free: {{ $labels.host }}",
+            "description": "Less than 10% available space on a writable Linux root filesystem for 15 minutes. Inspect usage and retention before deleting anything. OPNsense and non-root volumes are outside this initial rule.",
+            "dashboard_url": "https://grafana.home.arpa/d/dsqr-infra-overview"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -43,6 +43,11 @@
             assertion = lokiCfg.writeUrl != null;
             message = "dsqr.nixos.alloy.loki.writeUrl must be set when dsqr.nixos.alloy.loki.enable is true.";
           }
+          {
+            assertion =
+              cfg.clientTls == null || lib.hasPrefix "https://" (if lokiCfg.writeUrl == null then "" else lokiCfg.writeUrl);
+            message = "Alloy client TLS requires an HTTPS Loki writeUrl.";
+          }
         ];
 
         systemd.services.alloy.serviceConfig.SupplementaryGroups = mkAfter [ "systemd-journal" ];
@@ -57,6 +62,8 @@
                 max_backoff_retries = 20
                 retry_on_http_429   = true
                 remote_timeout      = "10s"
+                ${cfg.clientTlsConfig}
+                ${lib.optionalString (cfg.clientTls != null) "follow_redirects = false"}
               }
 
               wal {
@@ -114,6 +121,7 @@
                 "role"     = "${cfg.role}",
                 "env"      = "${cfg.environment}",
                 "os"       = "linux",
+                ${lib.optionalString (cfg.hostCluster != null) ''"cluster" = ${builtins.toJSON cfg.hostCluster},''}
               }
             }
 

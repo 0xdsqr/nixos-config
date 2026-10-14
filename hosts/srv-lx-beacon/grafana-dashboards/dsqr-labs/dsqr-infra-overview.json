@@ -1,0 +1,673 @@
+{
+  "id": null,
+  "uid": "dsqr-infra-overview",
+  "title": "Infra - DSQR Labs - Overview",
+  "description": "Explicit inventory of the new DSQR Labs infrastructure; no legacy Kubernetes hosts.",
+  "tags": [
+    "dsqr-labs"
+  ],
+  "timezone": "browser",
+  "editable": false,
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "links": [
+    {
+      "title": "K8s - Indigo - Overview",
+      "url": "/d/indigo-overview",
+      "type": "link",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false
+    },
+    {
+      "title": "K8s - Indigo - Argo CD",
+      "url": "/d/indigo-argocd",
+      "type": "link",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Scope and interpretation",
+      "type": "text",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 3
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "19 expected hosts: 9 Indigo nodes, 8 supporting NixOS VMs, Proxmox and OPNsense. Inventory is explicit; update it when adding hosts. Linux memory panels exclude OPNsense. Systemd covers only configured NixOS units, not every service. No data means missing telemetry, not healthy. DNS internals and application-level coverage follow later."
+      }
+    },
+    {
+      "id": 2,
+      "title": "Hosts reporting / expected 19",
+      "description": "",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No data",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "red"
+              },
+              {
+                "value": 19,
+                "color": "green"
+              }
+            ]
+          },
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto",
+        "justifyMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "count(max by(host)(node_uname_info{host=~\"srv-lx-k8s-indigo-control-01|srv-lx-k8s-indigo-control-02|srv-lx-k8s-indigo-control-03|srv-lx-k8s-indigo-worker-01|srv-lx-k8s-indigo-worker-02|srv-lx-k8s-indigo-worker-03|srv-lx-k8s-indigo-worker-04|srv-lx-k8s-indigo-worker-05|srv-lx-k8s-indigo-worker-06|srv-lx-mailbox|srv-lx-gateway|srv-lx-beacon|srv-lx-knox|srv-lx-khaos|srv-lx-vault|srv-lx-pantheon|srv-lx-backup|pve|opnsense\"}))",
+          "legendFormat": "",
+          "range": false,
+          "instant": true,
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Oldest host sample",
+      "description": "",
+      "type": "stat",
+      "gridPos": {
+        "x": 8,
+        "y": 3,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "No data",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "green"
+              },
+              {
+                "value": 60,
+                "color": "yellow"
+              },
+              {
+                "value": 180,
+                "color": "red"
+              }
+            ]
+          },
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto",
+        "justifyMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max(time() - timestamp(node_uname_info{host=~\"srv-lx-k8s-indigo-control-01|srv-lx-k8s-indigo-control-02|srv-lx-k8s-indigo-control-03|srv-lx-k8s-indigo-worker-01|srv-lx-k8s-indigo-worker-02|srv-lx-k8s-indigo-worker-03|srv-lx-k8s-indigo-worker-04|srv-lx-k8s-indigo-worker-05|srv-lx-k8s-indigo-worker-06|srv-lx-mailbox|srv-lx-gateway|srv-lx-beacon|srv-lx-knox|srv-lx-khaos|srv-lx-vault|srv-lx-pantheon|srv-lx-backup|pve|opnsense\"}))",
+          "legendFormat": "",
+          "range": false,
+          "instant": true,
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Configured NixOS units failed",
+      "description": "",
+      "type": "stat",
+      "gridPos": {
+        "x": 16,
+        "y": 3,
+        "w": 8,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No data",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "green"
+              },
+              {
+                "value": 1,
+                "color": "red"
+              }
+            ]
+          },
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto",
+        "justifyMode": "auto"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(max by(host,name)(node_systemd_unit_state{host=~\"srv-lx-k8s-indigo-control-01|srv-lx-k8s-indigo-control-02|srv-lx-k8s-indigo-control-03|srv-lx-k8s-indigo-worker-01|srv-lx-k8s-indigo-worker-02|srv-lx-k8s-indigo-worker-03|srv-lx-k8s-indigo-worker-04|srv-lx-k8s-indigo-worker-05|srv-lx-k8s-indigo-worker-06|srv-lx-mailbox|srv-lx-gateway|srv-lx-beacon|srv-lx-knox|srv-lx-khaos|srv-lx-vault|srv-lx-pantheon|srv-lx-backup\",state=\"failed\"}))",
+          "legendFormat": "",
+          "range": false,
+          "instant": true,
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "CPU busy by host",
+      "description": "",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic",
+            "fixedColor": "blue"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 8,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "100 * (1 - avg by(host)(rate(node_cpu_seconds_total{host=~\"srv-lx-k8s-indigo-control-01|srv-lx-k8s-indigo-control-02|srv-lx-k8s-indigo-control-03|srv-lx-k8s-indigo-worker-01|srv-lx-k8s-indigo-worker-02|srv-lx-k8s-indigo-worker-03|srv-lx-k8s-indigo-worker-04|srv-lx-k8s-indigo-worker-05|srv-lx-k8s-indigo-worker-06|srv-lx-mailbox|srv-lx-gateway|srv-lx-beacon|srv-lx-knox|srv-lx-khaos|srv-lx-vault|srv-lx-pantheon|srv-lx-backup|pve|opnsense\",mode=\"idle\"}[$__rate_interval])))",
+          "legendFormat": "{{host}}",
+          "range": true,
+          "instant": false,
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Linux memory used",
+      "description": "",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 7,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic",
+            "fixedColor": "blue"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 8,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "100 * (1 - max by(host)(node_memory_MemAvailable_bytes{host=~\"srv-lx-k8s-indigo-control-01|srv-lx-k8s-indigo-control-02|srv-lx-k8s-indigo-control-03|srv-lx-k8s-indigo-worker-01|srv-lx-k8s-indigo-worker-02|srv-lx-k8s-indigo-worker-03|srv-lx-k8s-indigo-worker-04|srv-lx-k8s-indigo-worker-05|srv-lx-k8s-indigo-worker-06|srv-lx-mailbox|srv-lx-gateway|srv-lx-beacon|srv-lx-knox|srv-lx-khaos|srv-lx-vault|srv-lx-pantheon|srv-lx-backup|pve\"}) / max by(host)(node_memory_MemTotal_bytes{host=~\"srv-lx-k8s-indigo-control-01|srv-lx-k8s-indigo-control-02|srv-lx-k8s-indigo-control-03|srv-lx-k8s-indigo-worker-01|srv-lx-k8s-indigo-worker-02|srv-lx-k8s-indigo-worker-03|srv-lx-k8s-indigo-worker-04|srv-lx-k8s-indigo-worker-05|srv-lx-k8s-indigo-worker-06|srv-lx-mailbox|srv-lx-gateway|srv-lx-beacon|srv-lx-knox|srv-lx-khaos|srv-lx-vault|srv-lx-pantheon|srv-lx-backup|pve\"}))",
+          "legendFormat": "{{host}}",
+          "range": true,
+          "instant": false,
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Linux root filesystem used",
+      "description": "Root filesystem only; not a full storage inventory.",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic",
+            "fixedColor": "blue"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 8,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "100 * (1 - max by(host)(node_filesystem_avail_bytes{host=~\"srv-lx-k8s-indigo-control-01|srv-lx-k8s-indigo-control-02|srv-lx-k8s-indigo-control-03|srv-lx-k8s-indigo-worker-01|srv-lx-k8s-indigo-worker-02|srv-lx-k8s-indigo-worker-03|srv-lx-k8s-indigo-worker-04|srv-lx-k8s-indigo-worker-05|srv-lx-k8s-indigo-worker-06|srv-lx-mailbox|srv-lx-gateway|srv-lx-beacon|srv-lx-knox|srv-lx-khaos|srv-lx-vault|srv-lx-pantheon|srv-lx-backup|pve\",mountpoint=\"/\"}) / max by(host)(node_filesystem_size_bytes{host=~\"srv-lx-k8s-indigo-control-01|srv-lx-k8s-indigo-control-02|srv-lx-k8s-indigo-control-03|srv-lx-k8s-indigo-worker-01|srv-lx-k8s-indigo-worker-02|srv-lx-k8s-indigo-worker-03|srv-lx-k8s-indigo-worker-04|srv-lx-k8s-indigo-worker-05|srv-lx-k8s-indigo-worker-06|srv-lx-mailbox|srv-lx-gateway|srv-lx-beacon|srv-lx-knox|srv-lx-khaos|srv-lx-vault|srv-lx-pantheon|srv-lx-backup|pve\",mountpoint=\"/\"}))",
+          "legendFormat": "{{host}}",
+          "range": true,
+          "instant": false,
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Managed certificate time remaining",
+      "description": "Only certificates instrumented by the shared Vault certificate module.",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 15,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic",
+            "fixedColor": "blue"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 8,
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "min by(host,name)(dsqr_x509_certificate_expiry_timestamp_seconds{host=~\"srv-lx-k8s-indigo-control-01|srv-lx-k8s-indigo-control-02|srv-lx-k8s-indigo-control-03|srv-lx-k8s-indigo-worker-01|srv-lx-k8s-indigo-worker-02|srv-lx-k8s-indigo-worker-03|srv-lx-k8s-indigo-worker-04|srv-lx-k8s-indigo-worker-05|srv-lx-k8s-indigo-worker-06|srv-lx-mailbox|srv-lx-gateway|srv-lx-beacon|srv-lx-knox|srv-lx-khaos|srv-lx-vault|srv-lx-pantheon|srv-lx-backup\"}) - time()",
+          "legendFormat": "{{host}} / {{name}}",
+          "range": true,
+          "instant": false,
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Host telemetry sample age",
+      "description": "",
+      "type": "table",
+      "gridPos": {
+        "x": 0,
+        "y": 23,
+        "w": 12,
+        "h": 10
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic",
+            "fixedColor": "blue"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by(host)(time() - timestamp(node_uname_info{host=~\"srv-lx-k8s-indigo-control-01|srv-lx-k8s-indigo-control-02|srv-lx-k8s-indigo-control-03|srv-lx-k8s-indigo-worker-01|srv-lx-k8s-indigo-worker-02|srv-lx-k8s-indigo-worker-03|srv-lx-k8s-indigo-worker-04|srv-lx-k8s-indigo-worker-05|srv-lx-k8s-indigo-worker-06|srv-lx-mailbox|srv-lx-gateway|srv-lx-beacon|srv-lx-knox|srv-lx-khaos|srv-lx-vault|srv-lx-pantheon|srv-lx-backup|pve|opnsense\"}))",
+          "legendFormat": "",
+          "range": false,
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Configured NixOS units: active state",
+      "description": "1 = active. Inactive oneshot/backup units are not automatically failures; use the failed-state stat.",
+      "type": "table",
+      "gridPos": {
+        "x": 12,
+        "y": 23,
+        "w": 12,
+        "h": 10
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic",
+            "fixedColor": "blue"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by(host,name)(node_systemd_unit_state{host=~\"srv-lx-k8s-indigo-control-01|srv-lx-k8s-indigo-control-02|srv-lx-k8s-indigo-control-03|srv-lx-k8s-indigo-worker-01|srv-lx-k8s-indigo-worker-02|srv-lx-k8s-indigo-worker-03|srv-lx-k8s-indigo-worker-04|srv-lx-k8s-indigo-worker-05|srv-lx-k8s-indigo-worker-06|srv-lx-mailbox|srv-lx-gateway|srv-lx-beacon|srv-lx-knox|srv-lx-khaos|srv-lx-vault|srv-lx-pantheon|srv-lx-backup\",state=\"active\"})",
+          "legendFormat": "",
+          "range": false,
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
