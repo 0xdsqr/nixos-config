@@ -1,0 +1,213 @@
+#!/usr/bin/env bash
+# Greptile review helper for the current branch's GitHub PR or GitLab MR.
+#
+#   greptile status          latest Greptile summary: score, timestamp, body, notice
+#   greptile threads         unresolved Greptile review threads
+#   greptile reply ID TEXT   reply inside a thread
+#   greptile resolve ID      resolve a thread
+#   greptile tag             comment the Greptile mention on the PR/MR; prints the time
+#   greptile wait SINCE      block until a summary newer than SINCE (ISO-8601) exists
+#
+# Every command prints JSON. The forge comes from `origin` (override with
+# GREPTILE_FORGE=github|gitlab) and the PR/MR from the current branch (override
+# with GREPTILE_PR=NUMBER). Requires git, jq, and gh or glab.
+set -euo pipefail
+
+die() {
+  printf 'greptile: %s\n' "$*" >&2
+  exit 1
+}
+
+forge() {
+  if [[ -n ${GREPTILE_FORGE:-} ]]; then
+    printf '%s' "$GREPTILE_FORGE"
+    return
+  fi
+  case "$(git remote get-url origin)" in
+    *github.com*) printf github ;;
+    *) printf gitlab ;;
+  esac
+}
+
+# Greptile writes these markers into every summary; GitLab posts through a
+# group bot whose username varies, so content is the reliable signal.
+SUMMARY_RE='greptile_summary|greptile_confidence_score|Greptile Summary|[Cc]onfidence [Ss]core: [0-5]/5'
+NOTICE_RE='credit limit|[Aa]utomatic reviews are disabled|upgrade your plan'
+# Pull the overall score, never the per-file "N/5" table cells.
+SCORE_JQ='(capture("greptile_confidence_score:(?<s>[0-5])")? // capture("[Cc]onfidence [Ss]core: (?<s>[0-5])/5")?) | .s | tonumber'
+
+# ---------------------------------------------------------------- GitHub ---
+
+gh_pr() { gh pr view ${GREPTILE_PR:+"$GREPTILE_PR"} --json number,url,headRefOid; }
+
+gh_status() {
+  local pr number repo
+  pr=$(gh_pr)
+  number=$(jq -r .number <<<"$pr")
+  repo=$(gh repo view --json nameWithOwner -q .nameWithOwner)
+  {
+    gh api --paginate "repos/$repo/issues/$number/comments" \
+      --jq '.[] | {at: .updated_at, body, login: .user.login}'
+    gh api --paginate "repos/$repo/pulls/$number/reviews" \
+      --jq '.[] | {at: .submitted_at, body, login: .user.login}'
+  } | jq -s --argjson pr "$pr" --arg sre "$SUMMARY_RE" --arg nre "$NOTICE_RE" "
+    [.[] | select((.login | test(\"greptile\"; \"i\")) or (.body | test(\$sre)))] as \$g
+    | ([\$g[] | select(.body | test(\$sre))] | max_by(.at)) as \$s
+    | {
+        forge: \"github\", number: \$pr.number, url: \$pr.url, head: \$pr.headRefOid,
+        score: (if \$s then (\$s.body | $SCORE_JQ) else null end),
+        summary_at: (\$s.at // null),
+        summary: (\$s.body // null),
+        notice: ([\$g[] | select(.body | test(\$nre))] | max_by(.at) | .body // null)
+      }"
+}
+
+gh_threads() {
+  local number owner name
+  number=$(gh_pr | jq -r .number)
+  IFS=/ read -r owner name < <(gh repo view --json nameWithOwner -q .nameWithOwner)
+  # shellcheck disable=SC2016
+  gh api graphql -F owner="$owner" -F name="$name" -F number="$number" -f query='
+    query($owner: String!, $name: String!, $number: Int!) {
+      repository(owner: $owner, name: $name) {
+        pullRequest(number: $number) {
+          reviewThreads(first: 100) {
+            nodes {
+              id isResolved
+              comments(first: 1) { nodes { author { login } body path line url } }
+            }
+          }
+        }
+      }
+    }' --jq '[.data.repository.pullRequest.reviewThreads.nodes[]
+      | select(.isResolved | not)
+      | .comments.nodes[0] as $c
+      | select($c.author.login | test("greptile"; "i"))
+      | {id, path: $c.path, line: $c.line, url: $c.url, body: $c.body}]'
+}
+
+gh_reply() {
+  # shellcheck disable=SC2016
+  gh api graphql -F thread="$1" -F body="$2" -f query='
+    mutation($thread: ID!, $body: String!) {
+      addPullRequestReviewThreadReply(input: {pullRequestReviewThreadId: $thread, body: $body}) {
+        comment { url }
+      }
+    }' --jq '{url: .data.addPullRequestReviewThreadReply.comment.url}'
+}
+
+gh_resolve() {
+  # shellcheck disable=SC2016
+  gh api graphql -F thread="$1" -f query='
+    mutation($thread: ID!) {
+      resolveReviewThread(input: {threadId: $thread}) { thread { id isResolved } }
+    }' --jq '.data.resolveReviewThread.thread'
+}
+
+gh_tag() {
+  gh pr comment "$(gh_pr | jq -r .number)" --body "${GREPTILE_TRIGGER:-@greptileai}" >/dev/null
+}
+
+# ---------------------------------------------------------------- GitLab ---
+
+gl_mr() { glab mr view ${GREPTILE_PR:+"$GREPTILE_PR"} --output json; }
+
+gl_status() {
+  local mr iid
+  mr=$(gl_mr)
+  iid=$(jq -r .iid <<<"$mr")
+  glab api --paginate "projects/:id/merge_requests/$iid/notes?per_page=100" \
+    | jq -s --argjson mr "$mr" --arg sre "$SUMMARY_RE" --arg nre "$NOTICE_RE" "
+      [.[][] | select(.system | not)] as \$n
+      | ([\$n[] | select(.body | test(\$sre))] | max_by(.updated_at)) as \$s
+      | {
+          forge: \"gitlab\", number: \$mr.iid, url: \$mr.web_url, head: \$mr.sha,
+          score: (if \$s then (\$s.body | $SCORE_JQ) else null end),
+          summary_at: (\$s.updated_at // null),
+          summary: (\$s.body // null),
+          notice: ([\$n[] | select(.body | test(\$nre))] | max_by(.updated_at) | .body // null)
+        }"
+}
+
+gl_threads() {
+  local iid
+  iid=$(gl_mr | jq -r .iid)
+  # --paginate prints one JSON array per page; slurp and flatten each list.
+  jq -n --arg sre "$SUMMARY_RE" \
+    --slurpfile notes <(glab api --paginate "projects/:id/merge_requests/$iid/notes?per_page=100") \
+    --slurpfile discussions <(glab api --paginate "projects/:id/merge_requests/$iid/discussions?per_page=100") '
+    # Threads count as Greptile when started by the account that posts the summary.
+    ([$notes | add[] | select(.body | test($sre)) | .author.id] | unique) as $bots
+    | [$discussions | add[]
+      | select(.individual_note | not)
+      | .notes[0] as $n
+      | select($n.resolvable and ($n.resolved | not))
+      | select(($bots | index($n.author.id)) or ($n.body | test("greptile-static-assets|greptile_")))
+      | {id, path: $n.position.new_path, line: $n.position.new_line, body: $n.body}]'
+}
+
+gl_reply() {
+  local iid
+  iid=$(gl_mr | jq -r .iid)
+  glab api --method POST "projects/:id/merge_requests/$iid/discussions/$1/notes" -f body="$2" \
+    | jq '{id}'
+}
+
+gl_resolve() {
+  local iid
+  iid=$(gl_mr | jq -r .iid)
+  glab api --method PUT "projects/:id/merge_requests/$iid/discussions/$1?resolved=true" \
+    | jq '{id, resolved: .notes[0].resolved}'
+}
+
+gl_tag() {
+  glab mr note "$(gl_mr | jq -r .iid)" --message "${GREPTILE_TRIGGER:-@greptile review}" >/dev/null
+}
+
+# ------------------------------------------------------------------ main ---
+
+f=$(forge)
+case "$f" in
+  github) p=gh ;;
+  gitlab) p=gl ;;
+  *) die "unknown forge: $f" ;;
+esac
+
+cmd=${1:-}
+shift || true
+case "$cmd" in
+  status) "${p}_status" ;;
+  threads) "${p}_threads" ;;
+  reply)
+    [[ $# -eq 2 ]] || die "usage: greptile reply THREAD_ID TEXT"
+    "${p}_reply" "$1" "$2"
+    ;;
+  resolve)
+    [[ $# -eq 1 ]] || die "usage: greptile resolve THREAD_ID"
+    "${p}_resolve" "$1"
+    ;;
+  tag)
+    at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+    "${p}_tag"
+    jq -n --arg at "$at" '{requested_at: $at}'
+    ;;
+  wait)
+    [[ $# -eq 1 ]] || die "usage: greptile wait SINCE"
+    deadline=$((SECONDS + ${GREPTILE_WAIT_TIMEOUT:-1200}))
+    while :; do
+      s=$("${p}_status")
+      # GitLab timestamps carry milliseconds; compare as epoch seconds.
+      if jq -e --arg since "$1" 'def ts: sub("\\.[0-9]+"; "") | fromdateiso8601;
+        .summary_at != null and (.summary_at | ts) > ($since | ts)' <<<"$s" >/dev/null; then
+        printf '%s\n' "$s"
+        exit 0
+      fi
+      ((SECONDS < deadline)) || {
+        printf '%s\n' "$s"
+        die "no Greptile review newer than $1 after ${GREPTILE_WAIT_TIMEOUT:-1200}s"
+      }
+      sleep "${GREPTILE_POLL_INTERVAL:-30}"
+    done
+    ;;
+  *) die "usage: greptile status|threads|reply|resolve|tag|wait" ;;
+esac
