@@ -41,10 +41,15 @@
           defaultTargets = mkOption {
             type = targetType;
             # Every catalog skill reaches every agent this host enables; Codex, Pi,
-            # and OpenCode all read the shared `agents` root.
+            # and OpenCode all read the shared `agents` root. Hosts may drop agent
+            # modules entirely (srv-lx-mailbox), so their options can be absent.
             default =
-              optional config.dsqr.home.claudeCode.enable "claude"
-              ++ optional (config.dsqr.home.codex.enable || config.dsqr.home.opencode.enable || config.programs.pi.enable) "agents";
+              optional (config.dsqr.home.claudeCode.enable or false) "claude"
+              ++ optional (
+                (config.dsqr.home.codex.enable or false)
+                || (config.dsqr.home.opencode.enable or false)
+                || (config.programs.pi.enable or false)
+              ) "agents";
             defaultText = lib.literalMD "`claude` when Claude Code is enabled, plus `agents` when Codex, OpenCode, or Pi is enabled";
             description = "Targets for catalog skills that do not set their own `targets`.";
           };
