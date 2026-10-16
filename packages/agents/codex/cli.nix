@@ -8,13 +8,13 @@
   bubblewrap,
 }:
 let
-  version = "0.162.1";
+  version = "0.163.0";
 
   # Upstream's prebuilt release binaries; building from source took ~2h on CI.
   hashes = {
-    aarch64-darwin = "sha256-spOg/N2HGQCkTApPQKGqQBsx4ChU95Dr24vV0Rd/0f4=";
-    x86_64-linux = "sha256-hvJo2BuJjz4UTF7P8q0v2ixYAuBC1hlbclOP4PoSUFc=";
-    aarch64-linux = "sha256-vzyicZ8RQ7FED72FwUk3nmlseCxQrXmR+L/OxgsmAME=";
+    aarch64-darwin = "sha256-YcTZqSUhvbQrDB2fh8Zz9tpiigbeWUXL3ZoAEGMvbRA=";
+    x86_64-linux = "sha256-vrM56OzZugV6a7Lcga2MpHSBLt+/D8UFbKgYeXZI3eQ=";
+    aarch64-linux = "sha256-pyYeZfSpbY9MploGnGzy3Cwz3vw0HkgHis79qUYf/+Q=";
   };
   targets = {
     aarch64-darwin = "aarch64-apple-darwin";
