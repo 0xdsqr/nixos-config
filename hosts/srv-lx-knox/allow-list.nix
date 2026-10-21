@@ -11,6 +11,27 @@ _: {
     hostAuthenticationRules = [
       {
         type = "hostssl";
+        database = "dsqr-dotdev";
+        user = "dotdev_runtime";
+        address = "10.10.80.106/32";
+        method = "scram-sha-256";
+      }
+      {
+        type = "hostssl";
+        database = "dsqr-dotdev";
+        user = "dotdev_runtime";
+        address = "10.10.80.107/32";
+        method = "scram-sha-256";
+      }
+      {
+        type = "hostssl";
+        database = "dsqr-dotdev";
+        user = "dotdev_runtime";
+        address = "10.10.80.108/32";
+        method = "scram-sha-256";
+      }
+      {
+        type = "hostssl";
         database = "grafana";
         user = "grafana";
         address = "10.10.30.102/32";

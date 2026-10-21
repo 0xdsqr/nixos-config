@@ -1,4 +1,7 @@
 _: {
+  # Password is provisioned directly into Vault and PostgreSQL, never the store.
+  dsqr.nixos.postgresql.roles.dotdev_runtime = { };
+
   dsqr.nixos.postgresql.databases = {
     postgres = {
       owner = "postgres";
