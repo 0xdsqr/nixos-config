@@ -125,13 +125,10 @@ buildNpmPackage {
   buildPhase = ''
     runHook preBuild
 
-    npx tsc -p packages/chord/tsconfig.build.json
-    npx tsc -p packages/telemetry/tsconfig.build.json
-    npx tsc -p packages/codemode/tsconfig.build.json
-    npx tsc -p packages/mcp/tsconfig.build.json
-    npx tsc -p packages/ai/tsconfig.build.json
-    npx tsc -p packages/tui/tsconfig.build.json
-    npx tsc -p packages/agent/tsconfig.build.json
+    piWorkspaceDeps=$(node ${./workspace-deps.js})
+    for dir in $piWorkspaceDeps; do
+      npx tsc -p "$dir/tsconfig.build.json"
+    done
     npm run build --workspace=packages/coding-agent
 
     runHook postBuild
@@ -146,7 +143,7 @@ buildNpmPackage {
     mkdir -p "$out/share/pi/extensions"
     cp -r ${extensions}/. "$out/share/pi/extensions/"
 
-    for src in packages/chord packages/codemode packages/mcp packages/ai packages/agent packages/telemetry packages/tui; do
+    for src in $piWorkspaceDeps; do
       pkg="$(node -e "console.log(JSON.parse(require('fs').readFileSync('$src/package.json', 'utf8')).name)")"
       target="$nm/$pkg"
       rm -rf "$target"
