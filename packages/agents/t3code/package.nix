@@ -11,9 +11,9 @@
   spdx-license-list-data,
 }:
 let
-  version = "0.1.3";
-  hash = "sha256-xxmwaHPkXzR0CAtknCc6raAzcnPtmw8wxF3YO3WcbE4=";
-  pnpmDepsHash = "sha256-t7DWJow4pdsqbFnMA+p3TDjYkr1asdFStnvnDxuxnFw=";
+  version = "0.1.4";
+  hash = "sha256-5Lqu6ITP8w0D3+TK5bXA7HWD0lFcbglzBCEuapo8qE8=";
+  pnpmDepsHash = "sha256-vBr3PN+qbbWOdrXPHs+35rM6fkdaNvBKzJo4MGvVImA=";
   cargoHash = "sha256-5cmG2daM1bVOA23gjjoalbx0fEL1hmqV6WZov0sUZp8=";
 
   src = fetchFromGitHub {
