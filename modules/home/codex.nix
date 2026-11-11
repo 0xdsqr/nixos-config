@@ -48,7 +48,7 @@
       };
 
       config = mkIf cfg.enable {
-        dsqr.home.codex.desktop.keybindings = mkIf pkgs.stdenv.isDarwin {
+        dsqr.home.codex.desktop.keybindings = mkIf pkgs.stdenv.hostPlatform.isDarwin {
           openAvatarOverlay = mkDefault "Ctrl+Alt+Command+Space";
         };
 

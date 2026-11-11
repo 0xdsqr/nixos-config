@@ -33,7 +33,7 @@
         red = "red";
       } config;
       defaultPackage =
-        if pkgs.stdenv.isDarwin then
+        if pkgs.stdenv.hostPlatform.isDarwin then
           pkgs.nushell.overrideAttrs (_: {
             doCheck = false;
           })
@@ -70,7 +70,7 @@
       nuSessionVariables =
         mapAttrs (_: mkDefault) portableSessionVariables
         // optionalAttrs (config.home.sessionPath != [ ]) { PATH = mkDefault inheritedPath; }
-        // optionalAttrs pkgs.stdenv.isDarwin { TERMINFO_DIRS = mkDefault terminfoDirs; };
+        // optionalAttrs pkgs.stdenv.hostPlatform.isDarwin { TERMINFO_DIRS = mkDefault terminfoDirs; };
     in
     {
       options.dsqr.home.nu = {
@@ -122,9 +122,9 @@
       config = mkIf cfg.enable {
         # Zsh exists only to establish the Darwin login environment before Nu.
         # Keep prompt and completion integrations in their owning Nu process.
-        home.shell.enableZshIntegration = mkIf pkgs.stdenv.isDarwin false;
+        home.shell.enableZshIntegration = mkIf pkgs.stdenv.hostPlatform.isDarwin false;
 
-        programs.zsh = mkIf pkgs.stdenv.isDarwin {
+        programs.zsh = mkIf pkgs.stdenv.hostPlatform.isDarwin {
           enable = true;
           enableCompletion = false;
           dotDir = "${config.xdg.configHome}/zsh";
@@ -147,6 +147,7 @@
         programs.nushell = {
           enable = true;
           inherit (cfg) package;
+          loadSessionVariables = true;
           environmentVariables = nuSessionVariables;
           settings = recursiveUpdate {
             show_banner = false;
@@ -187,7 +188,7 @@
           // cfg.extraAliases;
           extraConfig =
             readFile ./nushell.config.nu
-            + optionalString (pkgs.stdenv.isDarwin && cfg.agenixIdentityFile != null) /* nu */ ''
+            + optionalString (pkgs.stdenv.hostPlatform.isDarwin && cfg.agenixIdentityFile != null) /* nu */ ''
               # agenix only auto-discovers ~/.ssh/id_ed25519 and ~/.ssh/id_rsa,
               # so wrap it when a profile supplies a different identity.
               def --wrapped agenix [...args] {

@@ -195,7 +195,7 @@
 
         programs.gpg.enable = mkIf cfg.gpg.enable true;
 
-        services.gpg-agent = mkIf (cfg.gpg.enable && pkgs.stdenv.isLinux) {
+        services.gpg-agent = mkIf (cfg.gpg.enable && pkgs.stdenv.hostPlatform.isLinux) {
           enable = true;
           enableSshSupport = true;
           pinentry.package = pkgs.pinentry-curses;

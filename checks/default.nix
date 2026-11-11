@@ -36,6 +36,7 @@ let
       "git"
       "neovim"
       "obsidian"
+      "rex"
       "ssh"
       "xdg"
     ];
@@ -43,6 +44,7 @@ let
     nixosModules = [
       "openssh"
       "restic"
+      "rex"
       "tailscale"
     ];
   };
@@ -232,7 +234,7 @@ in
             "$TMPDIR/inherited-bin" \
             "$XDG_RUNTIME_DIR"
 
-          ${lib.optionalString pkgs.stdenv.isDarwin ''
+          ${lib.optionalString pkgs.stdenv.hostPlatform.isDarwin ''
             # Darwin normally receives these before Nu starts from the zsh
             # bootstrap. Model that boundary without sourcing the script.
             export XDG_CACHE_HOME=${lib.escapeShellArg nushellHomeConfig.xdg.cacheHome}
@@ -256,7 +258,7 @@ in
           workerConfig = self.nixosConfigurations.srv-lx-k8s-indigo-worker-04.config;
         };
       }
-      // lib.optionalAttrs pkgs.stdenv.isDarwin {
+      // lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
         nushell-zsh-bootstrap =
           let
             zshDotDirRelative = lib.removePrefix "${nushellSmokeHomeDirectory}/" nushellHomeConfig.programs.zsh.dotDir;

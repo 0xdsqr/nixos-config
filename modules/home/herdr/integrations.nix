@@ -18,6 +18,7 @@
         removePrefix
         replaceStrings
         versionAtLeast
+        versionOlder
         ;
 
       cfg = config.dsqr.home.herdr;
@@ -25,7 +26,8 @@
       herdrPackage = config.programs.herdr.package;
       anyEnabled =
         integrations.codex.enable || integrations.claude.enable || integrations.pi.enable || integrations.opencode.enable;
-      hasOpenCodeTui = versionAtLeast herdrPackage.version "0.9.0";
+      hasOpenCodeTui =
+        versionAtLeast herdrPackage.version "0.9.0" && versionOlder config.programs.opencode.package.version "2.0.0";
       assets = "${herdrPackage.src}/src/integration/assets";
       codexDirectory =
         if config.home.preferXdgDirectories then "${config.xdg.configHome}/codex" else "${config.home.homeDirectory}/.codex";

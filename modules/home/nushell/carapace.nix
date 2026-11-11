@@ -15,7 +15,7 @@
       config.programs.carapace = mkIf (nuCfg.enable && nuCfg.integrations.enable && cfg.enable) {
         enable = true;
         enableNushellIntegration = true;
-        ignoreCase = true;
+        environment.CARAPACE_MATCH = true;
       };
     };
 }

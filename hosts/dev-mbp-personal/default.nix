@@ -43,7 +43,9 @@ in
           security.certificates.homeRootCA.systemKeychain.enable = true;
 
           desktop = {
+            claude.enable = true;
             codexbar.enable = true;
+            grokBot.enable = true;
             dock.enable = true;
             fileExplorer.enable = true;
             hygiene.enable = true;
@@ -96,6 +98,16 @@ in
           };
 
           dsqr.home = {
+            rex = {
+              enable = true;
+              config = ''
+                -- Remote Rex login server exposed through Tailscale Serve.
+                rex.host {
+                  label = "Khaos",
+                  endpoint = "https://srv-lx-khaos.tail72c837.ts.net:7297",
+                }
+              '';
+            };
             t3code.enable = true;
 
             agentSkills = {

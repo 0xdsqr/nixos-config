@@ -9,6 +9,7 @@
       inherit (lib.strings) concatLines optionalString;
       inherit (lib.types)
         attrsOf
+        listOf
         lines
         nullOr
         str
@@ -150,6 +151,12 @@
           description = "Generated backup SSH host entries keyed by base SSH host alias.";
         };
 
+        includes = mkOption {
+          type = listOf str;
+          default = [ ];
+          description = "SSH configuration files included before generated Host blocks.";
+        };
+
         extraConfig = mkOption {
           type = lines;
           default = "";
@@ -160,7 +167,8 @@
       config = mkIf cfg.enable {
         home.file.".ssh/config".text =
           concatLines (
-            optionals cfg.defaults.enable [
+            map (path: "Include ${path}") cfg.includes
+            ++ optionals cfg.defaults.enable [
               /* sshconfig */ ''
                 Host *
                   IdentitiesOnly yes

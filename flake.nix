@@ -91,8 +91,6 @@
       url = "github:ryantm/agenix";
 
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.darwin.follows = "darwin";
-      inputs.home-manager.follows = "home-manager";
     };
 
     disko = {
@@ -123,6 +121,8 @@
       url = "github:anomalyco/opencode";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    rex.url = "https://pkgs.superlogical.com/rex/nix/snapshot.tar.gz";
 
     ublock = {
       url = "github:gorhill/uBlock";
