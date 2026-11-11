@@ -152,7 +152,9 @@ buildNpmPackage {
     done
 
     find "$nm" -type l -lname '*/packages/*' -delete
-    find "$nm/.bin" -xtype l -delete
+    # Workspace links outside packages/ (apps/p2 since 1.5.2) and their bins
+    # dangle once only the coding-agent workspace is installed.
+    find "$nm" -xtype l -delete
   '';
 
   postFixup = "wrapProgram $out/bin/pi --prefix PATH : ${lib.makeBinPath [ ripgrep ]}";
