@@ -1,4 +1,5 @@
 {
+  claudeConfigDir ? null,
   lib,
   stdenv,
   t3code,
@@ -15,6 +16,16 @@ let
   hash = "sha256-3i5o9gs/nYx0vxyn2ukYtLEA21UZZdX0x4ebgxY8bhI=";
   pnpmDepsHash = "sha256-lZv88yvoDuGlcApHktsbR1OiTtffzQ92wu9qYbFxR8s=";
   cargoHash = "sha256-5cmG2daM1bVOA23gjjoalbx0fEL1hmqV6WZov0sUZp8=";
+  wrapperArgs = [
+    "--set-default"
+    "NODE_EXTRA_CA_CERTS"
+    "/etc/ssl/certs/ca-certificates.crt"
+  ]
+  ++ lib.optionals (claudeConfigDir != null) [
+    "--set-default"
+    "CLAUDE_CONFIG_DIR"
+    claudeConfigDir
+  ];
 
   src = fetchFromGitHub {
     owner = "pingdotgg";
@@ -83,8 +94,7 @@ wrapped.overrideAttrs (prev: {
   # ordinary phase hooks such as postBuild are not executed.
   buildCommand = prev.buildCommand + ''
     for program in "$out/bin"/*; do
-      wrapProgram "$program" \
-        --set-default NODE_EXTRA_CA_CERTS /etc/ssl/certs/ca-certificates.crt
+      wrapProgram "$program" ${lib.escapeShellArgs wrapperArgs}
     done
   '';
 })

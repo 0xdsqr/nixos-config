@@ -19,7 +19,7 @@
 
         package = mkOption {
           type = package;
-          default = pkgs.t3code;
+          default = pkgs.t3code.override { claudeConfigDir = "${config.xdg.configHome}/claude-code"; };
           description = "T3 Code package to install.";
         };
       };
