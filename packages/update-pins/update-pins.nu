@@ -1,5 +1,5 @@
 # Bump the pinned versions/hashes of agent packages and skill inputs.
-#   update-pins [codex|opencode|pi|skills|all]
+#   update-pins [claude-code|codex|opencode|pi|t3code|skills|all]
 
 const FAKE = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 
@@ -34,12 +34,14 @@ def replace-field [file: string, key: string, val: string] {
 
 # Pull `got: sha256-...` out of a nix fixed-output hash-mismatch error.
 def parse-got [text: string] {
-  $text
+  let matches = ($text
   | lines
   | where {|ln| $ln =~ 'got:'}
-  | get 0
-  | parse --regex 'got:\s*(?<h>sha256-[A-Za-z0-9+/=]*)'
-  | get h.0
+  | parse --regex 'got:\s*(?<h>sha256-[A-Za-z0-9+/=]*)')
+  if ($matches | is-empty) {
+    error make { msg: "Nix did not report a fixed-output hash mismatch" }
+  }
+  $matches | get h.0
 }
 
 # fetchFromGitHub hash via nix-prefetch-github (on PATH via the package wrapper).
@@ -51,6 +53,23 @@ def gh-prefetch [owner: string, repo: string, rev: string] {
 def build-got [attr: string] {
   let res = (do { ^nix build $"(repo-root)#($attr)" --no-link } | complete)
   parse-got ($res.stdout + $res.stderr)
+}
+
+def update-claude-code [] {
+  let file = $"(repo-root)/packages/agents/claude-code/package.nix"
+  let base = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases"
+  let latest = (http get $"($base)/latest" | into string | str trim)
+  let current = (nix-field $file "version")
+  if $latest == $current {
+    print $"claude-code up to date \(($current)\)"
+    return
+  }
+  print $"claude-code ($current) -> ($latest)"
+  for plat in [darwin-arm64 darwin-x64 linux-arm64 linux-x64] {
+    let h = (^nix store prefetch-file --json $"($base)/($latest)/($plat)/claude" | from json | get hash)
+    replace-field $file $plat $h
+  }
+  replace-field $file "version" $latest
 }
 
 def update-codex [] {
@@ -109,6 +128,31 @@ def update-opencode [] {
   ^nix flake update --flake (repo-root) opencode
 }
 
+def update-t3code [] {
+  let file = $"(repo-root)/packages/agents/t3code/package.nix"
+  let tag = (gh-json "repos/pingdotgg/t3code/releases/latest" | get tag_name)
+  let latest = ($tag | str replace --regex '^v' '')
+  let current = (nix-field $file "version")
+  if $latest == $current {
+    print $"t3code up to date \(($current)\)"
+    return
+  }
+
+  print $"t3code ($current) -> ($latest)"
+  let original = (open --raw $file)
+  try {
+    replace-field $file "version" $latest
+    replace-field $file "hash" (gh-prefetch "pingdotgg" "t3code" $tag)
+    replace-field $file "pnpmDepsHash" $FAKE
+    replace-field $file "pnpmDepsHash" (build-got "t3code.unwrapped.pnpmDeps")
+    replace-field $file "cargoHash" $FAKE
+    replace-field $file "cargoHash" (build-got "t3code.resourceMonitor.cargoDeps")
+  } catch {|err|
+    $original | save --force --raw $file
+    error make { msg: $"T3 Code update failed; restored previous pins: ($err.msg)" }
+  }
+}
+
 def update-skills [] {
   print "updating agent skill inputs"
   ^nix flake update --flake (repo-root) i-have-adhd
@@ -116,18 +160,22 @@ def update-skills [] {
 
 def main [pkg: string = "all"] {
   match $pkg {
+    "claude-code" => { update-claude-code }
     "codex" => { update-codex }
     "opencode" => { update-opencode }
     "pi" => { update-pi }
+    "t3code" => { update-t3code }
     "skills" => { update-skills }
     "all" => {
+      update-claude-code
       update-codex
       update-opencode
       update-pi
+      update-t3code
       update-skills
     }
     _ => {
-      print "usage: update-pins [codex|opencode|pi|skills|all]"
+      print "usage: update-pins [claude-code|codex|opencode|pi|t3code|skills|all]"
       exit 1
     }
   }

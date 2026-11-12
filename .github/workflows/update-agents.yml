@@ -31,6 +31,26 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: nix run .#update-pins -- all
+      - name: Verify updater coverage
+        run: |
+          declare -A package_files=(
+            [claude-code]="packages/agents/claude-code/package.nix"
+            [codex]="packages/agents/codex/cli.nix"
+            [pi]="packages/agents/pi/package.nix"
+            [t3code]="packages/agents/t3code/package.nix"
+          )
+          for pkg in claude-code codex pi t3code; do
+            file="${package_files[$pkg]}"
+            if [[ ! -f "$file" ]]; then
+              echo "update-pins coverage is missing $pkg package file: $file" >&2
+              exit 1
+            fi
+            references="$(grep -Fc "update-$pkg" packages/update-pins/update-pins.nu)"
+            if (( references < 3 )); then
+              echo "update-pins no longer defines, dispatches, and runs the $pkg updater" >&2
+              exit 1
+            fi
+          done
       - name: Commit and push
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
