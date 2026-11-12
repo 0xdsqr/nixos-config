@@ -79,7 +79,9 @@ wrapped.overrideAttrs (prev: {
   # Finder-launched apps do not reliably inherit Home Manager's shell
   # environment. Give T3's Electron/Node process the host CA bundle directly
   # so private roots added through security.pki are available to Claude Code.
-  postBuild = (prev.postBuild or "") + ''
+  # t3code is a symlinkJoin-style derivation with a custom buildCommand, so
+  # ordinary phase hooks such as postBuild are not executed.
+  buildCommand = prev.buildCommand + ''
     for program in "$out/bin"/*; do
       wrapProgram "$program" \
         --set-default NODE_EXTRA_CA_CERTS /etc/ssl/certs/ca-certificates.crt
