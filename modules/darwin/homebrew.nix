@@ -71,6 +71,10 @@
 
           package = homebrewPackage;
 
+          # Homebrew 6 requires this variable, but nix-homebrew's generated
+          # wrapper does not export it yet. Point it at the managed entrypoint.
+          extraEnv.HOMEBREW_ORIGINAL_BREW_FILE = "/opt/homebrew/bin/brew";
+
           taps."homebrew/homebrew-core" = inputs."homebrew-core";
           taps."homebrew/homebrew-cask" = inputs."homebrew-cask";
 
