@@ -16,7 +16,9 @@ permissions:
 
 jobs:
   update:
-    runs-on: ubuntu-latest
+    # OpenCode's fixed-output dependency hash is platform-specific and the
+    # managed package targets Apple Silicon hosts.
+    runs-on: macos-15
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
@@ -33,14 +35,14 @@ jobs:
         run: nix run .#update-pins -- all
       - name: Verify updater coverage
         run: |
-          declare -A package_files=(
-            [claude-code]="packages/agents/claude-code/package.nix"
-            [codex]="packages/agents/codex/cli.nix"
-            [pi]="packages/agents/pi/package.nix"
-            [t3code]="packages/agents/t3code/package.nix"
-          )
-          for pkg in claude-code codex pi t3code; do
-            file="${package_files[$pkg]}"
+          for pkg in claude-code codex opencode pi t3code; do
+            case "$pkg" in
+              claude-code) file="packages/agents/claude-code/package.nix" ;;
+              codex) file="packages/agents/codex/cli.nix" ;;
+              opencode) file="packages/agents/opencode/pins.nix" ;;
+              pi) file="packages/agents/pi/package.nix" ;;
+              t3code) file="packages/agents/t3code/package.nix" ;;
+            esac
             if [[ ! -f "$file" ]]; then
               echo "update-pins coverage is missing $pkg package file: $file" >&2
               exit 1
@@ -61,14 +63,14 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          declare -A package_files=(
-            [claude-code]="packages/agents/claude-code/package.nix"
-            [codex]="packages/agents/codex/cli.nix"
-            [pi]="packages/agents/pi/package.nix"
-            [t3code]="packages/agents/t3code/package.nix"
-          )
-          for pkg in claude-code codex pi t3code; do
-            file="${package_files[$pkg]}"
+          for pkg in claude-code codex opencode pi t3code; do
+            case "$pkg" in
+              claude-code) file="packages/agents/claude-code/package.nix" ;;
+              codex) file="packages/agents/codex/cli.nix" ;;
+              opencode) file="packages/agents/opencode/pins.nix" ;;
+              pi) file="packages/agents/pi/package.nix" ;;
+              t3code) file="packages/agents/t3code/package.nix" ;;
+            esac
             git diff --quiet -- "$file" && continue
             version="$(sed -n 's/.*version = "\([^"]*\)".*/\1/p' "$file" | head -1)"
             git add "$file"

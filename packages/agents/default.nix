@@ -1,15 +1,12 @@
 { inputs, ... }:
 let
+  opencodePins = import ./opencode/pins.nix;
   opencodeFor =
     system:
     let
       upstream = inputs.opencode.packages.${system}.opencode;
-      fixedNodeModulesHashes = {
-        "aarch64-darwin" = {
-          "2.2.7+72616be" = "sha256-3n2v8rGXBZTQCZEsI3N/6sBYmnjPcEUwi7KwRBr21SE=";
-        };
-      };
-      fixedHash = fixedNodeModulesHashes.${system}.${upstream.version} or null;
+      pin = opencodePins.${system} or null;
+      fixedHash = if pin != null && pin.version == upstream.version then pin.hash else null;
     in
     if fixedHash == null then
       upstream

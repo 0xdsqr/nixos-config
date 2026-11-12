@@ -8,24 +8,12 @@
     }:
     let
       inherit (lib.attrsets) optionalAttrs removeAttrs;
-      inherit (lib.lists) filter;
       inherit (lib.modules) mkIf;
       inherit (lib.options) mkEnableOption;
       cfg = config.dsqr.darwin.determinate;
       settings = config.dsqr.nix.settings;
-      defaultSubstituters = [
-        "https://cache.nixos.org"
-        "https://cache.nixos.org/"
-      ];
-      extraSubstituters = filter (substituter: !(builtins.elem substituter defaultSubstituters)) (
-        settings.substituters or [ ]
-      );
       determinateSettings =
-        removeAttrs settings [
-          "substituters"
-          "trusted-public-keys"
-        ]
-        // optionalAttrs (extraSubstituters != [ ]) { "extra-substituters" = extraSubstituters; }
+        removeAttrs settings [ "trusted-public-keys" ]
         // optionalAttrs (settings ? "trusted-public-keys") { "extra-trusted-public-keys" = settings."trusted-public-keys"; };
     in
     {

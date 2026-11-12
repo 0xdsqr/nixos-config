@@ -33,8 +33,10 @@ let
       # the sandbox blocks; seed its cache from nixpkgs for whatever version it pins.
       preBuild = ''
         spdxVersion=$(sed -n 's/^const SPDX_LICENSE_LIST_VERSION = "\(.*\)";$/\1/p' scripts/lib/third-party-licenses.ts)
+        rm -rf ".generated/third-party-licenses/spdx/$spdxVersion"
         mkdir -p ".generated/third-party-licenses/spdx/$spdxVersion"
         cp ${spdx-license-list-data.json}/json/details/*.json ".generated/third-party-licenses/spdx/$spdxVersion/"
+        chmod u+w ".generated/third-party-licenses/spdx/$spdxVersion/"*.json
       ''
       + prev.preBuild;
       # pnpmBuildHook's recursive `pnpm run --filter=...` collapses vp's task output,

@@ -57,17 +57,21 @@ def build-got [attr: string] {
 
 def update-claude-code [] {
   let file = $"(repo-root)/packages/agents/claude-code/package.nix"
-  let base = "https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases"
+  let base = "https://downloads.claude.ai/claude-code-releases"
   let latest = (http get $"($base)/latest" | into string | str trim)
   let current = (nix-field $file "version")
   if $latest == $current {
     print $"claude-code up to date \(($current)\)"
-    return
+  } else {
+    print $"claude-code ($current) -> ($latest)"
   }
-  print $"claude-code ($current) -> ($latest)"
+  let manifest = (http get $"($base)/($latest)/manifest.zst.json")
   for plat in [darwin-arm64 darwin-x64 linux-arm64 linux-x64] {
-    let h = (^nix store prefetch-file --json $"($base)/($latest)/($plat)/claude" | from json | get hash)
-    replace-field $file $plat $h
+    let entry = ($manifest.platforms | get $plat)
+    if $entry.binary != "claude.zst" {
+      error make { msg: $"Unexpected Claude artifact for ($plat): ($entry.binary)" }
+    }
+    replace-field $file $plat $entry.checksum
   }
   replace-field $file "version" $latest
 }
@@ -124,8 +128,23 @@ def update-pi [] {
 }
 
 def update-opencode [] {
+  let system = (^nix eval --impure --raw --expr builtins.currentSystem | str trim)
+  if $system != "aarch64-darwin" {
+    error make { msg: $"OpenCode pin refresh requires aarch64-darwin, got ($system)" }
+  }
   print "updating OpenCode upstream flake"
   ^nix flake update --flake (repo-root) opencode
+  let file = $"(repo-root)/packages/agents/opencode/pins.nix"
+  let latest = (^nix eval --raw $"(repo-root)#packages.aarch64-darwin.opencode.version" | str trim)
+  let current = (nix-field $file "version")
+  if $latest == $current {
+    print $"opencode up to date \(($current)\)"
+    return
+  }
+  print $"opencode ($current) -> ($latest)"
+  replace-field $file "version" $latest
+  replace-field $file "hash" $FAKE
+  replace-field $file "hash" (build-got "packages.aarch64-darwin.opencode")
 }
 
 def update-t3code [] {
