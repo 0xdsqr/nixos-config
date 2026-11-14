@@ -1,6 +1,6 @@
 {
   aarch64-darwin = {
-    version = "2.2.7+73abe63";
-    hash = "sha256-ewGKM0UKTv+97MLpscGMDbx7qsGZXxloRfmJNfY5MMo=";
+    version = "2.3.0+cbe7159";
+    hash = "sha256-L0HPR2wiPiF+EoZOAXLtjvc1XJn8FkJ0Zxk0hRjCzPc=";
   };
 }
