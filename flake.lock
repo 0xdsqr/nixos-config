@@ -433,19 +433,17 @@
       "inputs": {
         "flake-parts": "flake-parts_4",
         "home-manager": "home-manager",
-        "nixpkgs": [
-          "nixpkgs"
-        ],
+        "nixpkgs": "nixpkgs_4",
         "pyproject-build-systems": "pyproject-build-systems_2",
         "pyproject-nix": "pyproject-nix_2",
         "uv2nix": "uv2nix_2"
       },
       "locked": {
-        "lastModified": 1794414000,
-        "narHash": "sha256-qGjuxpkAS4+12T7LAJJiPGcc92eUnJHAagj10KB7UGo=",
+        "lastModified": 1794848517,
+        "narHash": "sha256-6iPKbBNywZJmjdlkivj4xMnUGmdprxQjq910kfS4c/E=",
         "owner": "NousResearch",
         "repo": "hermes-agent",
-        "rev": "d1db1bc6eb4f79028df6990195262c7357dd08f5",
+        "rev": "477d72105be3d871221b8ccd0628a42f8d64393d",
         "type": "github"
       },
       "original": {
@@ -729,6 +727,22 @@
     },
     "nixpkgs_4": {
       "locked": {
+        "lastModified": 1792502884,
+        "narHash": "sha256-IoNisKcGbUjdd45qCqywGMCYmZ5EnkxezvLII0FWwNA=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "02c087f3fe673c9e317f206a627cb6b910336dbe",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_5": {
+      "locked": {
         "lastModified": 1794042290,
         "narHash": "sha256-ziZn2PvCJE5JEEpqTdxXwJpPB+L3YqoCpTAMCzyaP3U=",
         "owner": "NixOS",
@@ -743,7 +757,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_5": {
+    "nixpkgs_6": {
       "locked": {
         "lastModified": 1789632929,
         "narHash": "sha256-j08lBbqaYwjsW0xy6Dh4MNZpQ/oSvLU1MLAo38OXphM=",
@@ -902,7 +916,7 @@
     },
     "rex": {
       "inputs": {
-        "nixpkgs": "nixpkgs_5"
+        "nixpkgs": "nixpkgs_6"
       },
       "locked": {
         "lastModified": 1794371922,
@@ -934,7 +948,7 @@
         "i-have-adhd": "i-have-adhd",
         "nix-homebrew": "nix-homebrew",
         "nixos-facter": "nixos-facter",
-        "nixpkgs": "nixpkgs_4",
+        "nixpkgs": "nixpkgs_5",
         "opencode": "opencode",
         "rex": "rex",
         "rustfs": "rustfs",

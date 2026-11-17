@@ -109,7 +109,6 @@
 
     hermes-agent = {
       url = "github:NousResearch/hermes-agent";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     i-have-adhd = {
