@@ -1,12 +1,12 @@
 { claude-code, lib }:
 let
-  version = "2.1.325";
+  version = "2.1.326";
 
   checksums = {
-    darwin-arm64 = "5117df01bb8150ced024d8944a9706034e0c9bf6e28ee527b8d7735397aca6db";
-    darwin-x64 = "d92be13773f84a1cb0a378dcb0aa67dcd2c8262645f25bfa0dd7b1af21972cf2";
-    linux-arm64 = "9e0304bfa6890a8badad29f40061f90a2a6fd704d9d47b44efc10ab74184a0ee";
-    linux-x64 = "00b1b977bcc3f32eb69129f0ac3277aafb1aecbfb87c17c0af53806832ed436a";
+    darwin-arm64 = "54df908478d26bca61942d6745b5e4c6a4f2af1d30f95566df2fe580d987a94c";
+    darwin-x64 = "3c36ff5545e026161054cac99a061e7562327506d47838928391fdc8e0129b7e";
+    linux-arm64 = "d5ca836da289593d5ebfc6bac21fa7954ad66f1eaf22f9860916ec0608d1ed2e";
+    linux-x64 = "8a6e8f4fdc137f93359285d0677640dcd73e67a35ffabeab8c042d433d685abd";
   };
 
   manifest = {
