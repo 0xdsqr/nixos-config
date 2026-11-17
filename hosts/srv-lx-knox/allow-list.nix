@@ -79,6 +79,45 @@ _: {
         address = "10.10.30.105/32";
         method = "scram-sha-256";
       }
+      # Transitional Hub-A runtime identities. The legacy owner login remains
+      # allowed until both live workloads have switched to these credentials.
+      {
+        type = "hostssl";
+        database = "tastingswithtay";
+        user = "twt_web_huba_runtime,twt_admin_huba_runtime";
+        address = "10.10.30.103/32";
+        method = "scram-sha-256";
+      }
+      {
+        type = "hostssl";
+        database = "tastingswithtay";
+        user = "twt_web_huba_runtime,twt_admin_huba_runtime";
+        address = "10.10.30.105/32";
+        method = "scram-sha-256";
+      }
+      # Indigo application workers. Each workload has an independently
+      # revocable login while sharing the non-login runtime grant role.
+      {
+        type = "hostssl";
+        database = "tastingswithtay";
+        user = "twt_web_indigo_runtime,twt_admin_indigo_runtime";
+        address = "10.10.80.106/32";
+        method = "scram-sha-256";
+      }
+      {
+        type = "hostssl";
+        database = "tastingswithtay";
+        user = "twt_web_indigo_runtime,twt_admin_indigo_runtime";
+        address = "10.10.80.107/32";
+        method = "scram-sha-256";
+      }
+      {
+        type = "hostssl";
+        database = "tastingswithtay";
+        user = "twt_web_indigo_runtime,twt_admin_indigo_runtime";
+        address = "10.10.80.108/32";
+        method = "scram-sha-256";
+      }
       {
         type = "hostssl";
         database = "temporal,temporal_visibility";

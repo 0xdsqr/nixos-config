@@ -1,6 +1,15 @@
 _: {
   # Password is provisioned directly into Vault and PostgreSQL, never the store.
-  dsqr.nixos.postgresql.roles.dotdev_runtime = { };
+  dsqr.nixos.postgresql.roles = {
+    dotdev_runtime = { };
+
+    twt_runtime.login = false;
+
+    twt_web_huba_runtime.memberships = [ "twt_runtime" ];
+    twt_admin_huba_runtime.memberships = [ "twt_runtime" ];
+    twt_web_indigo_runtime.memberships = [ "twt_runtime" ];
+    twt_admin_indigo_runtime.memberships = [ "twt_runtime" ];
+  };
 
   dsqr.nixos.postgresql.databases = {
     postgres = {
@@ -12,7 +21,7 @@ _: {
     "dsqr-dotdev" = { };
     fidara = { };
     grafana = { };
-    tastingswithtay = { };
+    tastingswithtay.runtimeAccessRoles = [ "twt_runtime" ];
     temporal = { };
 
     temporal_visibility = {

@@ -37,6 +37,24 @@
       resticHosts = config.services.restic.hosts or [ ];
       databaseNames = attrNames cfg.databases;
       databaseOwners = mapAttrsToList (_: database: database.owner) cfg.databases;
+      membershipAssertions = builtins.concatLists (
+        mapAttrsToList (
+          name: role:
+          map (membership: {
+            assertion = builtins.hasAttr membership cfg.roles;
+            message = "PostgreSQL role ${name} references undeclared membership ${membership}.";
+          }) role.memberships
+        ) cfg.roles
+      );
+      runtimeAccessAssertions = builtins.concatLists (
+        mapAttrsToList (
+          databaseName: database:
+          map (roleName: {
+            assertion = builtins.hasAttr roleName cfg.roles && !cfg.roles.${roleName}.login;
+            message = "PostgreSQL database ${databaseName} runtime role ${roleName} must be declared with login = false.";
+          }) database.runtimeAccessRoles
+        ) cfg.databases
+      );
       legacyRoleNames = unique (cfg.ensure ++ optional (cfg.ensure != [ ]) "postgres" ++ optional (cfg.ensure != [ ]) "root");
       catalogRoleNames = builtins.filter (
         name: name != config.services.postgresql.superUser && !builtins.elem name legacyRoleNames
@@ -60,9 +78,21 @@
       });
       catalogUsers = flip map catalogRoleNames (name: {
         inherit name;
-        ensureClauses = cfg.roles.${name} or defaultRoleClauses;
+        ensureClauses = defaultRoleClauses // builtins.intersectAttrs defaultRoleClauses (cfg.roles.${name} or { });
       });
       quoteIdentifier = value: "\"${builtins.replaceStrings [ "\"" ] [ "\"\"" ] value}\"";
+      membershipCommands = concatMapStringsSep "\n" (
+        name:
+        concatMapStringsSep "\n" (
+          membership:
+          let
+            statement = "GRANT ${quoteIdentifier membership} TO ${quoteIdentifier name};";
+          in
+          ''
+            ${cfg.package}/bin/psql --dbname=postgres --set=ON_ERROR_STOP=1 --command=${escapeShellArg statement}
+          ''
+        ) (cfg.roles.${name}.memberships or [ ])
+      ) (attrNames cfg.roles);
       ownershipCommands = concatMapStringsSep "\n" (
         name:
         let
@@ -72,6 +102,36 @@
         ''
           ${cfg.package}/bin/psql --dbname=postgres --set=ON_ERROR_STOP=1 --command=${escapeShellArg statement}
         ''
+      ) databaseNames;
+      runtimeAccessCommands = concatMapStringsSep "\n" (
+        name:
+        let
+          database = cfg.databases.${name};
+          owner = quoteIdentifier database.owner;
+        in
+        concatMapStringsSep "\n" (
+          roleName:
+          let
+            role = quoteIdentifier roleName;
+            databaseName = quoteIdentifier name;
+            databaseStatements = concatStringsSep " " [
+              "REVOKE CONNECT ON DATABASE ${databaseName} FROM PUBLIC;"
+              "GRANT CONNECT ON DATABASE ${databaseName} TO ${role};"
+            ];
+            schemaStatements = concatStringsSep " " [
+              "REVOKE CREATE ON SCHEMA public FROM PUBLIC;"
+              "GRANT USAGE ON SCHEMA public TO ${role};"
+              "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO ${role};"
+              "GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO ${role};"
+              "ALTER DEFAULT PRIVILEGES FOR ROLE ${owner} IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO ${role};"
+              "ALTER DEFAULT PRIVILEGES FOR ROLE ${owner} IN SCHEMA public GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO ${role};"
+            ];
+          in
+          ''
+            ${cfg.package}/bin/psql --dbname=postgres --set=ON_ERROR_STOP=1 --command=${escapeShellArg databaseStatements}
+            ${cfg.package}/bin/psql --dbname=${escapeShellArg name} --set=ON_ERROR_STOP=1 --command=${escapeShellArg schemaStatements}
+          ''
+        ) database.runtimeAccessRoles
       ) databaseNames;
       extensionCommands = concatMapStringsSep "\n" (
         name:
@@ -146,6 +206,15 @@
                     default = [ ];
                     description = "Extensions to create when they are available in the PostgreSQL package.";
                   };
+
+                  runtimeAccessRoles = mkOption {
+                    type = listOf str;
+                    default = [ ];
+                    description = ''
+                      Non-login roles granted CONNECT plus runtime DML access to the public schema,
+                      including matching default privileges for objects created by the database owner.
+                    '';
+                  };
                 };
               }
             )
@@ -185,6 +254,12 @@
               bypassrls = mkOption {
                 type = bool;
                 default = false;
+              };
+
+              memberships = mkOption {
+                type = listOf str;
+                default = [ ];
+                description = "Roles granted to this role during PostgreSQL setup.";
               };
             };
           });
@@ -282,6 +357,8 @@
       };
 
       config = mkIf cfg.enable {
+        assertions = membershipAssertions ++ runtimeAccessAssertions;
+
         services.prometheus.exporters.postgres = {
           enable = true;
           inherit (cfg.exporter) listenAddress;
@@ -341,6 +418,8 @@
         systemd.services.postgresql-setup.script = mkAfter ''
           ${ownershipCommands}
           ${extensionCommands}
+          ${membershipCommands}
+          ${runtimeAccessCommands}
         '';
 
         systemd.services.postgresql.serviceConfig.ExecStartPre = mkIf cfg.tls.enable [ "${lib.getExe waitForTlsFiles}" ];
