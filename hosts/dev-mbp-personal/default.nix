@@ -100,13 +100,14 @@ in
           dsqr.home = {
             rex = {
               enable = true;
-              config = ''
-                -- Remote Rex login server exposed through Tailscale Serve.
-                rex.host {
-                  label = "Khaos",
-                  endpoint = "https://srv-lx-khaos.tail72c837.ts.net:7297",
-                }
-              '';
+              tailnet = "tail72c837.ts.net";
+
+              # Remote Rex login server exposed through Tailscale Serve.
+              hosts.khaos = {
+                label = "Khaos";
+                hostName = "srv-lx-khaos";
+                port = 7297;
+              };
             };
             t3code.enable = true;
 
