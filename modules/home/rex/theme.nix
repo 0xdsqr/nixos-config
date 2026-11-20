@@ -108,6 +108,7 @@
             "Workspace.terminalFontPointSize" = mkDefault theme.font.size.terminal;
             "Workspace.terminalPaddingX" = mkDefault theme.padding;
             "Workspace.terminalPaddingY" = mkDefault theme.padding;
+            "Workspace.sidebarTextPointSize" = mkDefault theme.font.size.normal;
           };
 
           # Rex keeps every custom theme in this one key, so the generated theme
