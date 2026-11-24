@@ -33,6 +33,7 @@ let
     ];
 
     homeModules = [
+      "agent-mcp"
       "git"
       "neovim"
       "obsidian"

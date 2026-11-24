@@ -55,6 +55,9 @@
         programs.codex = {
           enable = true;
           inherit (cfg) package;
+          # Merge managed settings (e.g. MCP servers) into Codex's own
+          # config.toml instead of replacing it, so project trust survives.
+          mutableSettings = mkDefault true;
         };
 
         home.file."${codexHome}/keybindings.json" = mkIf (cfg.desktop.keybindings != { }) {
