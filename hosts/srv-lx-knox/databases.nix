@@ -5,8 +5,6 @@ _: {
 
     twt_runtime.login = false;
 
-    twt_web_huba_runtime.memberships = [ "twt_runtime" ];
-    twt_admin_huba_runtime.memberships = [ "twt_runtime" ];
     twt_web_indigo_runtime.memberships = [ "twt_runtime" ];
     twt_admin_indigo_runtime.memberships = [ "twt_runtime" ];
   };

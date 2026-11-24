@@ -10,8 +10,6 @@ in
       if hostName == "srv-lx-beacon" then "http://127.0.0.1:9090/api/v1/write" else "http://10.10.30.102:9090/api/v1/write"
     );
 
-    kubernetes.cluster = mkDefault "hub-a";
-
     loki = {
       enable = mkDefault true;
       writeUrl = mkDefault (

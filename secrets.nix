@@ -48,10 +48,6 @@ mkSecretsForHost "srv-lx-beacon" [
   "hosts/srv-lx-gateway/host.password.age"
   "hosts/srv-lx-gateway/tailscale.auth-key.age"
 ]
-// mkSecretsForHost "srv-lx-k8s-master-01" [
-  "hosts/srv-lx-k8s-master-01/host.password.age"
-  "hosts/srv-lx-k8s-master-01/tailscale.auth-key.age"
-]
 // mkSecretsForHost "srv-lx-k8s-indigo-control-01" [
   "hosts/srv-lx-k8s-indigo-control-01/tailscale.auth-key.age"
   "hosts/srv-lx-k8s-indigo-control-01/telemetry-pki.secret-id.age"
@@ -87,14 +83,6 @@ mkSecretsForHost "srv-lx-beacon" [
 // mkSecretsForHost "srv-lx-k8s-indigo-worker-06" [
   "hosts/srv-lx-k8s-indigo-worker-06/tailscale.auth-key.age"
   "hosts/srv-lx-k8s-indigo-worker-06/telemetry-pki.secret-id.age"
-]
-// mkSecretsForHost "srv-lx-k8s-node-01" [
-  "hosts/srv-lx-k8s-node-01/host.password.age"
-  "hosts/srv-lx-k8s-node-01/tailscale.auth-key.age"
-]
-// mkSecretsForHost "srv-lx-k8s-node-02" [
-  "hosts/srv-lx-k8s-node-02/host.password.age"
-  "hosts/srv-lx-k8s-node-02/tailscale.auth-key.age"
 ]
 // mkSecretsForHost "srv-lx-mailbox" [
   "hosts/srv-lx-mailbox/host.password.age"

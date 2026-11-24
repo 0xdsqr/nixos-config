@@ -70,11 +70,6 @@ in
               pathRegexp = "^/v1/(pki_root|pki_int)/(issuer/[^/]+/(der|crl/der)|ocsp)$";
             };
             routes = {
-              "argocd.hub-a.home.arpa" = {
-                upstream = "https://10.10.30.200";
-                hostHeader = "argocd.hub-a.home.arpa";
-                tlsServerName = "argocd.hub-a.home.arpa";
-              };
               "argocd.indigo.home.arpa" = {
                 upstream = "https://10.10.80.200";
                 hostHeader = "argocd.indigo.home.arpa";

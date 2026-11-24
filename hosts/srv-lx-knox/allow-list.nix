@@ -37,64 +37,6 @@ _: {
         address = "10.10.30.102/32";
         method = "scram-sha-256";
       }
-      {
-        type = "hostssl";
-        database = "dsqr-dotdev";
-        user = "dsqr-dotdev";
-        address = "10.10.30.103/32";
-        method = "scram-sha-256";
-      }
-      {
-        type = "hostssl";
-        database = "fidara";
-        user = "fidara";
-        address = "10.10.30.103/32";
-        method = "scram-sha-256";
-      }
-      {
-        type = "hostssl";
-        database = "tastingswithtay";
-        user = "tastingswithtay";
-        address = "10.10.30.103/32";
-        method = "scram-sha-256";
-      }
-      {
-        type = "hostssl";
-        database = "dsqr-dotdev";
-        user = "dsqr-dotdev";
-        address = "10.10.30.105/32";
-        method = "scram-sha-256";
-      }
-      {
-        type = "hostssl";
-        database = "fidara";
-        user = "fidara";
-        address = "10.10.30.105/32";
-        method = "scram-sha-256";
-      }
-      {
-        type = "hostssl";
-        database = "tastingswithtay";
-        user = "tastingswithtay";
-        address = "10.10.30.105/32";
-        method = "scram-sha-256";
-      }
-      # Transitional Hub-A runtime identities. The legacy owner login remains
-      # allowed until both live workloads have switched to these credentials.
-      {
-        type = "hostssl";
-        database = "tastingswithtay";
-        user = "twt_web_huba_runtime,twt_admin_huba_runtime";
-        address = "10.10.30.103/32";
-        method = "scram-sha-256";
-      }
-      {
-        type = "hostssl";
-        database = "tastingswithtay";
-        user = "twt_web_huba_runtime,twt_admin_huba_runtime";
-        address = "10.10.30.105/32";
-        method = "scram-sha-256";
-      }
       # Indigo application workers. Each workload has an independently
       # revocable login while sharing the non-login runtime grant role.
       {

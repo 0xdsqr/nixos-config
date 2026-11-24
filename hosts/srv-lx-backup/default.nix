@@ -56,7 +56,6 @@ in
           receiverHosts = [ hostName ];
           authorizedKeys = map (name: keys.hosts.${name}) [
             "srv-lx-beacon"
-            "srv-lx-k8s-master-01"
             "srv-lx-khaos"
             "srv-lx-mailbox"
             "srv-lx-pantheon"

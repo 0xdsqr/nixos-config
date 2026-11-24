@@ -16,9 +16,8 @@ in
     roleId = "eeea57d7-d565-4915-ca88-1c9a4038958c";
     secretIdAgeFile = ./caddy-pki.secret-id.age;
     issuePath = "pki_int/issue/gateway-caddy-home-arpa";
-    commonName = "argocd.hub-a.home.arpa";
+    commonName = "argocd.indigo.home.arpa";
     altNames = [
-      "argocd.indigo.home.arpa"
       "exo.home.arpa"
       "exo.service.home.arpa"
       "grafana.home.arpa"

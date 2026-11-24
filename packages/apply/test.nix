@@ -47,7 +47,7 @@ in
 runCommandLocal "apply-cli-test" { } ''
   export APPLY_TEST_LOG="$TMPDIR/apply.log"
 
-  ${testApply}/bin/apply --build-host srv-lx-khaos srv-lx-k8s-master-01
+  ${testApply}/bin/apply --build-host srv-lx-khaos srv-lx-k8s-indigo-control-01
   printf '%s\n' \
     'COMMAND=nh' \
     'NIX_SSHOPTS=-o ServerAliveInterval=60 -o ServerAliveCountMax=20' \
@@ -56,12 +56,12 @@ runCommandLocal "apply-cli-test" { } ''
     'ARG=switch' \
     'ARG=path:/repo' \
     'ARG=--hostname' \
-    'ARG=srv-lx-k8s-master-01' \
+    'ARG=srv-lx-k8s-indigo-control-01' \
     'ARG=--build-host' \
     'ARG=srv-lx-khaos' \
     'ARG=--use-substitutes' \
     'ARG=--target-host' \
-    'ARG=srv-lx-k8s-master-01' \
+    'ARG=srv-lx-k8s-indigo-control-01' \
     'ARG=--accept-flake-config' > "$TMPDIR/expected.log"
   diff -u "$TMPDIR/expected.log" "$APPLY_TEST_LOG"
 
@@ -70,7 +70,7 @@ runCommandLocal "apply-cli-test" { } ''
     --build-host build@srv-lx-khaos \
     --identity "$TMPDIR/key file" \
     --dry-run \
-    srv-lx-k8s-master-01
+    srv-lx-k8s-indigo-control-01
   grep -Fx 'ARG=build@srv-lx-khaos' "$APPLY_TEST_LOG"
   grep -Fx 'ARG=--dry' "$APPLY_TEST_LOG"
   grep -F 'key\ file' "$APPLY_TEST_LOG"
@@ -80,7 +80,7 @@ runCommandLocal "apply-cli-test" { } ''
     --target-host deploy@edge-alias \
     --ask-sudo-password \
     --dry-run \
-    srv-lx-k8s-master-01
+    srv-lx-k8s-indigo-control-01
   grep -Fx 'ARG=deploy@edge-alias' "$APPLY_TEST_LOG"
   grep -Fx 'ARG=--dry' "$APPLY_TEST_LOG"
   if grep -Fx 'ARG=--elevation-strategy=passwordless' "$APPLY_TEST_LOG"; then
@@ -89,7 +89,7 @@ runCommandLocal "apply-cli-test" { } ''
   fi
 
   : > "$APPLY_TEST_LOG"
-  ${testApply}/bin/apply --remote --ask-sudo-password --dry-run srv-lx-k8s-master-01
+  ${testApply}/bin/apply --remote --ask-sudo-password --dry-run srv-lx-k8s-indigo-control-01
   grep -F -- '--ask-sudo-password' "$APPLY_TEST_LOG"
   grep -F -- '--dry-run' "$APPLY_TEST_LOG"
 
@@ -97,15 +97,15 @@ runCommandLocal "apply-cli-test" { } ''
     echo 'missing option operands must fail' >&2
     exit 1
   fi
-  if ${testApply}/bin/apply srv-lx-k8s-master-01 extra; then
+  if ${testApply}/bin/apply srv-lx-k8s-indigo-control-01 extra; then
     echo 'extra positional arguments must fail' >&2
     exit 1
   fi
-  if ${testApply}/bin/apply --remote --build-host srv-lx-khaos srv-lx-k8s-master-01; then
+  if ${testApply}/bin/apply --remote --build-host srv-lx-khaos srv-lx-k8s-indigo-control-01; then
     echo 'conflicting deployment modes must fail' >&2
     exit 1
   fi
-  if ${testApply}/bin/apply --remote --remote-root / srv-lx-k8s-master-01; then
+  if ${testApply}/bin/apply --remote --remote-root / srv-lx-k8s-indigo-control-01; then
     echo 'unsafe remote roots must fail' >&2
     exit 1
   fi
