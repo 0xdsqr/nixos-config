@@ -26,7 +26,13 @@
         "create_thread"
       ];
       discord.gateway_restart_notification = false;
-      gateway.platforms.a2a.enabled = false;
+      gateway = {
+        platforms.a2a.enabled = false;
+        # Hermes wrote this compatibility shim while vanilla had its own
+        # service; it keeps the host gateway from serving the profile, and
+        # merged settings never remove on-disk keys, so clear it explicitly.
+        standalone = false;
+      };
       platform_toolsets = {
         discord = hermesShared.commonToolsets ++ [ "discord" ];
       };
