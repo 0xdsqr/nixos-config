@@ -128,7 +128,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    rex.url = "https://pkgs.superlogical.com/rex/nix/snapshot.tar.gz";
+    rex = {
+      url = "https://pkgs.superlogical.com/rex/nix/snapshot.tar.gz";
+      # The prebuilt binary is patched against this nixpkgs' glibc, and the
+      # login server dlopens the host's PAM modules; mismatched glibc makes
+      # every login fail with "Module is unknown".
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     ublock = {
       url = "github:gorhill/uBlock";
