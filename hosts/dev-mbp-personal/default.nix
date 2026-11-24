@@ -102,7 +102,9 @@ in
               enable = true;
               tailnet = "tail72c837.ts.net";
 
-              # Remote Rex login server exposed through Tailscale Serve.
+              # Remote Rex login servers exposed through Tailscale Serve. These
+              # `rex.host` entries are CLI-only (`rex -S Pantheon ...`); Rex for
+              # Mac keeps its own list, so add each once via Add Remote Host….
               hosts = {
                 khaos = {
                   label = "Khaos";
