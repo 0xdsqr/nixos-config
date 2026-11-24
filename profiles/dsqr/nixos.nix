@@ -1,4 +1,5 @@
 {
+  config,
   hostMeta ? null,
   lib,
   ...
@@ -34,6 +35,13 @@ in
     };
 
     tailscale.authKeyAgeFile = mkDefault (existingHostSecret "tailscale.auth-key.age");
+
+    # Rex login server on every tailnet host (Tailscale Serve, port 7297), so
+    # Rex on the laptop can open sessions on any of them.
+    rex = {
+      enable = mkDefault config.dsqr.nixos.tailscale.enable;
+      principals = mkDefault [ "tailscale:0xdsqr@github" ];
+    };
 
     restic = {
       hosts = mkDefault [ ];

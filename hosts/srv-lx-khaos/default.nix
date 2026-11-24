@@ -60,10 +60,6 @@ in
             hosts = [ "srv-lx-backup" ];
             passwordAgeFile = ../srv-lx-beacon/restic.password.age;
           };
-          rex = {
-            enable = true;
-            principals = [ "tailscale:0xdsqr@github" ];
-          };
           tailscale.enable = true;
           user.enable = true;
         };

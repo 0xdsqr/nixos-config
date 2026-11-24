@@ -57,12 +57,6 @@ in
             hosts = [ "srv-lx-backup" ];
             passwordAgeFile = ../srv-lx-beacon/restic.password.age;
           };
-          # Rex login server on the tailnet (Tailscale Serve, port 7297), so
-          # Rex on the laptop can open sessions here.
-          rex = {
-            enable = true;
-            principals = [ "tailscale:0xdsqr@github" ];
-          };
           tailscale.enable = true;
         };
 
