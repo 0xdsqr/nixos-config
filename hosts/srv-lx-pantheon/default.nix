@@ -57,7 +57,20 @@ in
             hosts = [ "srv-lx-backup" ];
             passwordAgeFile = ../srv-lx-beacon/restic.password.age;
           };
+          # Rex login server on the tailnet (Tailscale Serve, port 7297), so
+          # Rex on the laptop can open sessions here.
+          rex = {
+            enable = true;
+            principals = [ "tailscale:0xdsqr@github" ];
+          };
           tailscale.enable = true;
+        };
+
+        home-manager.users.dsqr.dsqr.home.rex = {
+          enable = true;
+          # The server profile leaves ~/.ssh/config unmanaged, and nothing
+          # SSHes out of Rex terminals here, so skip the client-side guard.
+          sshGuard = false;
         };
 
         system.stateVersion = "25.05";

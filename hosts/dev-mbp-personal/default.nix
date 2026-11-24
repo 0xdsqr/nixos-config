@@ -103,10 +103,18 @@ in
               tailnet = "tail72c837.ts.net";
 
               # Remote Rex login server exposed through Tailscale Serve.
-              hosts.khaos = {
-                label = "Khaos";
-                hostName = "srv-lx-khaos";
-                port = 7297;
+              hosts = {
+                khaos = {
+                  label = "Khaos";
+                  hostName = "srv-lx-khaos";
+                  port = 7297;
+                };
+
+                pantheon = {
+                  label = "Pantheon";
+                  hostName = "srv-lx-pantheon";
+                  port = 7297;
+                };
               };
             };
             t3code.enable = true;
