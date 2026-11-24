@@ -6,10 +6,21 @@ let
     homeModules
     nixLib
     ;
-  inherit (nixLib.attrsets) attrValues;
+  inherit (nixLib.attrsets) attrValues filterAttrs mapAttrs';
   inherit (nixLib.lists) singleton;
+  inherit (nixLib.strings) removePrefix;
 
   hostName = "dev-mbp-personal";
+
+  # Every NixOS host runs the Rex login server on its tailnet name (see
+  # profiles/dsqr/nixos.nix), so derive the Rex hosts from the host list.
+  rexHosts = mapAttrs' (name: _: {
+    name = removePrefix "srv-lx-" name;
+    value = {
+      hostName = name;
+      port = 7297;
+    };
+  }) (filterAttrs (_: host: host.class == "nixos") self.hostDefinitions);
 
   modules =
     attrValues commonModules
@@ -103,21 +114,9 @@ in
               tailnet = "tail72c837.ts.net";
 
               # Remote Rex login servers exposed through Tailscale Serve. These
-              # `rex.host` entries are CLI-only (`rex -S Pantheon ...`); Rex for
+              # `rex.host` entries are CLI-only (`rex -S pantheon ...`); Rex for
               # Mac keeps its own list, so add each once via Add Remote Host….
-              hosts = {
-                khaos = {
-                  label = "Khaos";
-                  hostName = "srv-lx-khaos";
-                  port = 7297;
-                };
-
-                pantheon = {
-                  label = "Pantheon";
-                  hostName = "srv-lx-pantheon";
-                  port = 7297;
-                };
-              };
+              hosts = rexHosts;
             };
             t3code.enable = true;
 
