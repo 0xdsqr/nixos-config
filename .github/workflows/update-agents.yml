@@ -57,7 +57,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if git diff --quiet -- packages flake.lock; then
+          if git diff --quiet -- packages flake.nix flake.lock; then
             echo "no version changes"
             exit 0
           fi
@@ -76,7 +76,7 @@ jobs:
             git add "$file"
             git commit -m "chore($pkg): bump to $version"
           done
-          if ! git diff --quiet -- flake.lock; then
+          if ! git diff --quiet -- flake.nix flake.lock; then
             changed="$(
               jq -rn \
                 --argjson old "$(git show HEAD:flake.lock)" \
@@ -90,7 +90,8 @@ jobs:
                   | map(.key)
                   | join(", ")'
             )"
-            git add flake.lock
+            # flake.nix changes only when the Hermes release tag moves.
+            git add flake.nix flake.lock
             git commit -m "chore(flake): update ${changed:-tracked inputs}"
           fi
           git diff --exit-code

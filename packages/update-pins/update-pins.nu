@@ -1,16 +1,18 @@
 # Bump the pinned versions/hashes of agent packages and tracked flake inputs.
-#   update-pins [claude-code|codex|opencode|pi|t3code|skills|inputs|all]
+#   update-pins [claude-code|codex|opencode|pi|t3code|hermes|skills|inputs|all]
 
 const FAKE = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 
-# Flake inputs that should always track upstream: the i-have-adhd skill, Rex,
-# Hermes, Helium, and the Homebrew/Datadog taps that pin cask and brew versions
+const SKILL_INPUTS = ["i-have-adhd" "effect-skills"]
+
+# Flake inputs that should always track upstream: the skill inputs, Rex,
+# Helium, and the Homebrew/Datadog taps that pin cask and brew versions
 # (Grok Bot, Claude, ChatGPT, CodexBar, ...). Everything else (nixpkgs,
 # home-manager, exo's release tag, ...) moves through the update-flakes PR.
 const TRACKED_INPUTS = [
   "i-have-adhd"
+  "effect-skills"
   "rex"
-  "hermes-agent"
   "helium"
   "homebrew-core"
   "homebrew-cask"
@@ -189,7 +191,23 @@ def update-t3code [] {
 
 def update-skills [] {
   print "updating agent skill inputs"
-  ^nix flake update --flake (repo-root) i-have-adhd
+  ^nix flake update --flake (repo-root) ...$SKILL_INPUTS
+}
+
+# Hermes tracks its latest stable release tag (never `main` or canaries).
+def update-hermes [] {
+  let file = $"(repo-root)/flake.nix"
+  let tag = (gh-json "repos/NousResearch/hermes-agent/releases/latest" | get tag_name)
+  let pattern = 'github:NousResearch/hermes-agent(/[^"]*)?"'
+  let source = (open --raw $file)
+  let current = ($source | parse --regex 'github:NousResearch/hermes-agent/(?<tag>[^"]*)"' | get tag.0? | default "main")
+  if $current == $tag {
+    print $"hermes-agent up to date \(($current)\)"
+  } else {
+    print $"hermes-agent ($current) -> ($tag)"
+    $source | str replace --regex $pattern $"github:NousResearch/hermes-agent/($tag)\"" | save --force --raw $file
+  }
+  ^nix flake update --flake (repo-root) hermes-agent
 }
 
 def update-inputs [] {
@@ -205,6 +223,7 @@ def main [pkg: string = "all"] {
     "pi" => { update-pi }
     "t3code" => { update-t3code }
     "skills" => { update-skills }
+    "hermes" => { update-hermes }
     "inputs" => { update-inputs }
     "all" => {
       update-claude-code
@@ -212,10 +231,11 @@ def main [pkg: string = "all"] {
       update-opencode
       update-pi
       update-t3code
+      update-hermes
       update-inputs
     }
     _ => {
-      print "usage: update-pins [claude-code|codex|opencode|pi|t3code|skills|inputs|all]"
+      print "usage: update-pins [claude-code|codex|opencode|pi|t3code|hermes|skills|inputs|all]"
       exit 1
     }
   }
