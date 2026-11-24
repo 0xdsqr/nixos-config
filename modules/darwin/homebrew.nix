@@ -35,6 +35,25 @@
           description = "Darwin user that owns the managed Homebrew prefix.";
         };
 
+        upgrade = mkOption {
+          type = bool;
+          default = true;
+          description = ''
+            Upgrade outdated brews and casks to the versions in the pinned taps
+            during activation. The taps are flake inputs bumped daily by CI, so
+            each switch brings Homebrew packages up to the latest pinned release.
+          '';
+        };
+
+        greedyCasks = mkOption {
+          type = bool;
+          default = true;
+          description = ''
+            Also upgrade casks that update themselves (Grok Bot, Claude, ChatGPT,
+            ...) instead of leaving them on whatever version they were installed at.
+          '';
+        };
+
         nixHomebrew = {
           enable = mkEnableOption "nix-homebrew ownership of the Homebrew installation" // {
             default = true;
@@ -62,7 +81,11 @@
           }
         ];
 
-        homebrew.enable = true;
+        homebrew = {
+          enable = true;
+          onActivation.upgrade = cfg.upgrade;
+          inherit (cfg) greedyCasks;
+        };
 
         nix-homebrew = mkIf cfg.nixHomebrew.enable {
           enable = true;
