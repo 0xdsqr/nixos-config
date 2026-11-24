@@ -12,61 +12,70 @@ let
       lib.filesystem.listFilesRecursive (inputs.hermes-agent + /skills)
     )
   );
+  # Bundled skills not listed here are disabled. github-* consolidated into
+  # `github`, docx/xlsx/powerpoint into `microsoft-office`, and nano-pdf /
+  # ocr-and-documents into `pdf`; `plan` and `touchdesigner-mcp` were dropped.
   curateSkills = enabled: { disabled = lib.subtractLists enabled bundledSkills; };
   enabledSkills = [
     "architecture-diagram"
     "arxiv"
-    "ascii-art"
     "ascii-video"
     "baoyu-infographic"
-    "blogwatcher"
     "claude-design"
     "codebase-inspection"
     "codex"
-    "comfyui"
     "computer-use"
-    "design-md"
-    "docx"
-    "excalidraw"
-    "gif-search"
-    "github-auth"
-    "github-code-review"
-    "github-issues"
-    "github-pr-workflow"
-    "github-repo-management"
+    "github"
     "google-workspace"
     "grounded-citations"
     "hermes-agent"
-    "hermes-agent-skill-authoring"
     "humanizer"
-    "llm-wiki"
     "manim-video"
     "maps"
-    "nano-pdf"
-    "node-inspect-debugger"
-    "ocr-and-documents"
+    "microsoft-office"
     "p5js"
     "pdf"
-    "plan"
     "popular-web-designs"
-    "powerpoint"
-    "pretext"
-    "python-debugpy"
     "requesting-code-review"
-    "research-paper-writing"
     "simplify-code"
-    "sketch"
-    "songsee"
     "songwriting-and-ai-music"
     "spike"
     "systematic-debugging"
     "test-driven-development"
-    "touchdesigner-mcp"
-    "xlsx"
+    "xurl"
     "youtube-content"
   ];
+  # Official optional skills, served read-only from the pinned release through
+  # `skills.external_dirs` instead of runtime `hermes skills install`.
+  optionalSkills = [
+    "creative/ascii-art"
+    "creative/comfyui"
+    "creative/design-md"
+    "creative/excalidraw"
+    "creative/pretext"
+    "creative/sketch"
+    "media/gif-search"
+    "media/songsee"
+    "research/blogwatcher"
+    "research/llm-wiki"
+    "research/research-paper-writing"
+    "software-development/hermes-agent-skill-authoring"
+    "software-development/node-inspect-debugger"
+    "software-development/python-debugpy"
+  ];
+  optionalSkillsDir = pkgs.runCommandLocal "hermes-optional-skills" { } (
+    lib.concatMapStringsSep "\n" (skill: ''
+      mkdir -p "$out/${builtins.dirOf skill}"
+      cp -r ${inputs.hermes-agent + "/optional-skills/${skill}"} "$out/${skill}"
+    '') optionalSkills
+  );
+  skills = (curateSkills enabledSkills) // {
+    external_dirs = [ "${optionalSkillsDir}" ];
+  };
+  # Profiles on this host collaborate through the shared Kanban board (named,
+  # durable handoffs) and delegation (in-process subagents), the upstream
+  # pattern for agents on one machine. A2A is reserved for remote peers.
   commonToolsets = [
-    "a2a"
     "browser"
     "clarify"
     "code_execution"
@@ -74,6 +83,7 @@ let
     "delegation"
     "file"
     "image_gen"
+    "kanban"
     "memory"
     "session_search"
     "skills"
@@ -198,11 +208,12 @@ let
       };
     };
   };
+  # One multiplexed gateway now carries both profiles (previously 2 x 2G).
   resources = {
-    CPUQuota = "150%";
-    MemoryHigh = "1536M";
-    MemoryMax = "2G";
-    TasksMax = 512;
+    CPUQuota = "200%";
+    MemoryHigh = "3G";
+    MemoryMax = "4G";
+    TasksMax = 1024;
   };
 in
 {
@@ -230,13 +241,12 @@ in
       allowedUsers
       cognition
       commonToolsets
-      curateSkills
       display
-      enabledSkills
       mcpServers
       model
       providers
       resources
+      skills
       ;
     package = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default;
     opusLibraryPath = lib.makeLibraryPath [ pkgs.libopus ];

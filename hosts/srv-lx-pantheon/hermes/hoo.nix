@@ -26,14 +26,6 @@
       inherit (hermesShared) display model;
       mcp_servers = hermesShared.mcpServers;
       agent.reasoning_effort = "high";
-      a2a_agents.vanilla = {
-        url = "http://127.0.0.1:9901";
-        timeout = 120;
-        capabilities = [
-          "conversation"
-          "memory"
-        ];
-      };
       discord.server_actions = [
         "list_guilds"
         "server_info"
@@ -51,12 +43,10 @@
         "add_role"
         "remove_role"
       ];
-      gateway.platforms.a2a = {
-        enabled = true;
-        extra.port = 9900;
-      };
+      # Settings merge into the on-disk config.yaml, so the retired A2A
+      # listener has to be switched off explicitly rather than just omitted.
+      gateway.platforms.a2a.enabled = false;
       platform_toolsets = {
-        a2a = hermesShared.commonToolsets;
         discord = hermesShared.commonToolsets ++ [
           "discord"
           "discord_admin"
@@ -64,11 +54,10 @@
           "mcp-xdocs"
         ];
       };
-      skills = hermesShared.curateSkills hermesShared.enabledSkills;
+      inherit (hermesShared) skills;
       tts.elevenlabs.voice_id = "pNInz6obpgDQGcFmaJgB";
     };
     environment = {
-      A2A_AGENT_NAME = "hoo";
       DISCORD_ALLOWED_USERS = hermesShared.allowedUsers;
       DISCORD_ALLOW_BOTS = "none";
       DISCORD_FREE_RESPONSE_CHANNELS = "1496697794285539348";

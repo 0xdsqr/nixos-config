@@ -7,16 +7,12 @@
       ...
     }:
     let
-      inherit (lib.attrsets)
-        filterAttrs
-        mapAttrs'
-        mapAttrsToList
-        nameValuePair
-        ;
+      inherit (lib.attrsets) filterAttrs mapAttrsToList;
+      inherit (lib.lists) concatLists optional;
       inherit (lib.meta) getExe;
       inherit (lib.modules) mkIf;
       inherit (lib.options) mkOption;
-      inherit (lib.strings) concatStringsSep;
+      inherit (lib.strings) concatStringsSep escapeShellArgs;
       inherit (lib.types)
         attrs
         attrsOf
@@ -40,13 +36,28 @@
           builtins.toJSON (lib.recursiveUpdate { terminal.cwd = upstream.workingDirectory; } profile.settings)
         );
       profileSoul = name: profile: pkgs.writeText "hermes-profile-${name}-SOUL.md" profile.soul;
+      # Non-secret variables only; secrets are appended from environmentFiles at
+      # activation so they never reach the Nix store.
+      profileEnv =
+        name: profile:
+        pkgs.writeText "hermes-profile-${name}.env" (
+          concatStringsSep "" (mapAttrsToList (key: value: "${key}=${builtins.toJSON value}\n") profile.environment)
+        );
+
+      # Upstream renders the default profile's .env after secrets are decrypted;
+      # profile .env files need the agenix paths too.
+      secretsActivationDeps = builtins.filter (name: config.system.activationScripts ? ${name}) [
+        "agenixInstall"
+        "agenixChown"
+        "setupSecrets"
+      ];
 
       profileModule = _: {
         options = {
           enable = mkOption {
             type = bool;
             default = true;
-            description = "Enable this named Hermes profile and its gateway service.";
+            description = "Enable this named Hermes profile on the host gateway.";
           };
 
           settings = mkOption {
@@ -58,13 +69,13 @@
           environment = mkOption {
             type = attrsOf str;
             default = { };
-            description = "Non-secret environment variables for this profile.";
+            description = "Non-secret variables written to this profile's .env.";
           };
 
           environmentFiles = mkOption {
             type = listOf str;
             default = [ ];
-            description = "Runtime secret files merged into this profile's environment.";
+            description = "Runtime secret files appended to this profile's .env.";
           };
 
           soul = mkOption {
@@ -81,82 +92,73 @@
       options.dsqr.nixos.hermes.profiles = mkOption {
         type = attrsOf (submodule profileModule);
         default = { };
-        description = "Named Hermes profiles managed alongside the upstream default service.";
+        description = ''
+          Named Hermes profiles served by the upstream host gateway. Hermes
+          multiplexes every profile under $HERMES_HOME/profiles through the one
+          `hermes-agent` service, so a profile is its config.yaml, .env, and
+          SOUL.md; it never gets a gateway service of its own.
+        '';
       };
 
       config = mkIf (upstream.enable && profiles != { }) {
-        system.activationScripts.hermes-agent-profiles = lib.stringAfter [ "hermes-agent-setup" ] (
-          concatStringsSep "\n" (
-            mapAttrsToList (
-              name: profile:
-              let
-                home = profileHome name;
-              in
-              /* bash */ ''
-                if [[ ! -d ${home} ]]; then
-                  ${pkgs.util-linux}/bin/runuser -u ${upstream.user} -- \
-                    env HOME=${upstream.stateDir} HERMES_HOME=${upstream.stateDir}/.hermes \
-                    ${getExe upstream.package} profile create ${name} --no-alias
-                fi
+        # One host gateway serves every profile (the only supported topology
+        # since v0.23). Make the default profile's choice explicit.
+        services.hermes-agent.settings.gateway.multiplex_profiles = true;
 
-                install -d -o ${upstream.user} -g ${upstream.group} -m 2770 ${home}
-                ${configMergeScript} ${profileConfig name profile} ${home}/config.yaml
-                chown ${upstream.user}:${upstream.group} ${home}/config.yaml
-                chmod ${configYamlMode} ${home}/config.yaml
-                ${lib.optionalString (profile.soul != null) /* bash */ ''
-                  install -o ${upstream.user} -g ${upstream.group} -m 0640 \
-                    ${profileSoul name profile} ${home}/SOUL.md
-                ''}
-              ''
-            ) profiles
-          )
-        );
+        system.activationScripts.hermes-agent-profiles =
+          lib.stringAfter ([ "hermes-agent-setup" ] ++ secretsActivationDeps)
+            (
+              concatStringsSep "\n" (
+                mapAttrsToList (
+                  name: profile:
+                  let
+                    home = profileHome name;
+                  in
+                  /* bash */ ''
+                    if [[ ! -d ${home} ]]; then
+                      ${pkgs.util-linux}/bin/runuser -u ${upstream.user} -- \
+                        env HOME=${upstream.stateDir} HERMES_HOME=${upstream.stateDir}/.hermes \
+                        ${getExe upstream.package} profile create ${name} --no-alias
+                    fi
 
-        systemd.services = mapAttrs' (
-          name: profile:
-          nameValuePair "hermes-agent-${name}" {
-            description = "Hermes Agent Gateway (${name})";
-            wantedBy = [ "multi-user.target" ];
-            after = [ "network-online.target" ];
-            wants = [ "network-online.target" ];
-            restartTriggers = [ (profileConfig name profile) ];
+                    install -d -o ${upstream.user} -g ${upstream.group} -m 2770 ${home}
+                    ${configMergeScript} ${profileConfig name profile} ${home}/config.yaml
+                    chown ${upstream.user}:${upstream.group} ${home}/config.yaml
+                    chmod ${configYamlMode} ${home}/config.yaml
 
-            environment = {
-              HOME = upstream.stateDir;
-              HERMES_HOME = "${upstream.stateDir}/.hermes";
-              HERMES_MANAGED = "true";
-            }
-            // profile.environment;
+                    _hermes_env="$(mktemp)"
+                    cat ${profileEnv name profile} > "$_hermes_env"
+                    for _hermes_env_file in ${escapeShellArgs profile.environmentFiles}; do
+                      if [[ -r "$_hermes_env_file" ]]; then
+                        cat "$_hermes_env_file" >> "$_hermes_env"
+                        printf '\n' >> "$_hermes_env"
+                      else
+                        echo "hermes profile ${name}: missing environment file $_hermes_env_file" >&2
+                      fi
+                    done
+                    install -o ${upstream.user} -g ${upstream.group} -m 0640 "$_hermes_env" ${home}/.env
+                    rm -f "$_hermes_env"
+                    ${lib.optionalString (profile.soul != null) /* bash */ ''
+                      install -o ${upstream.user} -g ${upstream.group} -m 0640 \
+                        ${profileSoul name profile} ${home}/SOUL.md
+                    ''}
+                  ''
+                ) profiles
+              )
+            );
 
-            path = [
-              upstream.package
-              pkgs.bash
-              pkgs.coreutils
-              pkgs.git
+        # Served profiles load their config once at gateway start, so the host
+        # gateway restarts whenever a profile's declared state changes.
+        systemd.services.hermes-agent.restartTriggers = concatLists (
+          mapAttrsToList (
+            name: profile:
+            [
+              (profileConfig name profile)
+              (profileEnv name profile)
             ]
-            ++ upstream.extraPackages;
-
-            serviceConfig = {
-              User = upstream.user;
-              Group = upstream.group;
-              WorkingDirectory = upstream.workingDirectory;
-              ExecStart = "${getExe upstream.package} --profile ${name} gateway run --replace";
-              EnvironmentFile = profile.environmentFiles;
-              Restart = upstream.restart;
-              RestartSec = upstream.restartSec;
-              UMask = "0007";
-
-              NoNewPrivileges = true;
-              ProtectSystem = "strict";
-              ProtectHome = false;
-              ReadWritePaths = [
-                upstream.stateDir
-                upstream.workingDirectory
-              ];
-              PrivateTmp = true;
-            };
-          }
-        ) profiles;
+            ++ optional (profile.soul != null) (profileSoul name profile)
+          ) profiles
+        );
       };
     };
 }

@@ -6,11 +6,8 @@
 }:
 let
   inherit (lib.attrsets) genAttrs;
-  gatewayServices = [
-    "hermes-agent.service"
-    "hermes-agent-vanilla.service"
-  ];
-  gateways = lib.concatStringsSep " " gatewayServices;
+  # The host gateway serves every profile (hoo and vanilla).
+  gateways = "hermes-agent.service";
 in
 {
   services.restic.backups = genAttrs config.services.restic.hosts (_: {

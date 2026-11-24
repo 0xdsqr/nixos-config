@@ -107,8 +107,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Pinned to the latest stable release: Nix is a Tier 2 Hermes platform and
+    # `main` may break it at any commit. update-pins bumps the tag daily.
     hermes-agent = {
-      url = "github:NousResearch/hermes-agent";
+      url = "github:NousResearch/hermes-agent/v0.23.4";
     };
 
     i-have-adhd = {

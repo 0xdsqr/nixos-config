@@ -20,34 +20,21 @@
     settings = lib.recursiveUpdate (lib.recursiveUpdate hermesShared.providers hermesShared.cognition) {
       inherit (hermesShared) display model;
       agent.reasoning_effort = "medium";
-      a2a_agents.hoo = {
-        url = "http://127.0.0.1:9900";
-        timeout = 120;
-        capabilities = [
-          "conversation"
-          "memory"
-        ];
-      };
       discord.server_actions = [
         "search_members"
         "fetch_messages"
         "create_thread"
       ];
       discord.gateway_restart_notification = false;
-      gateway.platforms.a2a = {
-        enabled = true;
-        extra.port = 9901;
-      };
+      gateway.platforms.a2a.enabled = false;
       platform_toolsets = {
-        a2a = hermesShared.commonToolsets;
         discord = hermesShared.commonToolsets ++ [ "discord" ];
       };
-      skills = hermesShared.curateSkills hermesShared.enabledSkills;
+      inherit (hermesShared) skills;
       terminal.cwd = "/var/lib/hermes/.hermes/profiles/vanilla/workspace";
       tts.elevenlabs.voice_id = "21m00Tcm4TlvDq8ikWAM";
     };
     environment = {
-      A2A_AGENT_NAME = "vanilla";
       DISCORD_ALLOWED_USERS = hermesShared.allowedUsers;
       DISCORD_ALLOWED_CHANNELS = "1465807038587076700";
       DISCORD_ALLOW_BOTS = "none";
@@ -55,10 +42,5 @@
       DISCORD_HOME_CHANNEL = "1465807038587076700";
       DISCORD_REQUIRE_MENTION = "false";
     };
-  };
-
-  systemd.services.hermes-agent-vanilla = {
-    environment.LD_LIBRARY_PATH = hermesShared.opusLibraryPath;
-    serviceConfig = hermesShared.resources;
   };
 }
