@@ -224,6 +224,22 @@
         "type": "github"
       }
     },
+    "effect-skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791583519,
+        "narHash": "sha256-GSmGLOQSp4taxckrg7vfMTD/mbkfBYjv7oBsvDJdyck=",
+        "owner": "Effect-TS",
+        "repo": "skills",
+        "rev": "155c50c911f9c99c294ef8a4461981c5bbe6453e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Effect-TS",
+        "repo": "skills",
+        "type": "github"
+      }
+    },
     "exo": {
       "inputs": {
         "crane": "crane",
@@ -937,6 +953,7 @@
         "datadog-pup": "datadog-pup",
         "determinate": "determinate",
         "disko": "disko",
+        "effect-skills": "effect-skills",
         "exo": "exo",
         "flake-parts": "flake-parts_3",
         "helium": "helium",

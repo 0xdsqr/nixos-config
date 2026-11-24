@@ -116,6 +116,11 @@
       flake = false;
     };
 
+    effect-skills = {
+      url = "github:Effect-TS/skills";
+      flake = false;
+    };
+
     opencode = {
       url = "github:anomalyco/opencode";
       inputs.nixpkgs.follows = "nixpkgs";
