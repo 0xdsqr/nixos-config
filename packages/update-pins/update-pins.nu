@@ -1,7 +1,22 @@
-# Bump the pinned versions/hashes of agent packages and skill inputs.
-#   update-pins [claude-code|codex|opencode|pi|t3code|skills|all]
+# Bump the pinned versions/hashes of agent packages and tracked flake inputs.
+#   update-pins [claude-code|codex|opencode|pi|t3code|skills|inputs|all]
 
 const FAKE = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+
+# Flake inputs that should always track upstream: the i-have-adhd skill, Rex,
+# Hermes, Helium, and the Homebrew/Datadog taps that pin cask and brew versions
+# (Grok Bot, Claude, ChatGPT, CodexBar, ...). Everything else (nixpkgs,
+# home-manager, exo's release tag, ...) moves through the update-flakes PR.
+const TRACKED_INPUTS = [
+  "i-have-adhd"
+  "rex"
+  "hermes-agent"
+  "helium"
+  "homebrew-core"
+  "homebrew-cask"
+  "datadog-lapdog"
+  "datadog-pup"
+]
 
 def repo-root [] { ^git rev-parse --show-toplevel | str trim }
 
@@ -177,6 +192,11 @@ def update-skills [] {
   ^nix flake update --flake (repo-root) i-have-adhd
 }
 
+def update-inputs [] {
+  print $"updating tracked flake inputs: ($TRACKED_INPUTS | str join ', ')"
+  ^nix flake update --flake (repo-root) ...$TRACKED_INPUTS
+}
+
 def main [pkg: string = "all"] {
   match $pkg {
     "claude-code" => { update-claude-code }
@@ -185,16 +205,17 @@ def main [pkg: string = "all"] {
     "pi" => { update-pi }
     "t3code" => { update-t3code }
     "skills" => { update-skills }
+    "inputs" => { update-inputs }
     "all" => {
       update-claude-code
       update-codex
       update-opencode
       update-pi
       update-t3code
-      update-skills
+      update-inputs
     }
     _ => {
-      print "usage: update-pins [claude-code|codex|opencode|pi|t3code|skills|all]"
+      print "usage: update-pins [claude-code|codex|opencode|pi|t3code|skills|inputs|all]"
       exit 1
     }
   }

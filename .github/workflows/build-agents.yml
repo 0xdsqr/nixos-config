@@ -54,8 +54,14 @@ jobs:
       - name: Build and cache agent packages
         run: |
           packages=(claude-code codex pi t3code)
+          # OpenCode's node_modules hash is only pinned for Apple Silicon.
+          if [[ "${{ matrix.system }}" == "aarch64-darwin" ]]; then
+            packages+=(opencode)
+          fi
           targets=()
           for pkg in "${packages[@]}"; do
             targets+=(".#packages.${{ matrix.system }}.$pkg")
           done
-          nix build --accept-flake-config --print-out-paths --keep-going --log-lines 500 "${targets[@]}"
+          # Rex comes straight from its flake input (laptop + srv-lx-khaos).
+          targets+=("rex#packages.${{ matrix.system }}.rex")
+          nix build --accept-flake-config --inputs-from . --print-out-paths --keep-going --log-lines 500 "${targets[@]}"

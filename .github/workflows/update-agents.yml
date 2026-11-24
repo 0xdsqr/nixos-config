@@ -77,10 +77,25 @@ jobs:
             git commit -m "chore($pkg): bump to $version"
           done
           if ! git diff --quiet -- flake.lock; then
+            changed="$(
+              jq -rn \
+                --argjson old "$(git show HEAD:flake.lock)" \
+                --argjson new "$(cat flake.lock)" \
+                '$new.nodes.root.inputs
+                  | to_entries
+                  | map(select(
+                      ($old.nodes[$old.nodes.root.inputs[.key] // ""].locked.narHash // "")
+                      != ($new.nodes[.value].locked.narHash // "")
+                    ))
+                  | map(.key)
+                  | join(", ")'
+            )"
             git add flake.lock
-            git commit -m "chore(agents): update flake inputs"
+            git commit -m "chore(flake): update ${changed:-tracked inputs}"
           fi
           git diff --exit-code
           git push
-          # Pushes made with GITHUB_TOKEN do not trigger other workflows.
+          # Pushes made with GITHUB_TOKEN do not trigger other workflows, so
+          # dispatch the builds and the host-eval checks for the bumped inputs.
           gh workflow run build-agents.yml --ref master
+          gh workflow run check.yml --ref master
