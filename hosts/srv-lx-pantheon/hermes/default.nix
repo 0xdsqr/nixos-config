@@ -217,10 +217,23 @@ let
   };
 in
 {
+  # Hermes otherwise downloads its own tool binaries (Chromium, node, ffmpeg,
+  # ripgrep) into ~/.hermes/tools, and those generic Linux builds cannot run
+  # on NixOS. Provide them from nixpkgs on the service PATH instead.
   services.hermes-agent.extraPackages = [
     pkgs.binutils
+    pkgs.chromium
+    pkgs.ffmpeg
+    pkgs.nodejs
+    pkgs.pnpm
+    pkgs.ripgrep
     pkgs.xurl
   ];
+
+  # The browser tool resolves Chromium from its own downloads unless this
+  # override is set; one gateway process serves every profile.
+  systemd.services.hermes-agent.environment.AGENT_BROWSER_EXECUTABLE_PATH =
+    lib.getExe pkgs.chromium;
 
   age.secrets.hermes-providers-environment = {
     file = ../hermes-providers.env.age;
