@@ -432,11 +432,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1795607293,
-        "narHash": "sha256-a0Q3+z23BSIvsQaiz4fInmIbEuCEDgG+w0wh2hASu8g=",
+        "lastModified": 1795732087,
+        "narHash": "sha256-Qwy97hBOaFd1Om3X3vEJ73rYO1vb9hJk6Zbt4GJqH5o=",
         "owner": "amaanq",
         "repo": "helium-flake",
-        "rev": "077f04d80e1ddd98ff86b0709d9916f86385d12f",
+        "rev": "8f978b543fe1863c84c543d379c543b21eacbb0e",
         "type": "github"
       },
       "original": {
@@ -530,11 +530,11 @@
     "homebrew-cask": {
       "flake": false,
       "locked": {
-        "lastModified": 1795668807,
-        "narHash": "sha256-DUD2LfMqKHj+8EpYBKIbh81UZP1MN8erK4HSJlfJpO8=",
+        "lastModified": 1795764180,
+        "narHash": "sha256-a59J/ysWD+j8rytoOBs1A3dulhOfKUzWhE/5l5kvMJA=",
         "owner": "homebrew",
         "repo": "homebrew-cask",
-        "rev": "c953b3a6f782a9e29a454d49a84f284389dc5c09",
+        "rev": "87580919353a3a7c265a12c93d12c76ae8c82345",
         "type": "github"
       },
       "original": {
@@ -546,11 +546,11 @@
     "homebrew-core": {
       "flake": false,
       "locked": {
-        "lastModified": 1795675440,
-        "narHash": "sha256-n/0hzQqJ5MYdzKCwqtWul3lRb3tJYTpOI9a6HFoVHfA=",
+        "lastModified": 1795767115,
+        "narHash": "sha256-6eJncQ/W+lr4MfY3ZehSeaHd5InHfRwfxF6CYVcoK1U=",
         "owner": "homebrew",
         "repo": "homebrew-core",
-        "rev": "f39937cad529d5b12685c2a4147cf8121306bd9d",
+        "rev": "82bb394d3250aa2a2d865714a633207ec9858bb4",
         "type": "github"
       },
       "original": {
@@ -781,11 +781,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1795677920,
-        "narHash": "sha256-Kr6B8sOq2K2Jn2NR3a6OVzQJO81lhdUUHi50a/uQpIM=",
+        "lastModified": 1795766375,
+        "narHash": "sha256-9GTRJVGH51RhRl1Ze8VT3++RBtxJhyIzZlglItPgWd0=",
         "owner": "anomalyco",
         "repo": "opencode",
-        "rev": "bcd14570020e0619aaf450bbe974898e12cadebb",
+        "rev": "80bd09332bda44a4fc3a808d2d8d52d554cbdbf8",
         "type": "github"
       },
       "original": {
@@ -925,10 +925,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1795648654,
-        "narHash": "sha256-Clxtr96+1TcILjAQ+WJrRz8YiDvYDWS0GK7c+YOBTWU=",
+        "lastModified": 1795752225,
+        "narHash": "sha256-LTxyo2c4z4a6lZ7tjjsSQy5hOyXZ60ThNz5M4dxn/bI=",
         "type": "tarball",
-        "url": "https://pkgs.superlogical.com/rex/nix/snapshot/0.1.0-snapshot.2671.tar.gz"
+        "url": "https://pkgs.superlogical.com/rex/nix/snapshot/0.1.0-snapshot.2683.tar.gz"
       },
       "original": {
         "type": "tarball",
