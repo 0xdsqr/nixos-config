@@ -12,10 +12,10 @@
   spdx-license-list-data,
 }:
 let
-  version = "0.1.12";
-  hash = "sha256-BeeKQGuTSeOejhzIFzpFLhVjuVRIc7eToWzGrHGNJqc=";
+  version = "0.1.13";
+  hash = "sha256-Frk9YQmkR5MrIo0+eMmYqFkit/Y2tf3JkOXy1c6srbs=";
   pnpmDepsHash = "sha256-8MrqLkOu5wjprmkhZieZT+ZV/3D/azIPiJoFccoVFWQ=";
-  cargoHash = "sha256-deTy3FFcOwhxZnEbWDXFGVFFoKUex434ADJQtchVzbs=";
+  cargoHash = "sha256-QartZALjE2BxgfKcV3CJjtG6oSNE/Vcbz2ESx1UrRbk=";
   wrapperArgs = [
     "--set-default"
     "NODE_EXTRA_CA_CERTS"
