@@ -110,7 +110,7 @@
     # Pinned to the latest stable release: Nix is a Tier 2 Hermes platform and
     # `main` may break it at any commit. update-pins bumps the tag daily.
     hermes-agent = {
-      url = "github:NousResearch/hermes-agent/v0.23.4";
+      url = "github:NousResearch/hermes-agent/v0.23.5";
     };
 
     i-have-adhd = {
